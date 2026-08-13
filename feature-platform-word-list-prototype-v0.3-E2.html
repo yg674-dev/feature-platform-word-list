@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Feature Platform · Create List (Foreign → EN Normalization) · v0.3 (E2)</title>
+<style>
+:root{
+ --bg-page:#F4F6FA; --bg-card:#FFFFFF; --bg-soft:#F8F9FC; --bg-softer:#FAFBFC;
+ --border:#E5E8EE; --border-soft:#EEF0F4;
+ --text-primary:#1F2937; --text-secondary:#5A6373; --text-muted:#6B7280;
+ --link:#2563EB; --link-hover:#1D4FCF;
+ --green:#10B981; --green-bg:#D1FAE5; --green-text:#047857;
+ --amber:#F59E0B; --amber-bg:#FEF3C7; --amber-text:#92400E;
+ --red:#EF4444; --red-bg:#FEE2E2; --red-text:#991B1B;
+ --sidebar:linear-gradient(180deg,#4F8DEC 0%,#1E3A8A 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-page);color:var(--text-primary);font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans Arabic','Noto Sans Thai',-apple-system,sans-serif;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--link-hover);text-decoration:underline}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+
+.sidebar{background:var(--sidebar);color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.brand-logo{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff 0%,#A7C5FF 60%,#3B5DDF 100%);display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800;font-size:14px}
+.brand-name{font-weight:700;font-size:15px;letter-spacing:0.2px}
+.brand-name small{display:block;font-weight:500;font-size:10.5px;opacity:.75;margin-top:1px}
+.nav-section{font-size:10px;letter-spacing:.5px;text-transform:uppercase;opacity:.55;margin:14px 4px 6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:#dbe6ff;cursor:pointer;margin-bottom:1px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.nav-sub{padding-left:18px;font-size:11.5px;opacity:.85;margin-top:2px}
+.nav-sub .nav-item{padding:5px 9px}
+.nav-sub .nav-item.active{background:rgba(255,255,255,.22);color:#fff;font-weight:700}
+
+.main{padding:0;background:var(--bg-page);position:relative}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#fff;border-bottom:1px solid var(--border)}
+.crumb{font-size:12.5px;color:var(--text-muted)}
+.crumb b{color:var(--text-primary);font-weight:600}
+.crumb .e2-tag{margin-left:8px;font-size:9.5px;font-weight:700;background:#5B21B6;color:#fff;padding:1px 6px;border-radius:3px;letter-spacing:.4px}
+.topbar-right{display:flex;align-items:center;gap:14px;color:var(--text-muted);font-size:12px}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A7C5FF,#3B5DDF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+.canvas{padding:24px 28px 60px}
+
+.frame-label{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:#5B21B6;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.frame-label .dot{width:6px;height:6px;border-radius:50%;background:#34D399}
+.frame-title{font-size:18px;font-weight:700;margin-bottom:18px;letter-spacing:-.2px}
+
+.section-gap{height:40px}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text-primary)}
+.btn:hover{background:var(--bg-soft)}
+.btn-p{background:var(--link);color:#fff;border-color:var(--link)}
+.btn-p:hover{background:var(--link-hover)}
+.btn-sm{padding:5px 9px;font-size:11.5px}
+
+.modal-mask{background:rgba(15,23,42,.10);padding:24px 24px;border-radius:14px;margin-bottom:14px}
+.modal{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:820px;margin:0 auto;overflow:hidden;border:1px solid var(--border)}
+.modal-h{padding:14px 22px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}
+.modal-h h4{font-size:14px;font-weight:700}
+.modal-h .x{color:var(--text-muted);font-size:18px;cursor:pointer}
+.modal-f{padding:14px 22px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.modal-f .mf-l{font-size:11.5px;color:var(--text-muted)}
+.modal-f .mf-r{display:flex;gap:8px}
+
+.stepper{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text-muted);font-weight:600}
+.stepper .st{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:6px;color:var(--text-muted)}
+.stepper .st .stn{width:18px;height:18px;border-radius:50%;background:var(--bg-soft);color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;border:1px solid var(--border)}
+.stepper .st.on{color:var(--link)}
+.stepper .st.on .stn{background:var(--link);color:#fff;border-color:var(--link)}
+.stepper .st.done{color:var(--green-text)}
+.stepper .st.done .stn{background:var(--green-bg);color:var(--green-text);border-color:var(--green)}
+.stepper .arrow{color:var(--text-muted);opacity:.4;font-size:11px}
+
+.modal-b{padding:18px 22px}
+
+.form-sec{margin-bottom:22px}
+.form-sec:last-child{margin-bottom:0}
+.form-sec h4{font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:12px;letter-spacing:.2px;padding-bottom:8px;border-bottom:1px solid var(--border-soft);text-transform:uppercase;display:flex;align-items:center;gap:8px}
+
+.form-row{display:grid;grid-template-columns:130px 1fr;gap:12px 16px;margin-bottom:11px;align-items:start}
+.form-row > label{font-size:12px;color:var(--text-secondary);font-weight:600;padding-top:7px;display:flex;align-items:center;gap:4px}
+.form-row > label .req{color:var(--red);margin-left:1px}
+.form-row .field{display:flex;flex-direction:column;gap:5px}
+
+.inp{padding:7px 10px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:13px;width:100%;color:var(--text-primary);font-family:inherit}
+.inp::placeholder{color:var(--text-muted)}
+.inp:focus{outline:none;border-color:var(--link);box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+.inp-mono{font-family:'JetBrains Mono',Menlo,monospace;font-size:12.5px;line-height:1.7}
+
+.seg{display:inline-flex;background:var(--bg-soft);border:1px solid var(--border);border-radius:7px;padding:2px;width:fit-content}
+.seg span{padding:5px 11px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:5px;cursor:pointer;white-space:nowrap;user-select:none}
+.seg span:hover{color:var(--text-primary)}
+.seg span.on{background:#fff;color:var(--text-primary);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+.dd{position:relative;width:fit-content}
+.dd-trigger{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:12.5px;font-weight:600;color:var(--text-primary);cursor:pointer;min-width:220px}
+.dd-trigger:hover{border-color:var(--link)}
+.dd-trigger .caret{margin-left:auto;color:var(--text-muted);font-size:11px}
+
+.ck-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px 16px}
+.ck-item{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-secondary);cursor:pointer;user-select:none;padding:2px 0}
+.ck-box{border:1px solid var(--border);border-radius:7px;padding:11px 13px;background:var(--bg-softer)}
+.ck-box-label{font-size:10.5px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px;padding-bottom:7px;border-bottom:1px dashed var(--border-soft)}
+
+.ck-group{display:flex;flex-wrap:wrap;gap:6px}
+.ck-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:12px;color:var(--text-secondary);cursor:pointer;user-select:none}
+.ck-pill.on{background:#EFF6FF;border-color:#93C5FD;color:var(--link);font-weight:600}
+.ck-pill code{font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px}
+
+.ck-row{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-primary);cursor:pointer;user-select:none}
+.ck-row input{margin:0;width:14px;height:14px}
+
+.lang-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.lang-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:11.5px;color:var(--text-secondary);cursor:pointer;user-select:none}
+.lang-pill.on{background:#EFF6FF;border-color:#93C5FD;color:var(--link);font-weight:600}
+.lang-pill .lp-code{font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:var(--text-muted);background:var(--bg-soft);padding:1px 5px;border-radius:3px;min-width:28px;text-align:center}
+.lang-pill.on .lp-code{background:#DBE8FE;color:var(--link)}
+.lang-pill.locked{background:#FEF3C7;border-color:#F59E0B;color:#92400E;font-weight:700;cursor:not-allowed}
+.lang-pill.locked .lp-code{background:#F59E0B;color:#fff}
+
+.recap{background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:8px;padding:12px 14px;margin-bottom:18px}
+.recap-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.recap-h h5{font-size:11px;font-weight:700;color:var(--text-secondary);letter-spacing:.4px;text-transform:uppercase}
+.recap-h a{font-size:11px;color:var(--link);font-weight:600}
+.recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 18px;font-size:11.5px}
+.recap-grid .k{color:var(--text-muted);font-weight:600}
+.recap-grid .v{color:var(--text-primary);font-weight:500}
+.recap-grid .v.mono{font-family:'JetBrains Mono',Menlo,monospace;font-size:11px}
+
+.upload-zone{border:1.5px dashed var(--border);border-radius:8px;padding:18px;text-align:center;background:#fff;margin-bottom:10px}
+.upload-zone .uz-icon{font-size:20px;color:var(--text-muted);margin-bottom:5px}
+.upload-zone h5{font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text-primary)}
+.upload-zone p{font-size:11px;color:var(--text-muted)}
+.upload-zone a{color:var(--link);font-weight:600}
+
+/* Lark sheet 3-step workflow · download → open in Lark → upload */
+.lark-flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:stretch;margin-bottom:14px}
+.lf-step{background:#fff;border:1px solid var(--border-soft);border-radius:9px;padding:14px;display:flex;flex-direction:column;gap:10px;position:relative;transition:border-color .2s,background .2s,box-shadow .2s}
+/* Step progression states */
+.lf-step.is-active{border-color:var(--link);box-shadow:0 0 0 3px rgba(37,99,235,.08);background:#FBFDFF}
+.lf-step.is-done{border-color:#6EE7B7;background:#F0FDF4}
+.lf-step.is-done .lf-n{background:#10B981;color:#fff;border-color:#10B981}
+.lf-step.is-done .lf-n::before{content:"✓";font-family:'Inter',sans-serif}
+.lf-step.is-done .lf-n .lf-n-letter{display:none}
+.lf-step.is-locked{opacity:.58;pointer-events:none}
+.lf-step.is-locked .lf-step-b > *:not(.lf-locked-hint){opacity:.5}
+.lf-locked-hint{font-size:11px;color:var(--text-muted);font-style:italic;display:flex;align-items:center;gap:5px}
+.lf-locked-hint::before{content:"🔒";font-style:normal;font-size:11px;filter:grayscale(1) opacity(.6)}
+
+.lf-step-h{display:flex;align-items:center;gap:8px}
+.lf-n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--link-bg,#EFF6FF);color:var(--link);border:1px solid #BFDBFE;font-size:11px;font-weight:700;font-family:'JetBrains Mono',Menlo,monospace;transition:background .2s,color .2s,border-color .2s}
+.lf-t{font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:-.1px}
+.lf-step-b{display:flex;flex-direction:column;gap:7px;flex:1}
+.lf-meta{font-size:11px;color:var(--text-muted);line-height:1.55}
+.lf-meta b{color:var(--text-primary)}
+.lf-code{font-family:'JetBrains Mono',Menlo,monospace;background:#F1F5F9;color:#1D4ED8;padding:1px 5px;border-radius:3px;font-size:10.5px;font-weight:600}
+.lf-arrow{display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:18px;font-weight:700;padding:0 6px;align-self:center;transition:color .2s}
+.lf-arrow.is-done{color:#10B981}
+
+/* Recognition result panel after upload */
+.lf-result{display:flex;flex-direction:column;gap:5px;padding:11px 14px;background:#ECFDF5;border:1px solid #6EE7B7;border-radius:8px;margin-top:10px}
+.lf-result-h{display:flex;align-items:center;gap:8px}
+.lf-result-ico{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#10B981;color:#fff;font-size:11px;font-weight:700}
+.lf-result-t{flex:1;font-size:12.5px;font-weight:600;color:#065F46}
+.lf-result-t b{font-weight:700}
+.lf-result-cap{font-size:10px;font-weight:700;color:#065F46;background:#D1FAE5;border:1px solid #6EE7B7;padding:2px 7px;border-radius:3px;letter-spacing:.3px}
+.lf-result-b{font-size:11.5px;color:#065F46;line-height:1.55;padding-left:26px}
+
+/* Reject result variant — over 2000 cap */
+.lf-result.over-cap{background:#FFFBEB;border-color:#FCD34D}
+.lf-result.over-cap .lf-result-ico{background:#F59E0B}
+.lf-result.over-cap .lf-result-t,.lf-result.over-cap .lf-result-b{color:#78350F}
+.lf-result.over-cap .lf-result-cap{color:#78350F;background:#FEF3C7;border-color:#FCD34D}
+
+/* Parse failure variant — per-row errors + re-upload entry */
+.lf-result.failure{background:#FFFBEB;border-color:#FCD34D}
+.lf-result.failure .lf-result-ico{background:#F59E0B;font-weight:800;font-size:13px}
+.lf-result.failure .lf-result-t{color:#78350F}
+.lf-result.failure .lf-result-cap{color:#78350F;background:#FEF3C7;border-color:#FCD34D}
+.lf-result-errors{display:flex;flex-direction:column;gap:6px;margin-top:8px;margin-left:26px;padding:10px 12px;background:#fff;border:1px solid #FCD34D;border-radius:7px}
+.lf-err-row{display:flex;align-items:flex-start;gap:10px;font-size:11.5px;line-height:1.55}
+.lf-err-row-n{flex:none;font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#78350F;background:#FEF3C7;border:1px solid #FCD34D;padding:1px 7px;border-radius:3px;letter-spacing:.2px;min-width:50px;text-align:center}
+.lf-err-row-msg{flex:1;color:#78350F}
+.lf-err-row-msg b{color:#78350F;font-weight:700}
+.lf-result-actions{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #FCD34D;margin-left:26px}
+
+.divider-or{display:flex;align-items:center;gap:10px;margin:8px 0 10px;color:var(--text-muted);font-size:11px;letter-spacing:.4px;text-transform:uppercase;font-weight:700}
+.divider-or::before,.divider-or::after{content:"";flex:1;height:1px;background:var(--border-soft)}
+
+.kw-counter{display:flex;align-items:center;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-muted)}
+.kw-counter b{color:var(--text-primary);font-weight:700;font-variant-numeric:tabular-nums}
+
+.lang-tag{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',Menlo,monospace;font-size:10px;background:#1F2937;color:#fff;padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:.3px}
+
+
+/* Translation Agent ON/OFF toggle (E2.1 — before Languages section) */
+.agent-toggle-card{border:1px solid var(--border);border-radius:8px;background:var(--bg-softer);padding:13px 14px;display:flex;align-items:center;gap:14px}
+.agent-toggle-card.off{background:#FAFBFC;border-color:var(--border-soft)}
+.agent-toggle-card .at-l{flex:1;display:flex;flex-direction:column;gap:3px}
+.agent-toggle-card .at-title{font-size:12.5px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:7px}
+.agent-toggle-card .at-badge{font-family:'JetBrains Mono',Menlo,monospace;font-size:10px;background:var(--link);color:#fff;padding:1px 6px;border-radius:3px;font-weight:700;letter-spacing:.3px}
+.agent-toggle-card.off .at-badge{background:var(--text-muted)}
+.agent-toggle-card .at-desc{font-size:11px;color:var(--text-muted);line-height:1.5}
+.agent-toggle{position:relative;display:inline-flex;background:var(--bg-soft);border:1px solid var(--border);border-radius:99px;padding:3px;cursor:pointer;user-select:none;flex-shrink:0}
+.agent-toggle span{padding:5px 14px;font-size:11.5px;font-weight:700;color:var(--text-muted);border-radius:99px;transition:.15s background,.15s color;letter-spacing:.3px;text-transform:uppercase}
+.agent-toggle span.on{background:var(--link);color:#fff;box-shadow:0 1px 3px rgba(37,99,235,.30)}
+.agent-toggle.is-off span.on{background:transparent;color:var(--text-muted);box-shadow:none}
+.agent-toggle.is-off span.off{background:#fff;color:var(--text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* Result banner above coverage card — top-level success/partial signal */
+.result-banner{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:8px;margin-bottom:12px;border:1px solid;font-size:12.5px}
+.result-banner.partial{background:#FFFBEB;border-color:#FCD34D;color:#92400E}
+.result-banner.ok{background:#F0FDF4;border-color:#86EFAC;color:#15803D}
+.result-banner.fail{background:#FEF2F2;border-color:#FCA5A5;color:#991B1B}
+.result-banner .rb-ico{flex-shrink:0;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;background:#fff;border:1px solid currentColor}
+.result-banner .rb-body{flex:1;display:flex;flex-direction:column;gap:2px}
+.result-banner .rb-title{font-weight:700;font-size:13px;letter-spacing:.1px}
+.result-banner .rb-sub{font-size:11.5px;opacity:.85;line-height:1.45}
+.result-banner .rb-pct{font-family:'JetBrains Mono',Menlo,monospace;font-weight:700;font-size:24px;line-height:1;letter-spacing:-.5px}
+.result-banner .rb-pct small{font-size:10px;font-weight:600;display:block;text-transform:uppercase;letter-spacing:.4px;opacity:.7;margin-top:3px}
+.result-banner .rb-actions{display:flex;gap:7px;flex-shrink:0}
+.result-banner .rb-btn{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid currentColor;color:inherit;font-weight:700;font-size:11.5px;padding:7px 12px;border-radius:6px;cursor:pointer;transition:.12s background}
+.result-banner .rb-btn:hover{background:rgba(255,255,255,.6)}
+.result-banner .rb-btn.primary{background:currentColor;color:#fff;border-color:transparent}
+.result-banner.partial .rb-btn.primary{background:#D97706}
+.result-banner.partial .rb-btn.primary:hover{background:#B45309}
+
+/* Translation Coverage Summary (E2.2 — replaces full mapping table) */
+.cov-card{border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden;margin-top:10px}
+.cov-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border-soft)}
+.cov-stats.two-up{grid-template-columns:repeat(2,1fr)}
+.cov-stat{background:#fff;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.cov-stat .cv-num{font-size:22px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',Menlo,monospace;line-height:1}
+.cov-stat .cv-num small{font-size:11px;color:var(--text-muted);font-weight:600;margin-left:3px}
+.cov-stat .cv-label{font-size:10.5px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.cov-stat.ok .cv-num{color:#16A34A}
+.cov-stat.warn .cv-num{color:#D97706}
+.cov-stat.err .cv-num{color:#DC2626}
+.cov-issues{border-top:1px solid var(--border-soft);padding:12px 16px 14px;background:#FFFBF5}
+.cov-issues.empty{background:#F0FDF4}
+.cov-issues-h{font-size:10.5px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.cov-issue{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid var(--border-soft);border-radius:6px;margin-bottom:6px;font-size:12px}
+.cov-issue:last-child{margin-bottom:0}
+.cov-issue .cv-term{font-family:'Noto Sans Arabic','Noto Sans Thai','PingFang SC','Inter',sans-serif;color:var(--text-primary);min-width:130px;font-size:12px}
+.cov-issue .cv-term.rtl{direction:rtl;text-align:right}
+.cov-issue .cv-flag{margin-left:auto;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
+.cov-issue .cv-flag.missing{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+.cov-issue .cv-flag.unsupported{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+.cov-issue .cv-act{font-size:11px;color:var(--link);font-weight:600;cursor:pointer;text-decoration:none;padding:2px 0}
+.cov-issue .cv-act:hover{text-decoration:underline}
+.cov-issue .cv-act-ro{font-size:11px;color:var(--link);font-weight:600;cursor:default;text-decoration:none;padding:2px 0}
+
+/* Translation Agent: before / progress / complete states */
+.agent-before{display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 18px;background:#FBFCFE;border:1px dashed var(--border);border-radius:8px;margin-bottom:12px}
+.agent-before .ab-status{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary)}
+.agent-before .ab-status .ab-dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted);border:2px solid var(--bg-soft)}
+.agent-before .ab-meta{font-size:11px;color:var(--text-muted);text-align:center}
+.agent-before .ab-btn{display:inline-flex;align-items:center;gap:7px;background:var(--link);color:#fff;border:none;font-weight:700;font-size:14px;padding:11px 28px;border-radius:7px;cursor:pointer;box-shadow:0 2px 6px rgba(37,99,235,.20);transition:.12s background,.12s transform}
+.agent-before .ab-btn:hover{background:var(--link-hover);transform:translateY(-1px)}
+.agent-before .ab-btn:active{transform:translateY(0)}
+
+.agent-progress{padding:18px 18px;background:#fff;border:1px solid var(--link);border-radius:8px;margin-bottom:12px;box-shadow:0 0 0 3px rgba(37,99,235,.06)}
+.agent-progress .ap-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.agent-progress .ap-label{font-size:12.5px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px}
+.agent-progress .ap-label::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--link);animation:pulse 1s ease-in-out infinite}
+.agent-progress .ap-pct{font-size:14px;font-weight:700;color:var(--link);font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',Menlo,monospace}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+
+.progress-bar{height:7px;background:#EEF4FF;border-radius:99px;overflow:hidden;margin-bottom:12px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--link),#60A5FA);border-radius:99px;width:0%;transition:width .35s ease}
+
+.progress-stages{display:flex;flex-direction:column;gap:5px}
+.progress-stage{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:5px;font-size:11.5px;color:var(--text-muted);transition:background .2s,color .2s}
+.progress-stage .ps-mark{flex:none;width:18px;height:18px;border-radius:50%;background:var(--bg-soft);color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:1px solid var(--border);transition:.2s}
+.progress-stage.done{color:var(--green-text)}
+.progress-stage.done .ps-mark{background:var(--green-bg);color:var(--green-text);border-color:var(--green)}
+.progress-stage.active{color:var(--link);font-weight:700;background:#EFF6FF}
+.progress-stage.active .ps-mark{background:var(--link);color:#fff;border-color:var(--link);animation:pulse 1s ease-in-out infinite}
+
+.agent-status{display:flex;align-items:center;gap:14px;padding:10px 14px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:7px;margin-bottom:12px;font-size:12px}
+.agent-status .as-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.2)}
+.agent-status .as-label{font-weight:700;color:var(--text-primary)}
+.agent-status .as-meta{color:var(--text-muted);font-size:11px}
+.agent-actions{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+
+/* Step 3 summary */
+.success-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--green-bg);border:1px solid #86EFAC;border-radius:7px;color:var(--green-text);font-size:12px;font-weight:600;margin-bottom:14px}
+.success-banner .sb-icon{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:700}
+
+.summary-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.sum-card{background:#fff;border:1px solid var(--border-soft);border-radius:7px;padding:12px 14px}
+.sum-card .sk{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.sum-card .sv{font-size:20px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums;line-height:1.2}
+.sum-card .sv small{font-size:11px;color:var(--text-muted);font-weight:500;margin-left:4px}
+
+/* source-language breakdown */
+.src-bar{display:flex;height:18px;border-radius:4px;overflow:hidden;margin-top:8px;margin-bottom:6px}
+.src-bar span{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;letter-spacing:.3px}
+.src-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--text-secondary)}
+.src-legend .sl-dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+
+.chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.5}
+
+.list-id-inline{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px;color:#1D4ED8;background:#F1F5F9;padding:2px 8px;border-radius:4px;cursor:pointer;user-select:none}
+.list-id-inline:hover{background:#DBE8FE}
+
+
+/* permission cards (kept simple, Google Docs style from F2) */
+.perm-list{display:flex;flex-direction:column;gap:2px}
+.perm-card{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid transparent;border-radius:7px;cursor:pointer;background:#fff}
+.perm-card:hover{background:var(--bg-softer)}
+.perm-card.on{background:#EFF6FF}
+.perm-icon{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);margin-top:2px}
+.perm-card.on .perm-icon{color:var(--link)}
+.perm-c{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.perm-t{font-size:13px;font-weight:600;color:var(--text-primary)}
+.perm-card.on .perm-t{color:var(--link)}
+.perm-d{font-size:11.5px;color:var(--text-muted)}
+.perm-check{flex:none;color:var(--link);font-size:14px;font-weight:700;margin-top:4px;visibility:hidden}
+.perm-card.on .perm-check{visibility:visible}
+
+/* Sub-phase numbering inside Step 2 (Import → Translate) */
+.subphase-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--link);color:#fff;font-size:11px;font-weight:700;font-family:'JetBrains Mono',Menlo,monospace;flex:none}
+.subphase-num.done{background:var(--green);color:#fff}
+.subphase-num.pending{background:var(--bg-soft);color:var(--text-muted);border:1px solid var(--border)}
+.subphase-arrow{color:var(--text-muted);font-size:14px;margin:0 4px;opacity:.45}
+
+/* Success popup overlay (mirrors F2.4) */
+/* Edit mode (?mode=edit · entered from F1 Draft row Edit) · banner that jumps straight to Step 3 */
+.edit-banner{display:none;align-items:flex-start;gap:10px;padding:11px 14px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:7px;color:#1D4ED8;font-size:12px;line-height:1.6;margin-bottom:14px}
+.edit-banner.show{display:flex}
+.edit-banner .eb-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--link);margin-top:5px}
+.edit-banner b{color:#1E3A8A;font-weight:700}
+.edit-banner a{font-weight:600;text-decoration:underline;text-underline-offset:2px}
+
+.popup-mask{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100;align-items:center;justify-content:center}
+.popup-mask.show{display:flex}
+.popup{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.30);width:460px;overflow:hidden;animation:popIn .2s ease-out}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.popup-b{padding:28px 26px 18px;text-align:center}
+.popup-ico{width:48px;height:48px;border-radius:50%;background:var(--green-bg);color:var(--green);display:inline-flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;margin-bottom:14px}
+.popup-title{font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:7px}
+.popup-msg{font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-bottom:4px}
+.popup-msg b{color:var(--text-primary);font-weight:700}
+.popup-meta{display:inline-block;font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;background:var(--bg-soft);padding:3px 9px;border-radius:4px;margin-top:8px}
+.popup-node{display:inline-flex;flex-direction:column;gap:3px;align-items:flex-start;margin-top:10px;padding:7px 11px;background:#F8F9FC;border:1px dashed #D1D5DB;border-radius:6px;font-size:10.5px;text-align:left}
+.popup-node .pn-l{display:flex;align-items:baseline;gap:6px;color:#6B7280;font-weight:500}
+.popup-node .pn-k{font-size:9.5px;letter-spacing:.3px;text-transform:uppercase;color:#9CA3AF;font-weight:700;min-width:60px}
+.popup-node .pn-v{color:#374151;font-weight:600;font-size:11px}
+.popup-stats{display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:11px;color:var(--text-muted)}
+.popup-stats b{color:var(--text-primary);font-weight:700}
+.popup-f{padding:14px 22px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:flex-end;gap:8px}
+.popup-f .btn-publish{background:var(--link);color:#fff;border-color:var(--link);font-weight:700;letter-spacing:.5px;padding:7px 22px;text-decoration:none}
+.popup-f .btn-publish:hover{background:var(--link-hover)}
+
+/* Active-list change review modal */
+.review-popup{width:720px;max-height:86vh;display:flex;flex-direction:column}
+.review-head{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 16px;border-bottom:1px solid var(--border-soft)}
+.review-head .rh-icon{width:30px;height:30px;border-radius:50%;background:#EFF6FF;color:var(--link);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.review-head h3{font-size:16px;line-height:1.35;margin:0 0 3px}
+.review-head p{font-size:11.5px;color:var(--text-muted);margin:0}
+.review-close{margin-left:auto;color:var(--text-muted);font-size:20px;line-height:1;padding:4px}
+.review-body{padding:18px 22px;overflow:auto}
+.review-notice{padding:10px 12px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:5px;color:#1D4ED8;font-size:11.5px;line-height:1.55;margin-bottom:16px}
+.review-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.review-field label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:6px}
+.review-field select,.review-field textarea{width:100%;border:1px solid var(--border);border-radius:4px;background:#fff;color:var(--text-primary);font:inherit;padding:8px 10px;outline:none}
+.review-field select:focus,.review-field textarea:focus{border-color:var(--link);box-shadow:0 0 0 2px rgba(37,99,235,.10)}
+.review-field textarea{height:72px;resize:vertical}
+.review-error{display:none;color:var(--red-text);font-size:10.5px;margin-top:5px}
+.review-error.show{display:block}
+.change-summary{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg-soft);border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:0 -22px 14px}
+.change-summary b{font-size:12px}
+.summary-counts{display:flex;gap:12px;font-size:11px;color:var(--text-secondary)}
+.summary-counts strong{color:var(--text-primary)}
+.diff-section{margin-top:14px}
+.diff-title{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:7px}
+.diff-title .diff-count{font-size:10px;padding:1px 6px;border-radius:9px;background:var(--bg-soft);border:1px solid var(--border)}
+.diff-list{border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.diff-row{display:grid;grid-template-columns:28px 1fr;align-items:start;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border-soft);font-family:'JetBrains Mono',Menlo,monospace;font-size:11px}
+.diff-row:last-child{border-bottom:none}
+.diff-mark{font-weight:800;text-align:center}
+.diff-row.add{background:#F0FDF4;color:#166534}.diff-row.add .diff-mark{color:#16A34A}
+.diff-row.delete{background:#FEF2F2;color:#991B1B}.diff-row.delete .diff-mark{color:#DC2626}
+.diff-row.modify{grid-template-columns:28px 1fr 20px 1fr;background:#FFFBEB;color:#713F12}.diff-row.modify .diff-mark{color:#D97706}
+.review-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;background:var(--bg-softer);border-top:1px solid var(--border-soft)}
+.review-footer .rf-note{font-size:10.5px;color:var(--text-muted)}
+.review-footer .rf-actions{display:flex;gap:8px}
+
+/* Toast feedback */
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);background:#1F2937;color:#fff;padding:11px 18px 11px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:12.5px;display:flex;align-items:center;gap:10px;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast-ico{width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.toast-c{display:flex;flex-direction:column;gap:1px}
+.toast-t{font-weight:700;font-size:12.5px}
+.toast-d{font-size:10.5px;color:#94A3B8}
+.toast-d code{font-family:'JetBrains Mono',Menlo,monospace;color:#A7C5FF}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+ <div class="brand">
+  <div class="brand-logo">a</div>
+  <div class="brand-name">arena<small>Global</small></div>
+ </div>
+ <div class="nav-section">Workspace</div>
+ <div class="nav-item">Discover</div>
+ <div class="nav-item">Host Center</div>
+ <div class="nav-item">Resource Hub</div>
+ <div class="nav-item">LIVE Hub</div>
+ <div class="nav-item active">Ecosystem</div>
+ <div class="nav-sub">
+  <div class="nav-item">Strategic Configuration</div>
+  <div class="nav-item">Strategic Monitor</div>
+  <div class="nav-item active">Feature Center</div>
+ </div>
+ <div class="nav-section">Guardrail</div>
+ <div class="nav-item active">List Management</div>
+ <div class="nav-item">Detection Item Config</div>
+ <div class="nav-item">Hit Analysis</div>
+ <div class="nav-section">Quick Access</div>
+ <div class="nav-item">Go LIVE</div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <div class="crumb">Ecosystem / TRIDENT (IDSP) / Feature Center / Guardrail / List Management / <b>＋ Create List</b><span class="e2-tag">E2 · MIXED LANG → EN</span></div>
+  <div class="topbar-right">
+   <span>MY</span>
+   <span>35</span>
+   <div class="avatar">YG</div>
+  </div>
+ </header>
+
+ <div class="canvas">
+
+  <!-- ============================================================ -->
+  <!-- E2.1 · Step 1 — Basics                                        -->
+  <!-- ============================================================ -->
+  <span class="frame-label" id="e2-step1"><span class="dot"></span>FRAME E2.1 · STEP 1 / 3 · BASICS</span>
+  <h1 class="frame-title">Create List · Step 1 — Basics</h1>
+
+  <div class="modal-mask">
+   <div class="modal">
+
+    <div class="modal-h">
+     <div class="stepper">
+      <span class="st on"><span class="stn">1</span>Basics</span>
+      <span class="arrow">→</span>
+      <span class="st"><span class="stn">2</span>Import & Translate</span>
+      <span class="arrow">→</span>
+      <span class="st"><span class="stn">3</span>Confirm</span>
+     </div>
+     <span class="x">×</span>
+    </div>
+
+    <div class="modal-b">
+
+     <section class="form-sec">
+      <h4>List Basics</h4>
+      <div class="form-row">
+       <label>List Name<span class="req">*</span></label>
+       <div class="field"><input class="inp" value="LIVE_PCF_gift_solicitation_v2" /></div>
+      </div>
+      <div class="form-row">
+       <label>Description<span class="req">*</span></label>
+       <div class="field">
+        <div class="ck-box">
+         <div class="ck-box-label">Business Scenario Tag</div>
+         <div class="ck-group" id="scenario-tag-group">
+          <label class="ck-pill on" data-tag="text"><code>TEXT</code>Text content</label>
+          <label class="ck-pill" data-tag="account"><code>ACCOUNT</code>Account content</label>
+          <label class="ck-pill" data-tag="ansa"><code>ANSA</code>ANSA</label>
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="form-row">
+       <label>Notes</label>
+       <div class="field"><textarea class="inp" rows="2" placeholder="Optional context — ticket links, source docs, IM threads">UED feedback batch from SEA + MEA regions — mixed-language terms collected via UED tickets.</textarea></div>
+      </div>
+     </section>
+
+     <section class="form-sec">
+      <h4>Entity &amp; Data Source</h4>
+      <div class="form-row">
+       <label>Owner Entity<span class="req">*</span></label>
+       <div class="field">
+        <div class="ck-group" id="owner-entity-group">
+         <span class="tbd-chip" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px dashed var(--border);border-radius:6px;background:#F8FAFC;color:var(--text-muted);font-size:12px;font-style:italic">TBD · options pending team alignment</span>
+        </div>
+        <div class="hint" style="margin-top:6px;font-size:11.5px;color:var(--text-muted)">Single-select · determines which data sources are available below. Backend handles ID mapping.</div>
+       </div>
+      </div>
+      <div class="form-row">
+       <label>Data Source<span class="req">*</span></label>
+       <div class="field">
+        <div class="ck-group" id="datasource-group">
+         <span class="tbd-chip" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px dashed var(--border);border-radius:6px;background:#F8FAFC;color:var(--text-muted);font-size:12px;font-style:italic">TBD · cascades from Owner Entity, controlled option set</span>
+        </div>
+        <div class="hint" style="margin-top:6px;font-size:11.5px;color:var(--text-muted)">Single-select · controlled option set (not free-form). Affects list usage and downstream feature mapping.</div>
+       </div>
+      </div>
+     </section>
+
+     <section class="form-sec">
+      <h4>Translation Agent</h4>
+      <div class="agent-toggle-card" id="agent-toggle-card">
+       <div class="at-l">
+        <span class="at-title">Translation Agent <span class="at-badge" id="at-badge">ON</span></span>
+       </div>
+       <div class="agent-toggle" id="agent-toggle" role="switch" aria-checked="true">
+        <span class="on">ON</span>
+        <span class="off">OFF</span>
+       </div>
+      </div>
+     </section>
+
+     <section class="form-sec" id="lang-section">
+      <h4>Translate 配置</h4>
+
+      <div class="form-row">
+       <label>Mode<span class="req">*</span></label>
+       <div class="field">
+        <div id="tx-mode-toggle" style="display:inline-flex;gap:0;border:1px solid var(--border);border-radius:7px;overflow:hidden;background:#fff">
+         <button type="button" class="tx-mode-btn on" data-mode="single" style="padding:8px 16px;font-size:12.5px;font-weight:700;border:none;background:var(--link);color:#fff;cursor:pointer;border-radius:0">Single</button>
+         <button type="button" class="tx-mode-btn" data-mode="multi" style="padding:8px 16px;font-size:12.5px;font-weight:600;border:none;background:#fff;color:var(--text-secondary);cursor:pointer;border-left:1px solid var(--border)">Multi</button>
+        </div>
+       </div>
+      </div>
+
+      <div class="form-row">
+       <label>Input Language<span class="req">*</span> <span style="font-size:10px;font-weight:500;color:var(--text-muted)">· 手动选</span></label>
+       <div class="field">
+        <div class="lang-grid" id="tx-input-grid">
+         <label class="lang-pill" data-lp="en"><span class="lp-code">en</span>English</label>
+         <label class="lang-pill" data-lp="es"><span class="lp-code">es</span>Spanish</label>
+         <label class="lang-pill" data-lp="id"><span class="lp-code">id</span>Indonesian</label>
+         <label class="lang-pill" data-lp="ar"><span class="lp-code">ar</span>Arabic</label>
+         <label class="lang-pill" data-lp="vi"><span class="lp-code">vi</span>Vietnamese</label>
+         <label class="lang-pill on" data-lp="th"><span class="lp-code">th</span>Thai</label>
+         <label class="lang-pill" data-lp="ms"><span class="lp-code">ms</span>Malay</label>
+         <label class="lang-pill" data-lp="tr"><span class="lp-code">tr</span>Turkish</label>
+         <label class="lang-pill" data-lp="fil"><span class="lp-code">fil</span>Filipino</label>
+         <label class="lang-pill" data-lp="ja"><span class="lp-code">ja</span>Japanese</label>
+         <label class="lang-pill" data-lp="fr"><span class="lp-code">fr</span>French</label>
+         <label class="lang-pill" data-lp="de"><span class="lp-code">de</span>German</label>
+         <label class="lang-pill" data-lp="ro"><span class="lp-code">ro</span>Romanian</label>
+         <label class="lang-pill" data-lp="it"><span class="lp-code">it</span>Italian</label>
+         <label class="lang-pill" data-lp="pt"><span class="lp-code">pt</span>Portuguese</label>
+         <label class="lang-pill" data-lp="ko"><span class="lp-code">ko</span>Korean</label>
+        </div>
+       </div>
+      </div>
+
+      <div class="form-row">
+       <label>Translate Target<span class="req">*</span></label>
+       <div class="field">
+        <div id="tx-output-single" style="display:block">
+         <div class="lang-grid">
+          <label class="lang-pill locked on" style="background:#DBE8FE;color:#1D4ED8;border-color:#BFDBFE"><span class="lp-code">en</span>English<span style="margin-left:auto;font-size:10px;font-weight:700;background:#1D4ED8;color:#fff;padding:1px 6px;border-radius:3px">LOCKED</span></label>
+         </div>
+        </div>
+        <div id="tx-output-multi" style="display:none">
+         <div class="lang-grid" id="tx-output-grid">
+          <label class="lang-pill locked on" data-lp="en" style="background:#DBE8FE;color:#1D4ED8;border-color:#BFDBFE"><span class="lp-code">en</span>English<span style="margin-left:auto;font-size:9.5px;font-weight:700;background:#1D4ED8;color:#fff;padding:1px 5px;border-radius:3px">LOCKED</span></label>
+          <label class="lang-pill on" data-lp="es"><span class="lp-code">es</span>Spanish</label>
+          <label class="lang-pill on" data-lp="id"><span class="lp-code">id</span>Indonesian</label>
+          <label class="lang-pill on" data-lp="ar"><span class="lp-code">ar</span>Arabic</label>
+          <label class="lang-pill on" data-lp="vi"><span class="lp-code">vi</span>Vietnamese</label>
+          <label class="lang-pill on" data-lp="th"><span class="lp-code">th</span>Thai</label>
+          <label class="lang-pill" data-lp="ms"><span class="lp-code">ms</span>Malay</label>
+          <label class="lang-pill" data-lp="tr"><span class="lp-code">tr</span>Turkish</label>
+          <label class="lang-pill" data-lp="fil"><span class="lp-code">fil</span>Filipino</label>
+          <label class="lang-pill" data-lp="ja"><span class="lp-code">ja</span>Japanese</label>
+          <label class="lang-pill" data-lp="fr"><span class="lp-code">fr</span>French</label>
+          <label class="lang-pill" data-lp="de"><span class="lp-code">de</span>German</label>
+          <label class="lang-pill" data-lp="ro"><span class="lp-code">ro</span>Romanian</label>
+          <label class="lang-pill" data-lp="it"><span class="lp-code">it</span>Italian</label>
+          <label class="lang-pill" data-lp="pt"><span class="lp-code">pt</span>Portuguese</label>
+          <label class="lang-pill" data-lp="ko"><span class="lp-code">ko</span>Korean</label>
+         </div>
+        </div>
+       </div>
+      </div>
+     </section>
+
+    </div>
+
+    <div class="modal-f">
+     <span class="mf-l" id="tx-recap"><b>Mode</b>: Single · <b>Input</b>: th (1) · <b>Output</b>: en (master, locked)</span>
+     <div class="mf-r">
+      <button class="btn btn-sm">Cancel</button>
+      <button class="btn btn-p btn-sm">Next: Import & Translate →</button>
+     </div>
+    </div>
+
+   </div>
+  </div>
+
+  <!-- ============================================================
+       Edge-case modal · Translation Agent ON + Single mode + Input = en
+       → input 跟 Target master 都是英文，翻译没意义。提示用户关掉 Agent。
+       ============================================================ -->
+  <div id="en-en-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:90;align-items:center;justify-content:center;padding:18px">
+   <div style="background:#fff;width:100%;max-width:520px;border-radius:12px;box-shadow:0 18px 48px rgba(15,23,42,.22);overflow:hidden">
+    <div style="display:flex;align-items:flex-start;gap:11px;padding:14px 18px;background:#FFFBEB;border-bottom:1px solid #FDE68A">
+     <span style="font-size:22px;line-height:1;flex:none;margin-top:1px">⚠</span>
+     <div style="flex:1">
+      <div style="font-size:14.5px;font-weight:700;color:#92400E">不需要翻译 / No translation needed</div>
+      <div style="font-size:11px;color:#78350F;margin-top:3px;font-family:'JetBrains Mono',Menlo,monospace">Agent <b>ON</b> · Mode <b>Single</b> · Input <b>en</b> · Target <b>en</b></div>
+     </div>
+     <button id="en-en-close" style="width:26px;height:26px;background:none;border:none;color:#92400E;font-size:18px;cursor:pointer;line-height:1;border-radius:4px">×</button>
+    </div>
+    <div style="padding:16px 18px;font-size:13px;color:var(--text-primary);line-height:1.7">
+     你选择了 <b>Single 模式 + Input = English (en)</b>，跟 Translate Target 完全一致（en master）。<br/>
+     <b>Translation Agent 不会做任何翻译动作</b> · 建议直接关掉 Translation Agent 进入 Step 2，避免空跑一步。
+     <div style="margin-top:10px;padding:10px 12px;background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:6px;font-size:11.5px;color:var(--text-muted);font-style:italic;line-height:1.6">
+      You picked Single mode + Input = English (en), which equals the Translate Target (en master). Translation Agent will be a no-op — recommended to turn it OFF and skip Phase 2.
+     </div>
+    </div>
+    <div style="padding:12px 18px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:flex-end;gap:8px">
+     <button class="btn btn-sm" id="en-en-keep">保留 ON · 继续 / Keep ON</button>
+     <button class="btn btn-p btn-sm" id="en-en-turn-off">关 Translation Agent · 推荐 / Turn OFF</button>
+    </div>
+   </div>
+  </div>
+
+<script>
+/* ============================================================
+   E2 · Translate Mode toggle (Single / Multi language)
+   - Single: input single-select · output locked to en master
+   - Multi:  input multi-select  · output multi-select (16 chips)
+   ============================================================ */
+(function(){
+  const modeBtns = document.querySelectorAll('.tx-mode-btn');
+  const inputGrid = document.getElementById('tx-input-grid');
+  const outputSingle = document.getElementById('tx-output-single');
+  const outputMulti = document.getElementById('tx-output-multi');
+  const outputGrid = document.getElementById('tx-output-grid');
+  const modeHint = document.getElementById('tx-mode-hint');
+  const inputHint = document.getElementById('tx-input-hint');
+  const recap = document.getElementById('tx-recap');
+  if (!modeBtns.length || !inputGrid) return;
+
+  let MODE = 'single';
+
+  function langCodesOf(grid){
+    return Array.from(grid.querySelectorAll('.lang-pill.on')).map(el => el.dataset.lp).filter(Boolean);
+  }
+
+  function updateRecap(){
+    if (!recap) return;
+    const inputs = langCodesOf(inputGrid);
+    if (MODE === 'single') {
+      recap.innerHTML = `<b>Mode</b>: Single · <b>Input</b>: ${inputs.join(', ') || '—'} (${inputs.length}) · <b>Output</b>: en (master, locked)`;
+    } else {
+      const outputs = langCodesOf(outputGrid);
+      recap.innerHTML = `<b>Mode</b>: Multi · <b>Input</b>: ${inputs.join(', ') || '—'} (${inputs.length}) · <b>Output</b>: ${outputs.join(', ') || '—'} (${outputs.length})`;
+    }
+  }
+
+  function applyMode(mode){
+    MODE = mode;
+    // Button visual state
+    modeBtns.forEach(b => {
+      const on = b.dataset.mode === mode;
+      b.classList.toggle('on', on);
+      b.style.background = on ? 'var(--link)' : '#fff';
+      b.style.color      = on ? '#fff' : 'var(--text-secondary)';
+      b.style.fontWeight = on ? '700' : '600';
+      b.textContent = b.dataset.mode === 'single' ? 'Single' : 'Multi';
+    });
+    if (outputSingle) outputSingle.style.display = (mode === 'single') ? 'block' : 'none';
+    if (outputMulti)  outputMulti.style.display  = (mode === 'multi')  ? 'block' : 'none';
+    // Enforce single-select on input grid when in single mode
+    if (mode === 'single') {
+      const onChips = inputGrid.querySelectorAll('.lang-pill.on');
+      if (onChips.length > 1) {
+        onChips.forEach((c, i) => { if (i > 0) c.classList.remove('on'); });
+      } else if (onChips.length === 0) {
+        const firstChip = inputGrid.querySelector('.lang-pill');
+        if (firstChip) firstChip.classList.add('on');
+      }
+    }
+    updateRecap();
+  }
+
+  modeBtns.forEach(b => {
+    b.addEventListener('click', () => applyMode(b.dataset.mode));
+  });
+
+  // Input chip click — single = exclusive, multi = toggle. Locked pills can't change.
+  inputGrid.addEventListener('click', (e) => {
+    const pill = e.target.closest('.lang-pill');
+    if (!pill || pill.classList.contains('locked')) return;
+    if (MODE === 'single') {
+      inputGrid.querySelectorAll('.lang-pill.on').forEach(p => { if (!p.classList.contains('locked')) p.classList.remove('on'); });
+      pill.classList.add('on');
+    } else {
+      pill.classList.toggle('on');
+    }
+    updateRecap();
+  });
+
+  // Output chip click (only meaningful in multi mode). Locked pills can't change.
+  if (outputGrid) {
+    outputGrid.addEventListener('click', (e) => {
+      const pill = e.target.closest('.lang-pill');
+      if (!pill || pill.classList.contains('locked')) return;
+      pill.classList.toggle('on');
+      updateRecap();
+    });
+  }
+
+  applyMode('single');
+
+  // ============================================================
+  // Edge-case: Translation Agent ON + Single mode + Input = en only
+  // → input 跟 Target master 都是英文，翻译无意义。提示用户关 Agent。
+  // ============================================================
+  const enEnModal = document.getElementById('en-en-modal');
+  const enEnClose = document.getElementById('en-en-close');
+  const enEnKeep  = document.getElementById('en-en-keep');
+  const enEnOff   = document.getElementById('en-en-turn-off');
+  function hideEnEn(){ if (enEnModal) enEnModal.style.display = 'none'; }
+  function checkEnEnEdgeCase(){
+    if (!enEnModal) return;
+    const agentToggle = document.getElementById('agent-toggle');
+    const agentOn = agentToggle && !agentToggle.classList.contains('is-off');
+    const isSingle = MODE === 'single';
+    const onChips = inputGrid.querySelectorAll('.lang-pill.on');
+    const onlyEn = onChips.length === 1 && onChips[0].dataset.lp === 'en';
+    if (agentOn && isSingle && onlyEn) enEnModal.style.display = 'flex';
+  }
+  if (enEnClose) enEnClose.addEventListener('click', hideEnEn);
+  if (enEnKeep)  enEnKeep.addEventListener('click', hideEnEn);
+  if (enEnOff)   enEnOff.addEventListener('click', () => {
+    hideEnEn();
+    const agentToggle = document.getElementById('agent-toggle');
+    if (agentToggle && !agentToggle.classList.contains('is-off')) agentToggle.click();
+  });
+  // Hook into mode + input changes
+  modeBtns.forEach(b => b.addEventListener('click', () => setTimeout(checkEnEnEdgeCase, 0)));
+  inputGrid.addEventListener('click', () => setTimeout(checkEnEnEdgeCase, 0));
+  // Also hook into agent toggle if reachable
+  const _agentToggle = document.getElementById('agent-toggle');
+  if (_agentToggle) _agentToggle.addEventListener('click', () => setTimeout(checkEnEnEdgeCase, 50));
+})();
+</script>
+
+  <div class="section-gap"></div>
+
+  <!-- ============================================================ -->
+  <!-- E2.2 · Step 2 — Import & Translate Mixed → English             -->
+  <!-- ============================================================ -->
+  <span class="frame-label" id="e2-step2"><span class="dot"></span>FRAME E2.2 · STEP 2 / 3 · IMPORT & TRANSLATE MIXED → EN</span>
+  <h1 class="frame-title">Create List · Step 2 — Import & Translate</h1>
+
+  <div class="modal-mask">
+   <div class="modal">
+
+    <div class="modal-h">
+     <div class="stepper">
+      <span class="st done"><span class="stn">✓</span>Basics</span>
+      <span class="arrow">→</span>
+      <span class="st on"><span class="stn">2</span>Import & Translate</span>
+      <span class="arrow">→</span>
+      <span class="st"><span class="stn">3</span>Confirm</span>
+     </div>
+     <span class="x">×</span>
+    </div>
+
+    <div class="modal-b">
+
+     <!-- Step 1 Recap -->
+     <div class="recap">
+      <div class="recap-h">
+       <h5>Step 1 Recap</h5>
+       <a href="#">← Edit Step 1</a>
+      </div>
+      <div class="recap-grid">
+       <span class="k">List Name</span><span class="v mono">LIVE_PCF_gift_solicitation_v2</span>
+       <span class="k">Mode</span><span class="v">Single</span>
+       <span class="k">Input</span><span class="v">th</span>
+       <span class="k">Target</span><span class="v">en (locked)</span>
+      </div>
+     </div>
+
+     <!-- Sub-phase indicator: (1) Import -> (2) Translate · Phase 2 is shown only when Translation Agent is ON -->
+     <div id="step2-subphase-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:18px;padding:10px 14px;background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:8px;font-size:11.5px">
+      <span style="color:var(--text-muted);font-weight:700;letter-spacing:.3px;text-transform:uppercase;font-size:10px">Phase</span>
+      <span class="subphase-num">1</span>
+      <span style="font-weight:700;color:var(--link)">Import</span>
+      <span class="subphase-arrow" data-phase2-only>→</span>
+      <span class="subphase-num pending" data-phase2-only>2</span>
+      <span style="font-weight:600;color:var(--text-muted)" data-phase2-only>Parse &amp; Translate</span>
+     </div>
+
+     <!-- Phase 1: Import Source Terms · Import from Lark sheet -->
+     <section class="form-sec">
+      <h4><span class="subphase-num">1</span>Import Source Terms</h4>
+
+      <!-- Top toolbar: Download template button -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px">
+       <button class="btn btn-sm" id="lf-dl-tpl">
+        <span style="font-size:14px;line-height:1">⬇</span>
+        <span>Download Lark sheet template</span>
+       </button>
+      </div>
+
+      <!-- Single upload zone -->
+      <div class="upload-zone" id="lark-upload-zone">
+       <div class="uz-icon">↑</div>
+       <h5>Import from Lark · drop your Lark sheet export here, or <a href="#" id="lf-pick">click to select</a></h5>
+       <p>Accepted: <code class="lf-code">.xlsx</code> <code class="lf-code">.csv</code> · 2000-row cap</p>
+      </div>
+
+      <!-- Recognition result · Success variant (default state when parse OK) -->
+      <div class="lf-result success" id="lf-result-success">
+       <div class="lf-result-h">
+        <span class="lf-result-ico">✓</span>
+        <span class="lf-result-t">Parse successful · <b id="lf-rec-n">7</b> source terms accepted (of <span id="lf-tot-n">7</span> rows)</span>
+        <span class="lf-result-cap">within 2000-row cap</span>
+       </div>
+       <div class="lf-result-b">Languages detected: <b>th · ar · es · vi · id · en</b></div>
+      </div>
+
+      <!-- Recognition result · Failure variant (parse errors, needs re-upload) -->
+      <div class="lf-result failure" id="lf-result-failure">
+       <div class="lf-result-h">
+        <span class="lf-result-ico">!</span>
+        <span class="lf-result-t">Parse failed · <b>3 errors</b> across <b>10 rows</b> · no terms imported</span>
+        <span class="lf-result-cap">action required</span>
+       </div>
+       <div class="lf-result-errors">
+        <div class="lf-err-row">
+         <span class="lf-err-row-n">Row 4</span>
+         <span class="lf-err-row-msg"><b>Missing required column</b> · <code class="lf-code">source_term</code> is empty</span>
+        </div>
+        <div class="lf-err-row">
+         <span class="lf-err-row-n">Row 7</span>
+         <span class="lf-err-row-msg"><b>Language not accepted</b> · detected <code class="lf-code">zh-TW</code> — not in this list's Accept Inputs (th · ar · es · vi · id · en)</span>
+        </div>
+        <div class="lf-err-row">
+         <span class="lf-err-row-n">Row 12</span>
+         <span class="lf-err-row-msg"><b>Malformed row</b> · column count mismatch (expected 5, got 3) · check for stray commas in <code class="lf-code">note</code></span>
+        </div>
+       </div>
+       <div class="lf-result-actions">
+        <span style="flex:1"></span>
+        <a href="#" id="lf-fix-lark" class="btn btn-sm" style="text-decoration:none">⎘ Reopen Lark sheet</a>
+        <button class="btn btn-p btn-sm" id="lf-reupload">↺ Re-upload</button>
+       </div>
+      </div>
+     </section>
+
+     <!-- Inline action row · ends Phase 1, gates Phase 2 -->
+     <div id="phase1-action-bar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:8px;margin-bottom:18px">
+      <span id="phase1-hint" style="font-size:11.5px;color:var(--text-muted)"><b style="color:var(--text-primary)">7</b> source terms ready</span>
+      <div style="display:flex;gap:8px">
+       <button class="btn btn-sm">← Back</button>
+       <button class="btn btn-sm">Cancel</button>
+       <button class="btn btn-p btn-sm" id="phase1-import-btn">Next →</button>
+      </div>
+     </div>
+
+     <!-- Phase 2: Parse & Translate · shown only when Translation Agent is ON -->
+     <section class="form-sec" id="step2-phase-2">
+      <h4><span class="subphase-num">2</span>Parse &amp; Translate</h4>
+
+      <!-- State 1: Before translation -->
+      <div class="agent-before" id="agent-before">
+       <div class="ab-status"><span class="ab-dot"></span><span>Ready · 7 source terms detected</span></div>
+       <button class="ab-btn" id="start-translate">▶ Translate Now</button>
+      </div>
+
+      <!-- State 2: Translating (hidden by default) -->
+      <div class="agent-progress" id="agent-progress" style="display:none">
+       <div class="ap-h">
+        <span class="ap-label">Translating mixed terms to English...</span>
+        <span class="ap-pct" id="progress-pct">0%</span>
+       </div>
+       <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+       <div class="progress-stages" id="progress-stages">
+        <div style="font-size:9.5px;font-weight:800;letter-spacing:.5px;color:#1D4ED8;padding:6px 0 4px;text-transform:uppercase">Stage A</div>
+        <div class="progress-stage" data-stage="1"><span class="ps-mark">1</span>Detect source language</div>
+        <div class="progress-stage" data-stage="2"><span class="ps-mark">2</span>Translate to English master</div>
+        <div class="progress-stage" data-stage="3"><span class="ps-mark">3</span>Normalize + dedup</div>
+        <div style="font-size:9.5px;font-weight:800;letter-spacing:.5px;color:#991B1B;padding:10px 0 4px;text-transform:uppercase;border-top:1px dashed var(--border-soft);margin-top:6px">Stage B</div>
+        <div class="progress-stage" data-stage="4"><span class="ps-mark">4</span>Reverse-translate → en/es/id/ar/vi/th</div>
+        <div class="progress-stage" data-stage="5"><span class="ps-mark">5</span>Per-market lexicon validation</div>
+        <div class="progress-stage" data-stage="6"><span class="ps-mark">6</span>Score confidence</div>
+       </div>
+      </div>
+
+      <!-- State 3: Complete (hidden by default) -->
+      <div id="agent-complete" style="display:none">
+       <div class="agent-status">
+        <span class="as-dot"></span>
+        <span class="as-label">Translation Complete</span>
+        <span class="as-meta">7 terms · AI v1.2.0 · 2026-06-05 09:42</span>
+       </div>
+
+       <div class="agent-actions">
+        <button class="btn btn-sm" id="rerun-translate">▶ Re-run Translation</button>
+        <button class="btn btn-sm">✎ Edit in Manual Mode</button>
+        <button class="btn btn-sm">↓ Export Mapping CSV</button>
+       </div>
+
+      <!-- Quality verdict banner — only surfaces problems, not successes -->
+      <div class="result-banner partial" id="result-banner">
+       <div class="rb-ico">!</div>
+       <div class="rb-body">
+        <span class="rb-title">Import quality issue · 2 of 7 terms unusable</span>
+       </div>
+       <div class="rb-pct">29<small>% needs fixing</small></div>
+       <div class="rb-actions">
+        <button class="btn rb-btn" id="back-to-source">← Re-import CSV</button>
+        <button class="btn rb-btn primary" id="rerun-translate-banner">Manually fix below</button>
+       </div>
+      </div>
+
+      <!-- Compact coverage view — quality indicators only (missing + untranslatable) -->
+      <div class="cov-card">
+       <div class="cov-stats two-up">
+        <div class="cov-stat warn">
+         <span class="cv-num">1<small>/ 7 · 14%</small></span>
+         <span class="cv-label">Missing value</span>
+        </div>
+        <div class="cov-stat err">
+         <span class="cv-num">1<small>/ 7 · 14%</small></span>
+         <span class="cv-label">Untranslatable</span>
+        </div>
+       </div>
+
+       <div class="cov-issues">
+        <div class="cov-issues-h">2 rows blocking Step 3</div>
+
+        <div class="cov-issue">
+         <span class="lang-tag" style="background:#8B5CF6">ar</span>
+         <span class="cv-term rtl">أرسل هدية مجاناً</span>
+         <span class="cv-flag missing">Translation empty (null)</span>
+         <a class="cv-act">Fill manually</a>
+        </div>
+
+        <div class="cov-issue">
+         <span class="lang-tag" style="background:#6B7280">??</span>
+         <span class="cv-term">送禮金</span>
+         <span class="cv-flag unsupported">Language not accepted (zh-TW)</span>
+         <a class="cv-act">Skip / Add language</a>
+        </div>
+       </div>
+      </div>
+      </div><!-- /agent-complete -->
+     </section>
+
+    </div>
+
+    <div class="modal-f">
+     <span class="mf-l"></span>
+     <div class="mf-r">
+      <button class="btn btn-sm" id="back-to-source-footer">← Re-import CSV / Edit source</button>
+      <button class="btn btn-sm">Cancel</button>
+      <button class="btn btn-p btn-sm" id="submit-import">Next: Confirm →</button>
+     </div>
+    </div>
+
+   </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- ============================================================ -->
+  <!-- E2.3 · Step 3 — Imported List Configuration                    -->
+  <!-- ============================================================ -->
+  <span class="frame-label" id="e2-step3"><span class="dot"></span>FRAME E2.3 · STEP 3 / 3 · IMPORTED LIST CONFIGURATION</span>
+  <h1 class="frame-title">Create List · Step 3 — Imported List Configuration</h1>
+
+  <div class="modal-mask">
+   <div class="modal">
+
+    <div class="modal-h">
+     <div class="stepper">
+      <span class="st done"><span class="stn">✓</span>Basics</span>
+      <span class="arrow">→</span>
+      <span class="st done"><span class="stn">✓</span>Import & Translate</span>
+      <span class="arrow">→</span>
+      <span class="st on"><span class="stn">3</span>Confirm</span>
+     </div>
+     <span class="x">×</span>
+    </div>
+
+    <div class="modal-b">
+
+     <!-- Edit mode banner · shown only when ?mode=edit -->
+     <div class="edit-banner" id="edit-mode-banner">
+      <span class="eb-dot"></span>
+      <span><b>Edit mode · jumped to Step 3 Confirm</b> · <a href="#e2-step1">Back to Step 1</a> · <a href="#e2-step2">Back to Step 2</a></span>
+     </div>
+
+     <!-- Result banner — partial success (reflects E2.2 translation outcome) -->
+     <div class="result-banner partial" style="margin-bottom:18px">
+      <div class="rb-ico">!</div>
+      <div class="rb-body">
+       <span class="rb-title">Translation results confirmed · 5 / 7 enter Master List · 2 source terms excluded</span>
+      </div>
+      <div class="rb-pct">28<small>% excluded</small></div>
+     </div>
+
+     <!-- Key metrics · 4-card grid reflecting partial-success state -->
+     <div class="summary-row" style="grid-template-columns:repeat(4,1fr)">
+      <div class="sum-card">
+       <div class="sk">Source Terms · Raw</div>
+       <div class="sv">7 <small>imported</small></div>
+      </div>
+      <div class="sum-card" style="border-color:#86EFAC;background:#F0FDF4">
+       <div class="sk" style="color:var(--green-text)">Successfully Translated</div>
+       <div class="sv" style="color:var(--green-text)">5 / 7 <small>(71%)</small></div>
+      </div>
+      <div class="sum-card" style="border-color:#FCD34D;background:#FFFBEB">
+       <div class="sk" style="color:#92400E">Needs Attention · Excluded</div>
+       <div class="sv" style="color:#92400E">2 / 7 <small>(29%)</small></div>
+      </div>
+      <div class="sum-card">
+       <div class="sk">Master List Output</div>
+       <div class="sv">3 <small>EN entries</small></div>
+      </div>
+     </div>
+
+     <!-- Excluded items detail -->
+     <section class="form-sec">
+      <h4>Excluded Source Terms</h4>
+      <div class="cov-card">
+       <div class="cov-issues" style="border-top:none">
+        <div class="cov-issue">
+         <span class="lang-tag" style="background:#8B5CF6">ar</span>
+         <span class="cv-term rtl">أرسل هدية مجاناً</span>
+         <span class="cv-flag missing">Missing English translation</span>
+         <a class="cv-act" id="back-to-fix-1">← Back to Step 2 to fix</a>
+        </div>
+        <div class="cov-issue">
+         <span class="lang-tag" style="background:#6B7280">??</span>
+         <span class="cv-term">送禮金</span>
+         <span class="cv-flag unsupported">Language zh-TW not in Accept Inputs</span>
+         <a class="cv-act" id="back-to-fix-2">← Add lang &amp; re-translate</a>
+        </div>
+       </div>
+      </div>
+     </section>
+
+     <!-- Source Language Breakdown -->
+     <section class="form-sec">
+      <h4>Source Language Breakdown</h4>
+      <div class="src-bar">
+       <span style="flex:2;background:#3B82F6">th 2 · 100%</span>
+       <span style="flex:1;background:#8B5CF6">ar 1 · 0%</span>
+       <span style="flex:1;background:#EC4899">es 1 · 100%</span>
+       <span style="flex:1;background:#06B6D4">vi 1 · 100%</span>
+       <span style="flex:1;background:#F59E0B">id 1 · 100%</span>
+       <span style="flex:1;background:#10B981">en 1 · 100%</span>
+      </div>
+      <div class="src-legend">
+       <span><span class="sl-dot" style="background:#3B82F6"></span>Thai (th) · 2 rows · translated 100%</span>
+       <span><span class="sl-dot" style="background:#8B5CF6"></span>Arabic (ar) · 1 row · translated 0%</span>
+       <span><span class="sl-dot" style="background:#EC4899"></span>Spanish (es) · 1 row · translated 100%</span>
+       <span><span class="sl-dot" style="background:#06B6D4"></span>Vietnamese (vi) · 1 row · translated 100%</span>
+       <span><span class="sl-dot" style="background:#F59E0B"></span>Indonesian (id) · 1 row · translated 100%</span>
+       <span><span class="sl-dot" style="background:#10B981"></span>English (en) · 1 row · translated 100%</span>
+      </div>
+     </section>
+
+     <!-- Final Configuration -->
+     <section class="form-sec">
+      <h4>Final Configuration</h4>
+      <div class="recap" style="margin-bottom:0">
+       <div class="recap-grid" style="grid-template-columns:160px 1fr;gap:9px 20px">
+        <span class="k">List Name</span><span class="v mono">LIVE_PCF_gift_solicitation_v2</span>
+        <span class="k">List ID</span><span class="v"><span class="list-id-inline" id="listid-copy">list_live_pcf_gift_v2 <span style="opacity:.6">⎘</span></span></span>
+        <span class="k">Owner Entity</span><span class="v" style="color:var(--text-muted);font-style:italic">TBD</span>
+        <span class="k">Data Source</span><span class="v" style="color:var(--text-muted);font-style:italic">TBD</span>
+        <span class="k">Mode</span><span class="v">Single</span>
+        <span class="k">Input</span><span class="v">th</span>
+        <span class="k">Target</span><span class="v">en (locked)</span>
+        <span class="k">Translation Agent</span><span class="v">Yes</span>
+        <span class="k">Access Policy</span><span class="v">Owner only edit · All platform users view</span>
+        <span class="k">Owner</span><span class="v">@ymgao</span>
+        <span class="k">Status</span><span class="v">Draft</span>
+       </div>
+      </div>
+     </section>
+
+    </div>
+
+    <div class="modal-f">
+     <span class="mf-l"></span>
+     <div class="mf-r">
+      <button class="btn btn-sm">← Back to fix excluded items</button>
+      <button class="btn btn-p btn-sm" id="create-trigger">Continue to Reviewer Selection</button>
+     </div>
+    </div>
+
+   </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- ============================================================ -->
+  <!-- E2.4 · Success Popup (static demo)                            -->
+  <!-- ============================================================ -->
+  <span class="frame-label"><span class="dot"></span>FRAME E2.4 · SUCCESS POPUP (TRIGGERED AFTER CREATE)</span>
+  <h1 class="frame-title">Create List · Upload Complete — Select Reviewer</h1>
+
+  <div style="background:rgba(15,23,42,.18);padding:36px;border-radius:14px;display:flex;align-items:center;justify-content:center">
+   <div class="popup" style="margin:0">
+    <div class="popup-b">
+     <div class="popup-ico">✓</div>
+     <div class="popup-title">Upload Complete · Ready for Review</div>
+     <div class="popup-msg"><b>LIVE_PCF_gift_solicitation_v2</b></div>
+     <div class="popup-meta">list_id: list_live_pcf_gift_v2</div>
+   <div class="popup-node">
+    <div class="pn-l"><span class="pn-k">Lifecycle</span><span class="pn-v">Ready for Review</span></div>
+    <div class="pn-l"><span class="pn-k">Next Step</span><span class="pn-v">Select Reviewer</span></div>
+   </div>
+     <div class="popup-stats">
+      <span><b>5 / 7</b> translated</span>
+      <span>·</span>
+      <span><b>2</b> excluded</span>
+      <span>·</span>
+      <span><b>3</b> EN entries</span>
+     </div>
+    </div>
+    <div class="popup-f" style="justify-content:flex-end">
+     <a class="btn btn-sm btn-publish" href="feature-platform-word-list-approval-owner-v0.1.html">SELECT REVIEWER</a>
+    </div>
+   </div>
+  </div>
+
+ </div>
+</main>
+</div>
+
+<!-- Success Popup overlay (triggered by Create List click) -->
+<div class="popup-mask" id="popup-mask">
+ <div class="popup">
+  <div class="popup-b">
+   <div class="popup-ico">✓</div>
+   <div class="popup-title">Upload Complete · Ready for Review</div>
+   <div class="popup-msg"><b>LIVE_PCF_gift_solicitation_v2</b></div>
+   <div class="popup-meta">list_id: list_live_pcf_gift_v2</div>
+   <div class="popup-node">
+    <div class="pn-l"><span class="pn-k">Lifecycle</span><span class="pn-v">Ready for Review</span></div>
+    <div class="pn-l"><span class="pn-k">Next Step</span><span class="pn-v">Select Reviewer</span></div>
+   </div>
+   <div class="popup-stats">
+    <span><b>5 / 7</b> translated</span>
+    <span>·</span>
+    <span><b>2</b> excluded</span>
+    <span>·</span>
+    <span><b>3</b> EN entries</span>
+   </div>
+  </div>
+  <div class="popup-f" style="justify-content:flex-end">
+   <a class="btn btn-sm btn-publish" href="feature-platform-word-list-approval-owner-v0.1.html">SELECT REVIEWER</a>
+  </div>
+ </div>
+</div>
+
+<!-- Toast feedback -->
+<div class="toast" id="toast">
+ <div class="toast-ico">✓</div>
+ <div class="toast-c">
+  <span class="toast-t">Progress Updated</span>
+  <span class="toast-d"><code>LIVE_PCF_gift_solicitation_v2</code> · 2026-06-05 09:42</span>
+ </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const pageParams = new URLSearchParams(location.search);
+  const pageMode = pageParams.get('mode');
+
+  // List ID copy
+  const listid = document.getElementById('listid-copy');
+  if (listid) {
+    listid.addEventListener('click', () => {
+      const orig = listid.innerHTML;
+      listid.style.background = 'var(--green-bg)';
+      listid.style.color = 'var(--green-text)';
+      listid.innerHTML = '✓ Copied!';
+      setTimeout(() => { listid.style.background = ''; listid.style.color = ''; listid.innerHTML = orig; }, 1400);
+    });
+  }
+
+  // Translation Agent flow: before → progress → complete
+  const before = document.getElementById('agent-before');
+  const progress = document.getElementById('agent-progress');
+  const complete = document.getElementById('agent-complete');
+  const startBtn = document.getElementById('start-translate');
+  const rerunBtn = document.getElementById('rerun-translate');
+  const pctEl = document.getElementById('progress-pct');
+  const fillEl = document.getElementById('progress-fill');
+  const stagesEl = document.getElementById('progress-stages');
+
+  function runTranslation() {
+    before.style.display = 'none';
+    complete.style.display = 'none';
+    progress.style.display = 'block';
+
+    // Reset stages
+    stagesEl.querySelectorAll('.progress-stage').forEach(s => {
+      s.classList.remove('active','done');
+    });
+
+    let pct = 0;
+    const stageThresholds = [0, 18, 42, 65, 82, 100];
+    const totalDuration = 4200; // ms
+    const tickMs = 60;
+    const stepPct = 100 * tickMs / totalDuration;
+
+    function updateStage(currentPct) {
+      const stages = stagesEl.querySelectorAll('.progress-stage');
+      stages.forEach((s, i) => {
+        const start = stageThresholds[i];
+        const end = stageThresholds[i+1] ?? 100;
+        s.classList.remove('active','done');
+        if (currentPct >= end) s.classList.add('done');
+        else if (currentPct >= start) s.classList.add('active');
+      });
+    }
+
+    const timer = setInterval(() => {
+      pct += stepPct;
+      if (pct >= 100) {
+        pct = 100;
+        fillEl.style.width = '100%';
+        pctEl.textContent = '100%';
+        updateStage(100);
+        clearInterval(timer);
+        setTimeout(() => {
+          progress.style.display = 'none';
+          complete.style.display = 'block';
+        }, 500);
+        return;
+      }
+      fillEl.style.width = pct + '%';
+      pctEl.textContent = Math.floor(pct) + '%';
+      updateStage(pct);
+    }, tickMs);
+  }
+
+  if (startBtn) startBtn.addEventListener('click', runTranslation);
+  if (rerunBtn) rerunBtn.addEventListener('click', runTranslation);
+
+  // Back to Source Terms + Re-translate (banner + footer)
+  const backToSourceTop = document.getElementById('back-to-source');
+  const backToSourceFooter = document.getElementById('back-to-source-footer');
+  const rerunBanner = document.getElementById('rerun-translate-banner');
+
+  function goBackToSourceTerms() {
+    // Reset translation state to "before" so user can re-import or edit
+    if (complete) complete.style.display = 'none';
+    if (progress) progress.style.display = 'none';
+    if (before) before.style.display = 'flex';
+    // Land on the CSV upload zone (top of Phase 1) so re-import is the obvious path
+    const uploadZone = document.querySelector('.upload-zone');
+    if (uploadZone) uploadZone.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  function focusManualEdit() {
+    // Land in the textarea so user can patch terms inline instead of re-importing
+    const ta = document.querySelector('.inp-mono');
+    if (ta) {
+      ta.scrollIntoView({behavior:'smooth', block:'center'});
+      setTimeout(() => ta.focus(), 350);
+    }
+  }
+  if (backToSourceTop) backToSourceTop.addEventListener('click', goBackToSourceTerms);
+  if (backToSourceFooter) backToSourceFooter.addEventListener('click', goBackToSourceTerms);
+  if (rerunBanner) rerunBanner.addEventListener('click', focusManualEdit);
+
+  // Inline "Fill manually" / "Skip / Add language" — make the failed term editable
+  document.querySelectorAll('.cv-act').forEach(act => {
+    act.addEventListener('click', (e) => {
+      e.preventDefault();
+      const issue = act.closest('.cov-issue');
+      if (!issue) return;
+      const term = issue.querySelector('.cv-term');
+      const flag = issue.querySelector('.cv-flag');
+      if (!term || term.dataset.editing === '1') return;
+      term.dataset.editing = '1';
+      const original = term.textContent;
+      term.innerHTML = `<input class="inp" style="padding:4px 8px;font-size:12px;width:180px" value="${original}" placeholder="Type English translation..." />`;
+      const input = term.querySelector('input');
+      if (input) input.focus();
+      if (flag) {
+        flag.className = 'cv-flag missing';
+        flag.textContent = 'Editing — press Enter to save';
+      }
+      act.textContent = 'Save & Re-translate';
+    });
+  });
+
+  // Success popup trigger (Create List → popup)
+  const createTrigger = document.getElementById('create-trigger');
+  const popupMask = document.getElementById('popup-mask');
+  if (createTrigger && popupMask) {
+    createTrigger.addEventListener('click', () => {
+      popupMask.classList.add('show');
+    });
+  }
+  if (popupMask) {
+    popupMask.addEventListener('click', (e) => {
+      if (e.target === popupMask) popupMask.classList.remove('show');
+    });
+  }
+
+  // ===== Edit mode (?mode=edit · entered from F1 Draft row Edit) · jumps straight to Step 3 Confirm =====
+  if (pageMode === 'edit') {
+    const crumbB = document.querySelector('.crumb b');
+    if (crumbB) crumbB.textContent = 'Edit List (Draft)';
+    const eb = document.getElementById('edit-mode-banner');
+    if (eb) eb.classList.add('show');
+    if (createTrigger) createTrigger.textContent = 'Save Changes (3 entries)';
+    if (popupMask) {
+      const title = popupMask.querySelector('.popup-title');
+      if (title) title.textContent = 'Draft Updated Successfully';
+    }
+    setTimeout(() => { const t = document.getElementById('e2-step3'); if (t) t.scrollIntoView({ behavior: 'smooth' }); }, 250);
+  }
+
+  // (Active Edit flow removed · now lives entirely in F1 main page inline modal.
+  //  Draft Edit (?mode=edit) above is preserved.)
+
+  // Business Scenario Tag · single-select pills (E2.1)
+  const scenarioGroup = document.getElementById('scenario-tag-group');
+  if (scenarioGroup) {
+    scenarioGroup.addEventListener('click', (e) => {
+      const pill = e.target.closest('.ck-pill[data-tag]');
+      if (!pill) return;
+      scenarioGroup.querySelectorAll('.ck-pill').forEach(p => p.classList.remove('on'));
+      pill.classList.add('on');
+    });
+  }
+
+  // Owner Entity + Data Source options are TBD (pending team alignment) — no JS yet.
+
+  // Translation Mode toggle (E2.1) · Single-language vs Multi-language · drives Step 2 Phase 2 visibility
+  const agentToggle = document.getElementById('agent-toggle');
+  const agentCard = document.getElementById('agent-toggle-card');
+  const agentBadge = document.getElementById('at-badge');
+  const langSection = document.getElementById('lang-section');
+  const phase2Section = document.getElementById('step2-phase-2');
+  const subphaseBar = document.getElementById('step2-subphase-bar');
+  const phase1Hint = document.getElementById('phase1-hint');
+  const phase1ImportBtn = document.getElementById('phase1-import-btn');
+
+  function applyTranslationMode(isSingle) {
+    if (agentCard) agentCard.classList.toggle('off', isSingle);
+    if (agentBadge) agentBadge.textContent = isSingle ? 'OFF' : 'ON';
+    if (langSection) langSection.style.display = isSingle ? 'none' : '';
+    if (phase2Section) phase2Section.style.display = isSingle ? 'none' : '';
+    if (subphaseBar) {
+      subphaseBar.querySelectorAll('[data-phase2-only]').forEach(el => {
+        el.style.display = isSingle ? 'none' : '';
+      });
+    }
+    if (phase1Hint) {
+      phase1Hint.innerHTML = '<b style="color:var(--text-primary)">7</b> source terms ready';
+    }
+    if (phase1ImportBtn) phase1ImportBtn.textContent = isSingle ? 'Confirm → Step 3' : 'Next →';
+  }
+
+  if (agentToggle) {
+    agentToggle.addEventListener('click', () => {
+      const isSingle = agentToggle.classList.toggle('is-off');
+      agentToggle.setAttribute('aria-checked', String(!isSingle));
+      applyTranslationMode(isSingle);
+    });
+    applyTranslationMode(agentToggle.classList.contains('is-off'));
+  }
+
+
+  // Toast feedback
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function flashToast(msg) {
+    if (!toast) return;
+    if (msg) toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+  document.querySelectorAll('.toast-trigger').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      flashToast('Progress retained in the current session · continue to reviewer selection when ready');
+    });
+  });
+
+  // Lark sheet import workflow · Download template + upload zone + Import button triggers parse demo
+  const lfDlBtn      = document.getElementById('lf-dl-tpl');
+  const lfPick       = document.getElementById('lf-pick');
+  const lfResSuccess = document.getElementById('lf-result-success');
+  const lfResFailure = document.getElementById('lf-result-failure');
+  const lfFixLark    = document.getElementById('lf-fix-lark');
+  const lfReupload   = document.getElementById('lf-reupload');
+  // Reuse the existing phase1ImportBtn declared above (line ~1338, in the agent-toggle block)
+
+  function showResult(kind) {
+    if (lfResSuccess) lfResSuccess.style.display = 'none';
+    if (lfResFailure) lfResFailure.style.display = 'none';
+    const el = (kind === 'failure') ? lfResFailure : lfResSuccess;
+    if (el) {
+      el.style.display = 'flex';
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  // Demo: 1st Import click → parse failure (shows errors) · subsequent → success
+  let importAttempt = 0;
+
+  if (lfDlBtn) lfDlBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    flashToast('Lark sheet template downloaded · open it in Lark, fill terms, then upload the export here');
+  });
+
+  // Upload zone click — just acknowledges the file is selected (parse happens on Import click)
+  if (lfPick) lfPick.addEventListener('click', (e) => {
+    e.preventDefault();
+    flashToast('Sheet uploaded · click Import → in the action bar below to parse');
+  });
+
+  // Wire the existing Phase 1 Import → button to trigger the parse-result demo
+  if (phase1ImportBtn) {
+    phase1ImportBtn.addEventListener('click', (e) => {
+      // Don't preventDefault — keep any other native behavior (none here, but safe)
+      if (importAttempt === 0) {
+        showResult('failure');
+        flashToast('Parse failed · 3 errors detected · fix in Lark and re-upload');
+      } else {
+        showResult('success');
+        flashToast('Parse successful · 7 rows recognized · within 2000-row cap');
+      }
+      importAttempt++;
+    });
+  }
+
+  // Re-upload from failure panel — re-runs the parse (success path after the fix)
+  if (lfFixLark) lfFixLark.addEventListener('click', (e) => {
+    e.preventDefault();
+    flashToast('Lark sheet reopened · fix flagged rows, then click Re-upload below');
+  });
+  if (lfReupload) lfReupload.addEventListener('click', (e) => {
+    e.preventDefault();
+    showResult('success');
+    flashToast('Re-uploaded · parse successful · 7 rows recognized · within 2000-row cap');
+    importAttempt++;
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Feature Platform · Review List (Reviewer) · v0.1</title>
+<style>
+:root{
+ --bg-page:#F4F6FA; --bg-card:#FFFFFF; --bg-soft:#F8F9FC; --bg-softer:#FAFBFC;
+ --border:#E5E8EE; --border-soft:#EEF0F4;
+ --text-primary:#1F2937; --text-secondary:#5A6373; --text-muted:#6B7280;
+ --link:#2563EB; --link-hover:#1D4FCF;
+ --green:#10B981; --green-bg:#D1FAE5; --green-text:#047857;
+ --amber:#F59E0B; --amber-bg:#FEF3C7; --amber-text:#92400E;
+ --red:#EF4444; --red-bg:#FEE2E2; --red-text:#991B1B;
+ --sidebar:linear-gradient(180deg,#4F8DEC 0%,#1E3A8A 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-page);color:var(--text-primary);font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans Arabic','Noto Sans Thai',-apple-system,sans-serif;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--link-hover);text-decoration:underline}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+
+.sidebar{background:var(--sidebar);color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.brand-logo{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff 0%,#A7C5FF 60%,#3B5DDF 100%);display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800;font-size:14px}
+.brand-name{font-weight:700;font-size:15px;letter-spacing:0.2px}
+.brand-name small{display:block;font-weight:500;font-size:10.5px;opacity:.75;margin-top:1px}
+.nav-section{font-size:10px;letter-spacing:.5px;text-transform:uppercase;opacity:.55;margin:14px 4px 6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:#dbe6ff;cursor:pointer;margin-bottom:1px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.nav-sub{padding-left:18px;font-size:11.5px;opacity:.85;margin-top:2px}
+.nav-sub .nav-item{padding:5px 9px}
+.nav-sub .nav-item.active{background:rgba(255,255,255,.22);color:#fff;font-weight:700}
+
+.main{padding:0;background:var(--bg-page);position:relative}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#fff;border-bottom:1px solid var(--border)}
+.crumb{font-size:12.5px;color:var(--text-muted)}
+.crumb b{color:var(--text-primary);font-weight:600}
+.crumb .role-tag{margin-left:8px;font-size:9.5px;font-weight:700;background:#5B21B6;color:#fff;padding:1px 6px;border-radius:3px;letter-spacing:.4px}
+.topbar-right{display:flex;align-items:center;gap:14px;color:var(--text-muted);font-size:12px}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#C4B5FD,#8B5CF6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+.canvas{padding:24px 28px 60px;position:relative}
+
+.frame-label{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:#5B21B6;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.frame-label .dot{width:6px;height:6px;border-radius:50%;background:#34D399}
+
+.page-head{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:14px}
+.page-head-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.page-head-l{display:flex;align-items:center;gap:10px}
+.back-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--bg-soft);color:var(--text-secondary);cursor:pointer;font-size:14px}
+.back-btn:hover{background:var(--border);color:var(--text-primary)}
+.page-title{font-size:17px;font-weight:700;color:var(--text-primary);letter-spacing:-.1px}
+.page-title small{color:var(--text-muted);font-weight:500;margin-left:8px;font-family:'JetBrains Mono',Menlo,monospace;font-size:12px}
+.urgent-pill{display:inline-flex;align-items:center;gap:5px;background:var(--amber-bg);color:var(--amber-text);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid #F59E0B;margin-left:10px;letter-spacing:.3px}
+.page-meta{display:flex;flex-wrap:wrap;gap:6px 24px;font-size:12px}
+.page-meta .pm-k{color:var(--text-muted);font-weight:600;margin-right:6px}
+.page-meta .pm-v{color:var(--text-primary);font-weight:500}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text-primary)}
+.btn:hover{background:var(--bg-soft)}
+.btn-p{background:var(--link);color:#fff;border-color:var(--link)}
+.btn-p:hover{background:var(--link-hover)}
+.btn-sm{padding:5px 9px;font-size:11.5px}
+
+.stages{display:flex;align-items:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 22px;margin-bottom:14px}
+.stage{display:flex;align-items:center;gap:10px;flex:1}
+.stage:last-child{flex:0 0 auto}
+.stage-num{flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--bg-soft);color:var(--text-muted);font-weight:700;font-size:11px;border:1px solid var(--border)}
+.stage-name{font-size:13px;font-weight:600;color:var(--text-secondary)}
+.stage-line{flex:1;height:2px;background:var(--border-soft);margin:0 8px;border-radius:2px}
+.stage.done .stage-num{background:var(--green-bg);color:var(--green-text);border-color:var(--green)}
+.stage.done .stage-name{color:var(--green-text)}
+.stage.done .stage-line{background:var(--green)}
+.stage.active .stage-num{background:var(--link);color:#fff;border-color:var(--link)}
+.stage.active .stage-name{color:var(--link);font-weight:700}
+.stage.active + .stage-line-wrap .stage-line{background:linear-gradient(90deg,var(--link),var(--border-soft))}
+
+.body-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px}
+
+/* Collapsible wrapper around the two-column List Configuration Snapshot + List Attributes
+   Reviewer needs the Diff first; metadata is a side-channel they open on demand. */
+.lcfg-wrap{margin-bottom:14px}
+.lcfg-toggle{background:#fff;border:1px solid var(--border);border-radius:10px;padding:11px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .15s,background .15s}
+.lcfg-toggle:hover{border-color:var(--link);background:#FAFBFE}
+.lcfg-toggle-l{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.lcfg-caret{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;color:var(--text-muted);transition:transform .2s ease;font-size:11px}
+.lcfg-wrap.open .lcfg-caret{transform:rotate(90deg);color:var(--link)}
+.lcfg-title{font-size:13.5px;font-weight:700;color:var(--text-primary);letter-spacing:-.1px}
+.lcfg-sub{font-size:11.5px;color:var(--text-muted);font-weight:500}
+.lcfg-summary-chips{display:inline-flex;gap:6px;align-items:center;margin-left:10px}
+.lcfg-sc{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:3px;background:var(--bg-softer);color:var(--text-secondary);border:1px solid var(--border-soft);font-family:'JetBrains Mono',Menlo,monospace;letter-spacing:.2px}
+.lcfg-content{display:none;margin-top:10px}
+.lcfg-wrap.open .lcfg-content{display:block}
+
+.col-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.col-h{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-soft)}
+.col-h h3{font-size:14px;font-weight:700;color:var(--text-primary)}
+.col-h .col-sub{margin-left:auto;font-size:11.5px;color:var(--text-muted)}
+
+/* Configuration snapshot section */
+.cfg-sec{margin-bottom:18px;padding-bottom:14px;border-bottom:1px dashed var(--border-soft)}
+.cfg-sec:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.cfg-sec h4{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:9px;letter-spacing:.4px;text-transform:uppercase}
+
+/* Scrollable table section · 业务方默认看 5 行预览 · 想看全部上下滑动 */
+.cfg-sec.scroll-cap h4{display:flex;align-items:baseline;gap:8px}
+.cfg-sec.scroll-cap h4 .hint{font-size:10px;color:var(--text-muted);font-weight:500;text-transform:none;letter-spacing:0;margin-left:auto}
+.cfg-table.scroll-cap{max-height:128px;overflow-y:auto;position:relative;scroll-behavior:smooth}
+.cfg-table.scroll-cap::-webkit-scrollbar{width:8px}
+.cfg-table.scroll-cap::-webkit-scrollbar-track{background:var(--bg-softer);border-radius:4px}
+.cfg-table.scroll-cap::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px;border:2px solid var(--bg-softer)}
+.cfg-table.scroll-cap::-webkit-scrollbar-thumb:hover{background:#94A3B8}
+.cfg-table.scroll-cap thead th{position:sticky;top:0;background:var(--bg-softer);z-index:2;box-shadow:0 1px 0 var(--border-soft)}
+/* Fade hint at bottom of scrollable area when more rows below */
+.scroll-cap-wrap{position:relative}
+.scroll-cap-wrap::after{content:"";position:absolute;left:0;right:8px;bottom:0;height:18px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.92));pointer-events:none;border-bottom-left-radius:7px;border-bottom-right-radius:7px}
+.scroll-meta{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text-muted);margin-top:8px}
+.scroll-meta .sm-arrow{display:inline-flex;align-items:center;color:var(--link)}
+.cfg-grid{display:grid;grid-template-columns:120px 1fr;gap:6px 18px;font-size:12px}
+.cfg-grid .k{color:var(--text-muted);font-weight:600}
+.cfg-grid .v{color:var(--text-primary);font-weight:500}
+.cfg-grid .v.mono{font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px}
+
+.chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.5}
+.list-type-block{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}
+.list-type-allow{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}
+
+/* Source language bar */
+.src-bar{display:flex;height:18px;border-radius:4px;overflow:hidden;margin-top:6px;margin-bottom:6px}
+.src-bar span{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;letter-spacing:.3px}
+.src-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--text-secondary)}
+.src-legend .sl-dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+
+/* Final EN list table */
+.cfg-table{width:100%;border:1px solid var(--border-soft);border-radius:7px;overflow:hidden;background:#fff}
+.cfg-table table{width:100%;border-collapse:collapse;font-size:12px}
+.cfg-table thead th{padding:8px 11px;background:var(--bg-softer);color:var(--text-secondary);font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--border-soft)}
+.cfg-table tbody td{padding:8px 11px;border-bottom:1px solid var(--border-soft);vertical-align:top;font-size:11.5px}
+.cfg-table tbody tr:last-child td{border-bottom:none}
+.cfg-table .col-num{width:32px;font-family:'JetBrains Mono',Menlo,monospace;color:var(--text-muted);font-weight:600}
+.cfg-table .col-conf{width:60px;text-align:center}
+.bdg-pct{display:inline-block;background:#F1F5F9;color:var(--text-primary);border:1px solid var(--border);font-family:'JetBrains Mono',Menlo,monospace;font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px}
+.lang-tag{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',Menlo,monospace;font-size:10px;color:#fff;padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:.3px}
+
+/* Auto-check validation cards */
+.vcard{display:flex;gap:10px;padding:11px 13px;border:1px solid var(--border-soft);border-radius:8px;margin-bottom:8px;background:#fff}
+.vcard:last-child{margin-bottom:0}
+.vcard-ico{flex:none;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;margin-top:1px}
+.vcard.ok .vcard-ico{background:var(--green)}
+.vcard.warn .vcard-ico{background:var(--amber)}
+.vcard.fail .vcard-ico{background:var(--red)}
+.vcard.info .vcard-ico{background:var(--link)}
+.vcard-c{flex:1;min-width:0}
+.vcard-h{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--text-primary);margin-bottom:3px}
+.vcard-h .vc-status{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.2px;margin-left:auto}
+.vcard.ok .vc-status{background:var(--green-bg);color:var(--green-text)}
+.vcard.warn .vc-status{background:var(--amber-bg);color:var(--amber-text)}
+.vcard.fail .vc-status{background:var(--red-bg);color:var(--red-text)}
+.vcard.info .vc-status{background:#DBE8FE;color:#1D4ED8}
+.vcard-meta{font-size:11px;color:var(--text-muted);line-height:1.6}
+.vcard-meta b{color:var(--text-secondary);font-weight:600}
+.vcard-fail-reason{margin-top:6px;padding:6px 10px;background:var(--amber-bg);border-radius:5px;font-size:11px;color:var(--amber-text);line-height:1.5}
+
+/* Owner block */
+.owner-block{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px solid var(--border-soft);border-radius:8px;background:var(--bg-softer);margin-bottom:14px}
+.ob-ava{flex:none;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#A7C5FF,#3B5DDF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.ob-c{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.ob-n{font-size:13px;font-weight:700;color:var(--text-primary)}
+.ob-r{font-size:11px;color:var(--text-muted)}
+.ob-time{font-size:11px;color:var(--text-muted);text-align:right;flex:none}
+
+/* Owner comment box */
+.owner-comment{padding:11px 13px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:7px;margin-bottom:14px}
+.owner-comment-h{font-size:10px;font-weight:700;color:#92400E;letter-spacing:.3px;text-transform:uppercase;margin-bottom:5px}
+.owner-comment-b{font-size:12px;color:#78350F;line-height:1.55}
+
+/* Approver decision form */
+.decide-card{background:#fff;border:2px solid var(--link);border-radius:12px;padding:18px 22px;margin-bottom:14px;position:relative}
+.decide-card::before{content:"YOU ARE THE REVIEWER";position:absolute;top:-9px;left:18px;background:var(--link);color:#fff;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:.5px}
+.decide-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-soft)}
+.decide-h h3{font-size:14.5px;font-weight:700;color:var(--text-primary)}
+.decide-form{display:grid;grid-template-columns:auto 1fr;gap:14px 18px;align-items:start;margin-bottom:14px}
+.decide-form .df-label{font-size:12px;color:var(--text-secondary);font-weight:600;padding-top:8px;display:flex;align-items:center;gap:4px}
+.decide-form .df-label .req{color:var(--red)}
+.df-radio-group{display:flex;gap:10px}
+.df-radio{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-primary);cursor:pointer;user-select:none;padding:7px 16px;border:1px solid var(--border);border-radius:7px;background:#fff;font-weight:600}
+.df-radio:hover{background:var(--bg-soft)}
+.df-radio.on.approve{background:var(--green-bg);border-color:var(--green);color:var(--green-text)}
+.df-radio.on.reject{background:var(--red-bg);border-color:var(--red);color:var(--red-text)}
+.df-radio input{margin:0;width:14px;height:14px}
+.df-ta{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;resize:vertical;color:var(--text-primary)}
+.df-ta:focus{outline:none;border-color:var(--link);box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+.df-counter{display:flex;justify-content:flex-end;font-size:11px;color:var(--text-muted);margin-top:4px}
+.decide-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;border-top:1px solid var(--border-soft)}
+
+/* ============================================================
+   Diff view · for Active inline-edit change requests
+   Reviewer sees Added/Removed/Modified rows like a GitHub PR diff
+   ============================================================ */
+.diff-summary{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin-bottom:14px}
+.diff-summary-h{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
+.diff-summary-h .ds-title{font-size:14px;font-weight:700;color:var(--text-primary)}
+.diff-summary-h .ds-by{font-size:12px;color:var(--text-muted)}
+.diff-chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:9px}
+.diff-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:700;letter-spacing:.2px}
+.diff-chip .dc-n{font-family:'JetBrains Mono',Menlo,monospace;font-size:13px;font-weight:800}
+.diff-chip-add{background:#D1FAE5;color:#047857;border:1px solid #6EE7B7}
+.diff-chip-del{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+.diff-chip-mod{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+.diff-meta{font-size:11.5px;color:var(--text-secondary);line-height:1.6}
+.diff-meta b{color:var(--text-primary);font-weight:600}
+.diff-meta .dm-pill{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:3px;font-size:10.5px;font-weight:700;letter-spacing:.2px;margin-left:6px}
+
+/* Tabs */
+.diff-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border-soft);margin-bottom:0;background:var(--bg-softer);padding:0 4px;border-top-left-radius:7px;border-top-right-radius:7px}
+.diff-tab{padding:9px 14px;font-size:11.5px;font-weight:600;color:var(--text-muted);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;letter-spacing:.2px}
+.diff-tab:hover{color:var(--text-primary)}
+.diff-tab.active{color:var(--link);border-bottom-color:var(--link);background:#fff}
+.diff-tab .dt-n{display:inline-block;margin-left:5px;background:var(--border);color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px}
+.diff-tab.active .dt-n{background:#DBE8FE;color:var(--link)}
+
+/* Diff table */
+.diff-table{width:100%;border:1px solid var(--border-soft);border-top:none;border-radius:0 0 7px 7px;overflow:hidden;background:#fff}
+.diff-table table{width:100%;border-collapse:collapse;font-size:11.5px}
+.diff-table thead th{padding:8px 10px;background:var(--bg-softer);color:var(--text-secondary);font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--border-soft)}
+.diff-table tbody td{padding:9px 10px;border-bottom:1px solid var(--border-soft);vertical-align:top}
+.diff-table tbody tr:last-child td{border-bottom:none}
+.diff-table .col-num{width:34px;font-family:'JetBrains Mono',Menlo,monospace;color:var(--text-muted);font-weight:600}
+.diff-table .col-status{width:80px}
+.diff-table .col-actor{width:110px;font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:var(--text-secondary)}
+.diff-table .col-ts{width:140px;font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:var(--text-muted)}
+
+/* Row colors */
+.diff-row-add td{background:#D1FAE5}
+.diff-row-add td b{color:#047857}
+.diff-row-del td{background:#FEE2E2}
+.diff-row-del td b{color:#991B1B}
+.diff-row-del .dr-src,.diff-row-del .dr-en{text-decoration:line-through;text-decoration-color:#991B1B}
+.diff-row-mod td{background:#FEF3C7}
+.diff-row-mod td b{color:#92400E}
+
+/* Row status badges */
+.diff-badge{display:inline-flex;align-items:center;font-size:9.5px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:3px;text-transform:uppercase}
+.diff-badge-new{background:#047857;color:#fff}
+.diff-badge-del{background:#991B1B;color:#fff}
+.diff-badge-mod{background:#92400E;color:#fff}
+
+/* old → new display for Modified rows */
+.diff-old-new{display:flex;flex-direction:column;gap:2px}
+.diff-old-new .dn-old{color:#9CA3AF;text-decoration:line-through;text-decoration-color:#9CA3AF;font-size:11px}
+.diff-old-new .dn-arrow{color:#92400E;font-weight:700;font-size:10px;margin:0 4px}
+.diff-old-new .dn-new{color:var(--text-primary);font-weight:600}
+
+/* Inline source/en text */
+.dr-src{font-weight:600;color:var(--text-primary)}
+.dr-en{font-style:italic;color:var(--text-secondary)}
+
+/* ============================================================
+   IDSP-style 3-column Change Diff panel · full width
+   Pattern: Preview of Diff Changes [<list name>]
+   Left nav (term changes w/ badges) + Baseline | New side-by-side
+   ============================================================ */
+.diff-panel-card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.diff-panel-h{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 22px;border-bottom:1px solid var(--border-soft);background:#fff;flex-wrap:wrap}
+.diff-panel-h .dph-title{font-size:15px;font-weight:700;color:var(--text-primary);letter-spacing:-.1px}
+.diff-panel-h .dph-title b{color:var(--text-primary);font-weight:700}
+.diff-panel-h .dph-toggle{display:flex;gap:16px;font-size:12.5px;color:var(--text-secondary)}
+.diff-panel-h .dph-toggle label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:500}
+.diff-panel-h .dph-toggle input{margin:0;width:14px;height:14px;accent-color:var(--link)}
+
+.diff-panel-body{display:block;min-height:440px}
+.diff-nav{border-right:1px solid var(--border-soft);background:var(--bg-softer);padding:14px 0;max-height:680px;overflow-y:auto}
+.diff-nav-h{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;padding:0 18px 8px;display:flex;align-items:baseline;gap:6px}
+.diff-nav-h span{color:var(--link);font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px}
+.diff-nav-list{display:flex;flex-direction:column}
+.diff-nav-item{display:flex;align-items:center;gap:8px;padding:8px 18px;font-size:12.5px;color:var(--text-primary);cursor:pointer;border-left:3px solid transparent;transition:background .12s}
+.diff-nav-item:hover{background:rgba(15,23,42,.04)}
+.diff-nav-item.active{background:#fff;border-left-color:var(--link);color:var(--text-primary);font-weight:600}
+.diff-nav-item .dni-src{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.diff-nav-item.active .dni-src{font-weight:600;color:var(--link)}
+.diff-nav-item .dni-badge{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.3px;padding:2px 7px;border-radius:3px}
+.dni-badge-add{background:#D1FAE5;color:#047857}
+.dni-badge-del{background:#FEE2E2;color:#991B1B}
+.dni-badge-mod{background:#FEF3C7;color:#92400E}
+
+/* Full-list diff layout: two-column comparison with paired rows */
+.diff-cmp{background:#fff;display:flex;flex-direction:column;min-height:0}
+.diff-col-headers{display:grid;grid-template-columns:1fr 1fr;background:var(--bg-softer);border-bottom:2px solid var(--border-soft);position:sticky;top:0;z-index:5}
+.dch{padding:11px 22px;font-size:12.5px;font-weight:700;color:var(--text-secondary);letter-spacing:.3px;text-transform:uppercase;border-bottom:2px solid transparent;display:flex;align-items:baseline;gap:10px}
+.dch-base{color:#991B1B;border-bottom-color:#FCA5A5}
+.dch-new{color:#047857;border-bottom-color:#6EE7B7;border-left:1px solid var(--border-soft)}
+.dch-meta{font-size:10.5px;font-weight:600;color:var(--text-muted);text-transform:none;letter-spacing:0;font-family:'JetBrains Mono',Menlo,monospace}
+
+.diff-rows{max-height:540px;overflow-y:auto;background:#fff}
+.diff-rows::-webkit-scrollbar{width:8px}
+.diff-rows::-webkit-scrollbar-track{background:var(--bg-softer);border-radius:4px}
+.diff-rows::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px;border:2px solid var(--bg-softer)}
+
+/* One paired row = baseline cell + new cell side by side · grid keeps them aligned */
+.diff-pair{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border-soft);align-items:stretch}
+.diff-pair:last-child{border-bottom:none}
+.diff-cell{padding:11px 22px;font-size:12.5px;line-height:1.55;min-height:54px;position:relative;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.diff-cell + .diff-cell{border-left:1px solid var(--border-soft)}
+
+.dc-num{position:absolute;left:8px;top:8px;font-family:'JetBrains Mono',Menlo,monospace;font-size:9.5px;color:#CBD5E1;font-weight:700}
+.dc-src{font-size:11.5px;color:var(--text-secondary);font-weight:500;display:flex;align-items:baseline;gap:6px}
+.dc-src .dc-src-label{font-family:'JetBrains Mono',Menlo,monospace;font-size:9.5px;color:var(--text-muted);font-weight:700;letter-spacing:.3px}
+.dc-en{font-size:13px;color:var(--text-primary);font-weight:600;line-height:1.4}
+.dc-badge{position:absolute;right:10px;top:10px;font-size:9.5px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:3px;text-transform:uppercase}
+
+/* Row coloring · 3 ops × New side highlighted only · Original (left) stays plain unless Delete shows on left
+   Add  → New: light orange   · Original: blank (or shows source if extending)
+   Delete → Original: shows entry plain · New: shows entry with ✕ icon, no bg
+   Modify → New: light mint    · Original: plain (shows old word) */
+.diff-pair .diff-cell{background:#fff}
+.diff-pair[data-op="add"] .diff-cell.dc-new{background:#FFEDD5}
+.diff-pair[data-op="modify"] .diff-cell.dc-new{background:#ECFDF5}
+/* Delete uses no bg on either side; instead the new side gets a strike + ✕ icon */
+.diff-pair[data-op="delete"] .diff-cell.dc-new .dc-en{color:#9CA3AF;text-decoration:line-through;text-decoration-color:#DC2626;text-decoration-thickness:1.5px}
+.dc-x-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#FEE2E2;color:#DC2626;font-size:11px;font-weight:700;margin-left:8px;flex:none}
+.dc-en-wrap{display:inline-flex;align-items:center;gap:0;font-weight:600;color:var(--text-primary)}
+/* Text stays normal — no bold colored text, no strikethrough except delete */
+.diff-pair .diff-cell .dc-en{color:var(--text-primary);font-weight:600;text-decoration:none}
+.dc-badge{display:none}
+
+/* Highlight target on jump-scroll */
+.diff-pair.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{box-shadow:inset 0 0 0 3px var(--link)}100%{box-shadow:inset 0 0 0 0 var(--link)}}
+
+/* Placeholder empty cell when there's no counterpart on the other side */
+.diff-cell.empty .dc-en{color:#9CA3AF;font-style:italic;font-weight:500;font-size:12px}
+.diff-cell.empty .dc-src{display:none}
+
+/* Hide unchanged rows when "View changes only" is selected */
+.diff-panel-card.view-changes .diff-pair[data-op="unchanged"]{display:none}
+
+/* Section divider between current group of changes and unchanged "context" rows */
+.diff-pair-div{padding:7px 22px;font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;background:var(--bg-page);border-bottom:1px solid var(--border-soft);grid-column:1 / -1}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+ <div class="brand">
+  <div class="brand-logo">a</div>
+  <div class="brand-name">arena<small>Global</small></div>
+ </div>
+ <div class="nav-section">Workspace</div>
+ <div class="nav-item">Discover</div>
+ <div class="nav-item">Host Center</div>
+ <div class="nav-item">Resource Hub</div>
+ <div class="nav-item">LIVE Hub</div>
+ <div class="nav-item active">Ecosystem</div>
+ <div class="nav-sub">
+  <div class="nav-item">Strategic Configuration</div>
+  <div class="nav-item">Strategic Monitor</div>
+  <div class="nav-item active">Feature Center</div>
+ </div>
+ <div class="nav-section">Guardrail</div>
+ <div class="nav-item active">List Management</div>
+ <div class="nav-item">Detection Item Config</div>
+ <div class="nav-item">Hit Analysis</div>
+ <div class="nav-section">Quick Access</div>
+ <div class="nav-item">Go LIVE</div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <div class="crumb">Ecosystem / TRIDENT (IDSP) / Feature Center / Guardrail / <a href="feature-platform-word-list-prototype-v0.3.html">List Management</a> / Review Inbox / <b>Review List</b><span class="role-tag">REVIEWER VIEW</span></div>
+  <div class="topbar-right">
+   <span>LZ</span>
+   <div class="avatar">LZ</div>
+  </div>
+ </header>
+
+ <div class="canvas">
+
+  <span class="frame-label"><span class="dot"></span>FRAME F4 · REVIEW LIST · REVIEWER VIEW</span>
+
+  <div class="page-head">
+   <div class="page-head-top">
+    <div class="page-head-l">
+     <a class="back-btn" href="feature-platform-word-list-prototype-v0.3.html">←</a>
+     <div>
+      <div class="page-title">Review Changes: <span id="ph-list-name">NSA Sensitive Terms · LIVE_R3</span> <small id="ph-list-id">· wl-active-r1</small><span class="urgent-pill">⚡ SLA 4h</span></div>
+     </div>
+    </div>
+   </div>
+   <div class="page-meta" id="page-meta">
+    <span><span class="pm-k">Submitted by</span><span class="pm-v" id="pm-owner">@ymgao</span></span>
+    <span><span class="pm-k">Submitted at</span><span class="pm-v" id="pm-submitted">2026-06-17 15:40</span></span>
+    <span><span class="pm-k">Assigned to</span><span class="pm-v" id="pm-reviewer">@reviewer-tianyu (you)</span></span>
+    <span><span class="pm-k">Change Type</span><span class="pm-v" id="pm-change-type">Edit Active List · Pending Revision</span></span>
+    <span><span class="pm-k">Ticket #</span><span class="pm-v" style="font-family:'JetBrains Mono',Menlo,monospace">IDSP-EDIT-7831</span></span>
+   </div>
+  </div>
+
+  <div class="stages">
+   <div class="stage done"><span class="stage-num">✓</span><span class="stage-name">Submit Change</span></div>
+   <div class="stage-line-wrap" style="flex:1;display:flex"><span class="stage-line" style="background:var(--green)"></span></div>
+   <div class="stage done"><span class="stage-num">✓</span><span class="stage-name">Auto Check</span></div>
+   <div class="stage-line-wrap" style="flex:1;display:flex"><span class="stage-line" style="background:var(--link)"></span></div>
+   <div class="stage active"><span class="stage-num">3</span><span class="stage-name">Reviewer Approval</span></div>
+   <div class="stage-line-wrap" style="flex:1;display:flex"><span class="stage-line"></span></div>
+   <div class="stage"><span class="stage-num">4</span><span class="stage-name">Live (Active)</span></div>
+  </div>
+
+  <!-- Collapsible wrapper · List metadata is secondary to the Diff. Reviewer expands on demand. -->
+  <div class="lcfg-wrap" id="lcfg-wrap">
+   <div class="lcfg-toggle" id="lcfg-toggle">
+    <div class="lcfg-toggle-l">
+     <span class="lcfg-caret">▶</span>
+     <span class="lcfg-title">List Configuration & Attributes</span>
+     <span class="lcfg-summary-chips">
+      <span class="lcfg-sc">LIVE_PCF_gift_solicitation_v2</span>
+      <span class="lcfg-sc">Fuzzy Match</span>
+     </span>
+    </div>
+   </div>
+   <div class="lcfg-content">
+  <div class="body-grid">
+
+   <!-- LEFT COLUMN: List Configuration Snapshot (the focus) -->
+   <div class="col-card">
+    <div class="col-h">
+     <h3>List Configuration Snapshot</h3>
+    </div>
+
+    <!-- Owner block -->
+    <div class="owner-block">
+     <div class="ob-ava">YG</div>
+     <div class="ob-c">
+      <div class="ob-n">@ymgao</div>
+      <div class="ob-r">Owner · TikTok LIVE Trust &amp; Safety PM</div>
+     </div>
+     <div class="ob-time">Submitted<br/>2026-06-05 09:42</div>
+    </div>
+
+    <!-- Owner comment -->
+    <div class="owner-comment">
+     <div class="owner-comment-h">Comment from Owner</div>
+     <div class="owner-comment-b">UED feedback batch from SEA + MEA regions — 7 mixed-language terms collected via 3 UED tickets (#IDSP-2841, #IDSP-2843, #IDSP-2851). All terms target gift solicitation behavior on LIVE. Translation normalized via AI Agent.</div>
+    </div>
+
+    <!-- Metadata section -->
+    <div class="cfg-sec">
+     <h4>Metadata</h4>
+     <div class="cfg-grid">
+      <span class="k">List Name</span><span class="v mono">LIVE_PCF_gift_solicitation_v2</span>
+      <span class="k">List ID</span><span class="v mono">list_live_pcf_gift_v2</span>
+      <span class="k">Match Mode</span><span class="v">Fuzzy Match</span>
+      <span class="k">Scenario Type</span><span class="v">Eco-governance</span>
+      <span class="k">Edit Permission</span><span class="v">Editing</span>
+     </div>
+    </div>
+
+    <!-- Source language breakdown · 翻译率口径下沉到这里，每个语言显示「条数 · 翻译率」-->
+    <div class="cfg-sec">
+     <h4>Source Language Breakdown</h4>
+     <div class="src-bar">
+      <span style="flex:2;background:#3B82F6">th 2 · 100%</span>
+      <span style="flex:1;background:#8B5CF6">ar 1 · 0%</span>
+      <span style="flex:1;background:#EC4899">es 1 · 100%</span>
+      <span style="flex:1;background:#06B6D4">vi 1 · 100%</span>
+      <span style="flex:1;background:#F59E0B">id 1 · 100%</span>
+      <span style="flex:1;background:#10B981">en 1 · 100%</span>
+     </div>
+     <div class="src-legend">
+      <span><span class="sl-dot" style="background:#3B82F6"></span>Thai (th) · 2 entries · translation rate <b style="color:var(--green-text)">100%</b></span>
+      <span><span class="sl-dot" style="background:#8B5CF6"></span>Arabic (ar) · 1 entry · translation rate <b style="color:#92400E">0%</b></span>
+      <span><span class="sl-dot" style="background:#EC4899"></span>Spanish (es) · 1 entry · translation rate <b style="color:var(--green-text)">100%</b></span>
+      <span><span class="sl-dot" style="background:#06B6D4"></span>Vietnamese (vi) · 1 entry · translation rate <b style="color:var(--green-text)">100%</b></span>
+      <span><span class="sl-dot" style="background:#F59E0B"></span>Indonesian (id) · 1 entry · translation rate <b style="color:var(--green-text)">100%</b></span>
+      <span><span class="sl-dot" style="background:#10B981"></span>English (en) · 1 entry · translation rate <b style="color:var(--green-text)">100%</b></span>
+     </div>
+     <div style="margin-top:8px;font-size:10.5px;color:var(--text-muted);line-height:1.6">Overall translation rate <b style="color:var(--green-text)">5 / 7 · 71%</b></div>
+    </div>
+
+    <!-- (Change Diff moved out to a full-width panel below body-grid · see #diff-panel-card) -->
+
+   </div>
+
+   <!-- RIGHT COLUMN: List Attributes (from creation form) -->
+   <div class="col-card">
+    <div class="col-h">
+     <h3>List Attributes</h3>
+    </div>
+
+    <!-- List Basics -->
+    <div class="cfg-sec">
+     <h4>List Basics</h4>
+     <div class="cfg-grid">
+      <span class="k">List Name</span><span class="v mono">LIVE_PCF_gift_solicitation_v2</span>
+      <span class="k">List ID</span><span class="v mono">list_live_pcf_gift_v2</span>
+      <span class="k">Description</span><span class="v" style="color:var(--text-muted);font-style:italic">— (TBD)</span>
+      <span class="k">Notes</span><span class="v" style="font-size:11.5px;line-height:1.55">UED feedback batch from SEA + MEA regions — mixed-language terms collected via UED tickets.</span>
+     </div>
+    </div>
+
+    <!-- Keyword Metadata -->
+    <div class="cfg-sec">
+     <h4>Keyword Metadata</h4>
+     <div class="cfg-grid">
+      <span class="k">Source</span><span class="v" style="color:var(--text-muted);font-style:italic">TBD</span>
+      <span class="k">Use Case</span><span class="v" style="color:var(--text-muted);font-style:italic">TBD</span>
+     </div>
+    </div>
+
+    <!-- Matching Rules -->
+    <div class="cfg-sec">
+     <h4>Matching Rules</h4>
+     <div class="cfg-grid">
+      <span class="k">Match Mode</span><span class="v">Fuzzy Match</span>
+      <span class="k">Primary Key</span><span class="v mono">user_id, room_id</span>
+      <span class="k">Secondary Key</span><span class="v mono">account_id</span>
+      <span class="k">Co-match</span><span class="v">Off · primary-only triggers hit</span>
+     </div>
+    </div>
+
+    <!-- Languages -->
+    <div class="cfg-sec">
+     <h4>Languages</h4>
+     <div class="cfg-grid">
+      <span class="k">Master Output</span><span class="v"><span class="lang-tag" style="background:#F59E0B">en</span> English (locked)</span>
+      <span class="k">Accept Inputs</span><span class="v"><span class="lang-tag" style="background:#10B981">en</span> <span class="lang-tag" style="background:#3B82F6">th</span> <span class="lang-tag" style="background:#8B5CF6">ar</span> <span class="lang-tag" style="background:#06B6D4">vi</span> <span class="lang-tag" style="background:#EC4899">es</span> <span class="lang-tag" style="background:#F59E0B">id</span></span>
+      <span class="k">Translation Agent</span><span class="v">Yes · AI v1.2.0</span>
+     </div>
+    </div>
+
+    <!-- Edit Permission -->
+    <div class="cfg-sec">
+     <h4>Edit Permission</h4>
+     <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #BFDBFE;background:#EFF6FF;border-radius:7px">
+      <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;color:var(--link)">
+       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </span>
+      <div style="flex:1">
+       <div style="font-size:12.5px;font-weight:600;color:var(--link)">Editing</div>
+      </div>
+     </div>
+    </div>
+
+
+   </div>
+  </div>
+   </div>
+  </div>
+
+  <!-- IDSP-style full-width change diff panel · for active-edit review · locked to changes-only view -->
+  <div class="diff-panel-card view-changes" id="diff-panel-card">
+   <div class="diff-panel-h" style="padding:12px 22px;display:flex;flex-direction:column;gap:8px;align-items:stretch">
+    <div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase">
+     <span>Language View</span>
+     <span style="font-weight:500;color:var(--text-muted);text-transform:none;letter-spacing:0;font-size:11px">· pick your operating language to see the change diff in that language · Master (en) is source-of-truth</span>
+    </div>
+    <div class="lang-tabs" id="diff-lang-tabs" style="display:flex;flex-wrap:wrap;gap:6px">
+     <button type="button" class="lang-tab on" data-lang="en" style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid #93C5FD;background:#EFF6FF;color:var(--link);font-size:12px;font-weight:700;border-radius:6px;cursor:pointer">
+      <span style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;background:#DBE8FE;color:var(--link);padding:1px 5px;border-radius:3px">en</span>English
+      <span style="margin-left:2px;font-size:9.5px;font-weight:700;background:#1D4ED8;color:#fff;padding:1px 5px;border-radius:3px">MASTER</span>
+     </button>
+     <button type="button" class="lang-tab" data-lang="es" style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);font-size:12px;font-weight:600;border-radius:6px;cursor:pointer">
+      <span style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;background:var(--bg-soft);color:var(--text-muted);padding:1px 5px;border-radius:3px">es</span>Spanish
+     </button>
+     <button type="button" class="lang-tab" data-lang="id" style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);font-size:12px;font-weight:600;border-radius:6px;cursor:pointer">
+      <span style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;background:var(--bg-soft);color:var(--text-muted);padding:1px 5px;border-radius:3px">id</span>Indonesian
+     </button>
+     <button type="button" class="lang-tab" data-lang="ar" style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);font-size:12px;font-weight:600;border-radius:6px;cursor:pointer">
+      <span style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;background:var(--bg-soft);color:var(--text-muted);padding:1px 5px;border-radius:3px">ar</span>Arabic
+     </button>
+     <button type="button" class="lang-tab" data-lang="vi" style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);font-size:12px;font-weight:600;border-radius:6px;cursor:pointer">
+      <span style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;background:var(--bg-soft);color:var(--text-muted);padding:1px 5px;border-radius:3px">vi</span>Vietnamese
+     </button>
+     <button type="button" class="lang-tab" data-lang="th" style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);font-size:12px;font-weight:600;border-radius:6px;cursor:pointer">
+      <span style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;background:var(--bg-soft);color:var(--text-muted);padding:1px 5px;border-radius:3px">th</span>Thai
+     </button>
+    </div>
+   </div>
+   <div class="diff-panel-body">
+    <div class="diff-cmp" id="diff-cmp">
+     <div class="diff-col-headers">
+      <div class="dch dch-base">Original · Current Active Master List <span class="dch-meta" id="bl-meta">7 entries</span></div>
+      <div class="dch dch-new">New · After approval <span class="dch-meta" id="nw-meta">9 entries</span></div>
+     </div>
+     <div class="diff-rows" id="diff-rows">
+      <!-- paired rows rendered by renderFullDiff() · each row is Baseline cell + New cell -->
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <!-- BOTTOM: Reviewer decision form -->
+  <div class="decide-card">
+   <div class="decide-h">
+    <h3>Submit Decision</h3>
+   </div>
+
+   <div class="decide-form">
+    <div class="df-label">Decision<span class="req">*</span></div>
+    <div>
+     <div class="df-radio-group">
+      <label class="df-radio reject" id="df-reject"><input type="radio" name="decision" value="reject" />✕ Reject</label>
+      <label class="df-radio approve on" id="df-approve"><input type="radio" name="decision" value="approve" checked />✓ Approve</label>
+     </div>
+    </div>
+
+    <div class="df-label">Comment</div>
+    <div>
+     <textarea class="df-ta" id="df-comment" rows="3" maxlength="300" placeholder="Reason for the decision (required for Reject, optional for Approve)"></textarea>
+     <div class="df-counter"><span id="df-counter">0</span> / 300</div>
+    </div>
+   </div>
+
+   <div class="decide-actions">
+    <a class="btn btn-sm" href="feature-platform-word-list-prototype-v0.3.html" style="text-decoration:none">Cancel</a>
+    <button class="btn btn-p btn-sm" id="submit-decision">Submit Decision</button>
+   </div>
+  </div>
+
+ </div>
+</main>
+</div>
+
+<script>
+// ============================================================
+// Canonical change-request schema · matches v0.3 main page mockSubmitForReview output
+// ============================================================
+// Shared request key used by Create and Active-Edit submission flows.
+const PENDING_REVISION_KEY = 'wordListPendingRevision';
+let CHANGE_REQUEST = {
+  change_type: "active_edit",
+  list_id: "wl-active-r1",
+  list_name: "NSA Sensitive Terms · LIVE_R3",
+  owner: "@ymgao",
+  reviewer: "@reviewer-tianyu",
+  submitted_at: "2026-06-17 15:40",
+  rule_owners_affected: ["@policy-owner-nsa-r3","@policy-owner-asa-r2","@policy-owner-cgs-r1"],
+  rules_affected_count: 3,
+  // English-only entries
+  // Delete + Modify are interleaved with unchanged rows · Add rows appear at the bottom of the new list
+  changes: [
+    {op:"delete", id:"d-1", source:"flower",      master_en:"flower",       actor:"@ymgao", ts:"2026-06-17 15:32"},
+    {op:"modify", id:"m-1", old:"targot",     new:"target",      master_en_old:"targot",     master_en_new:"target",      actor:"@ymgao", ts:"2026-06-17 15:35"},
+    {op:"modify", id:"m-2", old:"speculaton", new:"speculation", master_en_old:"speculaton", master_en_new:"speculation", actor:"@ymgao", ts:"2026-06-17 15:38"},
+    {op:"add",    id:"a-1", source:"deepfake content",            master_en:"deepfake content",            actor:"@ymgao", ts:"2026-06-17 15:42"},
+    {op:"add",    id:"a-2", source:"minor protection violation",  master_en:"minor protection violation",  actor:"@ymgao", ts:"2026-06-17 15:44"},
+    {op:"add",    id:"a-3", source:"fake giveaway scheme",        master_en:"fake giveaway scheme",        actor:"@ymgao", ts:"2026-06-17 15:46"},
+    {op:"add",    id:"a-4", source:"live PK fraud",               master_en:"live PK fraud",               actor:"@ymgao", ts:"2026-06-17 15:48"}
+  ]
+};
+
+try {
+  const submitted = JSON.parse(localStorage.getItem(PENDING_REVISION_KEY) || 'null');
+  if (submitted && submitted.list_id && Array.isArray(submitted.changes)) {
+    CHANGE_REQUEST = Object.assign({}, CHANGE_REQUEST, submitted);
+  }
+} catch (e) { /* standalone reviewer demo keeps the default request */ }
+
+// ============================================================
+// Per-language translations for change diff · keyed by master_en value
+// Six languages follow Ron Jin priority top 6 (en → es → id → ar → vi → th).
+// If a term is missing a language, renderer falls back to master_en with a "no translation" italic marker.
+// ============================================================
+const TRANSLATIONS = {
+  'flower':                       { en:'flower',                       es:'flor',                                 id:'bunga',                          ar:'زهرة',                              vi:'hoa',                              th:'ดอกไม้' },
+  'targot':                       { en:'targot',                       es:'targot',                               id:'targot',                         ar:'targot',                            vi:'targot',                           th:'targot' },
+  'target':                       { en:'target',                       es:'objetivo',                             id:'target',                         ar:'هدف',                               vi:'mục tiêu',                         th:'เป้าหมาย' },
+  'speculaton':                   { en:'speculaton',                   es:'especulaton',                          id:'spekulaton',                     ar:'مضاربـة',                           vi:'đầu cơ (typo)',                    th:'การเก็งกำไร (typo)' },
+  'speculation':                  { en:'speculation',                  es:'especulación',                         id:'spekulasi',                      ar:'مضاربة',                            vi:'đầu cơ',                           th:'การเก็งกำไร' },
+  'deepfake content':             { en:'deepfake content',             es:'contenido deepfake',                   id:'konten deepfake',                ar:'محتوى مزيف عميق',                    vi:'nội dung deepfake',                th:'เนื้อหา deepfake' },
+  'minor protection violation':   { en:'minor protection violation',   es:'violación de protección de menores',    id:'pelanggaran perlindungan anak',  ar:'انتهاك حماية القاصرين',              vi:'vi phạm bảo vệ trẻ vị thành niên', th:'การละเมิดการคุ้มครองเด็ก' },
+  'fake giveaway scheme':         { en:'fake giveaway scheme',         es:'esquema de sorteo falso',              id:'skema hadiah palsu',             ar:'مخطط هدايا مزيف',                    vi:'chương trình tặng quà giả',        th:'แผนแจกของปลอม' },
+  'live PK fraud':                { en:'live PK fraud',                es:'fraude de PK en vivo',                 id:'penipuan PK langsung',           ar:'احتيال PK المباشر',                  vi:'gian lận PK trực tiếp',            th:'ฉ้อโกง PK สด' }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Online (read-only) view: status=online URL param hides reviewer-only UI
+  const params = new URLSearchParams(window.location.search);
+  const isOnline = params.get('status') === 'online';
+  if (isOnline) {
+    // 1. Hide Submit Decision card · Change Summary block · Diff panel
+    document.querySelectorAll('.decide-card').forEach(el => el.style.display = 'none');
+    const ds = document.getElementById('diff-summary'); if (ds) ds.style.display = 'none';
+    const dpc = document.getElementById('diff-panel-card'); if (dpc) dpc.style.display = 'none';
+    // 2. Hide reviewer-only chrome
+    document.querySelectorAll('.role-tag').forEach(el => el.textContent = 'ONLINE · READ-ONLY');
+    document.querySelectorAll('.urgent-pill').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.owner-comment').forEach(el => el.style.display = 'none');
+    // 3. Reframe titles
+    const frameLabel = document.querySelector('.frame-label');
+    if (frameLabel) frameLabel.innerHTML = '<span class="dot"></span>FRAME · LIST DETAILS · ONLINE VIEW';
+    const pageTitle = document.querySelector('.page-title');
+    if (pageTitle) pageTitle.innerHTML = 'List Details: LIVE_PCF_gift_solicitation_v2 <small>· list_live_pcf_gift_v2</small>';
+    const crumb = document.querySelector('.crumb');
+    if (crumb) crumb.innerHTML = 'Ecosystem / TRIDENT (IDSP) / Feature Center / Guardrail / <a href="feature-platform-word-list-prototype-v0.3.html">List Management</a> / <b>List Details</b><span class="role-tag">ONLINE · READ-ONLY</span>';
+    // 4. Reframe page-meta — replace reviewer-flow fields with online-relevant ones
+    const pageMeta = document.querySelector('.page-meta');
+    if (pageMeta) pageMeta.innerHTML =
+      '<span><span class="pm-k">Status</span><span class="pm-v" style="color:var(--green-text);font-weight:700">● Online (Active)</span></span>' +
+      '<span><span class="pm-k">Owner</span><span class="pm-v">@ymgao</span></span>' +
+      '<span><span class="pm-k">Approved by</span><span class="pm-v">@lzwang · 2026-06-05 10:14</span></span>' +
+      '<span><span class="pm-k">Last Updated</span><span class="pm-v">2026-06-02</span></span>';
+    // 5. Collapse stages to show all done · Live (Active) as final
+    document.querySelectorAll('.stages .stage').forEach(s => {
+      s.classList.remove('active');
+      s.classList.add('done');
+      const n = s.querySelector('.stage-num');
+      if (n) n.textContent = '✓';
+    });
+    document.querySelectorAll('.stages .stage-line').forEach(l => l.style.background = 'var(--green)');
+    // 6. Reframe col-card subtitles
+    const colSubs = document.querySelectorAll('.col-sub');
+    if (colSubs[0]) colSubs[0].textContent = 'active configuration';
+    if (colSubs[1]) colSubs[1].textContent = 'set at creation time';
+    const colHs = document.querySelectorAll('.col-card .col-h h3');
+    if (colHs[0]) colHs[0].textContent = 'Active Configuration';
+    return;
+  }
+
+  // Pending Review (default) flow
+
+  // ----- Diff rendering -----
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Compute chip counts from data (so they always match)
+  const counts = CHANGE_REQUEST.changes.reduce((acc, c) => { acc[c.op] = (acc[c.op] || 0) + 1; return acc; }, {});
+  const cAdd = counts.add || 0, cDel = counts.delete || 0, cMod = counts.modify || 0, cAll = cAdd + cDel + cMod;
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setText('dc-add', cAdd); setText('dc-del', cDel); setText('dc-mod', cMod);
+  setText('ds-title', `Change Summary · ${cAll} modification${cAll === 1 ? '' : 's'} by ${CHANGE_REQUEST.owner}`);
+  setText('ph-list-name', CHANGE_REQUEST.list_name);
+  setText('ph-list-id', `· ${CHANGE_REQUEST.list_id}`);
+  setText('pm-owner', CHANGE_REQUEST.owner);
+  setText('pm-submitted', CHANGE_REQUEST.submitted_at);
+  setText('pm-reviewer', `${CHANGE_REQUEST.reviewer} (you)`);
+  setText('pm-change-type', CHANGE_REQUEST.change_type === 'create'
+    ? 'Create New List · Ready for Activation'
+    : 'Edit Active List · Pending Revision');
+  setText('dm-list', CHANGE_REQUEST.list_name);
+  setText('dm-rules', String(CHANGE_REQUEST.rules_affected_count));
+  setText('dph-list-title', CHANGE_REQUEST.list_name);
+  setText('dn-count', String(cAll));
+
+  // IDSP-style full-list diff: render whole master list with paired Baseline | New rows
+  const BADGE_FOR = { add: ['dni-badge-add','Add'], delete: ['dni-badge-del','Delete'], modify: ['dni-badge-mod','Modified'] };
+
+  // Baseline state: English LIVE-moderation related entries already in the Active list
+  // (Unchanged rows — both sides identical, no color highlight)
+  const BASELINE_UNCHANGED = CHANGE_REQUEST.change_type === 'create' ? [] : [
+    'hate speech',
+    'violence threats',
+    'discriminatory slurs',
+    'underground phrasing',
+    'inducing spending',
+    'improper speech',
+    'harassment',
+    'explicit content',
+    'scam offers',
+    'phishing links',
+    'fraudulent claims',
+    'gambling promotion',
+    'drug references',
+    'impersonation attempts',
+  ];
+
+  // Build the unified MASTER_DIFF
+  //  · Delete + Modify interleaved with unchanged rows (in the existing list region)
+  //  · Add rows appended at the bottom (these are new entries being added to the master list)
+  function buildMasterDiff() {
+    const out = [];
+    let u = 0;
+    const allOps = CHANGE_REQUEST.changes.slice().sort((a,b)=> a.ts < b.ts ? -1 : 1);
+    const addOps = allOps.filter(o => o.op === 'add');
+    const otherOps = allOps.filter(o => o.op !== 'add');
+
+    out.push({ id:`u-${u}`, op:'unchanged', original:BASELINE_UNCHANGED[u], new:BASELINE_UNCHANGED[u] }); u++;
+    out.push({ id:`u-${u}`, op:'unchanged', original:BASELINE_UNCHANGED[u], new:BASELINE_UNCHANGED[u] }); u++;
+
+    otherOps.forEach((c, i) => {
+      if (c.op === 'delete') {
+        out.push({ id:c.id, op:'delete', original:c.master_en, new:c.master_en });
+      } else { // modify
+        out.push({ id:c.id, op:'modify', original:c.master_en_old, new:c.master_en_new });
+      }
+      if (i % 2 === 1 && u < BASELINE_UNCHANGED.length) {
+        out.push({ id:`u-${u}`, op:'unchanged', original:BASELINE_UNCHANGED[u], new:BASELINE_UNCHANGED[u] });
+        u++;
+      }
+    });
+
+    while (u < BASELINE_UNCHANGED.length) {
+      out.push({ id:`u-${u}`, op:'unchanged', original:BASELINE_UNCHANGED[u], new:BASELINE_UNCHANGED[u] });
+      u++;
+    }
+
+    // Adds at the bottom — these are appended to the new master list
+    addOps.forEach(c => {
+      out.push({ id:c.id, op:'add', original:null, new:c.master_en });
+    });
+    return out;
+  }
+  const MASTER_DIFF = buildMasterDiff();
+
+  // Update Baseline / New entry counts in the column headers
+  const baseCount = MASTER_DIFF.filter(r => r.op !== 'add').length;
+  const newCount  = MASTER_DIFF.filter(r => r.op !== 'delete').length;
+  setText('bl-meta', `${baseCount} entries`);
+  setText('nw-meta', `${newCount} entries`);
+
+  // Current language for the diff view · defaults to master en
+  let CURRENT_LANG = 'en';
+
+  // Look up translation for a master_en value in the current language
+  // Returns { text, missing } — missing=true when the language has no translation for this term
+  function txFor(masterEn, lang) {
+    if (!masterEn) return { text: masterEn, missing: false };
+    const entry = TRANSLATIONS[masterEn];
+    if (!entry || entry[lang] === undefined || entry[lang] === null) {
+      return { text: masterEn, missing: lang !== 'en' };
+    }
+    return { text: entry[lang], missing: false };
+  }
+
+  function renderCell(side, row, lang) {
+    const isBase = (side === 'base');
+    const masterVal = isBase ? row.original : row.new;
+    if (masterVal === null || masterVal === undefined) {
+      return `<div class="diff-cell ${isBase ? 'dc-base' : 'dc-new'} empty"></div>`;
+    }
+    const { text, missing } = txFor(masterVal, lang);
+    const missingBadge = missing
+      ? `<span style="margin-left:8px;font-size:9.5px;font-weight:700;color:#B45309;background:#FEF3C7;padding:1px 6px;border-radius:3px" title="No ${lang} translation · showing English master">no ${lang} · fallback en</span>`
+      : '';
+    const dirAttr = (lang === 'ar') ? ' dir="rtl"' : '';
+    // Delete · New side: show the word with ✕ icon (strikethrough via CSS)
+    if (row.op === 'delete' && !isBase) {
+      return `<div class="diff-cell dc-new"${dirAttr}><div class="dc-en-wrap"><span class="dc-en">${escapeHtml(text)}</span><span class="dc-x-icon" title="Will be removed">✕</span>${missingBadge}</div></div>`;
+    }
+    return `<div class="diff-cell ${isBase ? 'dc-base' : 'dc-new'}"${dirAttr}><div class="dc-en">${escapeHtml(text)}${missingBadge}</div></div>`;
+  }
+
+  function renderFullDiff() {
+    const wrap = document.getElementById('diff-rows');
+    if (!wrap) return;
+    wrap.innerHTML = MASTER_DIFF.map(row =>
+      `<div class="diff-pair" data-op="${row.op}" data-entry-id="${row.id}">${renderCell('base', row, CURRENT_LANG)}${renderCell('new', row, CURRENT_LANG)}</div>`
+    ).join('');
+  }
+  renderFullDiff();
+
+  // ---- Language tab wiring ----
+  // Click a language chip → set CURRENT_LANG, restyle chips, re-render diff cells.
+  const langTabsWrap = document.getElementById('diff-lang-tabs');
+  if (langTabsWrap) {
+    const tabs = langTabsWrap.querySelectorAll('.lang-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const lang = tab.dataset.lang;
+        if (!lang || lang === CURRENT_LANG) return;
+        CURRENT_LANG = lang;
+        // Restyle all chips: active gets blue fill + bold + border, others revert to plain
+        tabs.forEach(t => {
+          const isActive = t.dataset.lang === lang;
+          t.classList.toggle('on', isActive);
+          t.style.background   = isActive ? '#EFF6FF' : '#fff';
+          t.style.color        = isActive ? 'var(--link)' : 'var(--text-secondary)';
+          t.style.borderColor  = isActive ? '#93C5FD' : 'var(--border)';
+          t.style.fontWeight   = isActive ? '700' : '600';
+          const code = t.querySelector('span');
+          if (code) {
+            code.style.background = isActive ? '#DBE8FE' : 'var(--bg-soft)';
+            code.style.color      = isActive ? 'var(--link)' : 'var(--text-muted)';
+          }
+        });
+        // Update the column header meta to reflect the active language
+        const langName = tab.textContent.trim().replace(/^[a-z]{2,3}/, '').replace(/MASTER$/,'').trim();
+        setText('bl-meta', `viewing · ${lang}${lang === 'en' ? ' (master)' : ''}`);
+        setText('nw-meta', `viewing · ${lang}${lang === 'en' ? ' (master)' : ''}`);
+        renderFullDiff();
+      });
+    });
+    // Initialize column header meta with the default active lang
+    setText('bl-meta', `viewing · en (master)`);
+    setText('nw-meta', `viewing · en (master)`);
+  }
+
+  // (Changes left-nav removed per user request · diff stands alone)
+
+  // List Configuration & Attributes — collapsible · default collapsed
+  const lcfgWrap = document.getElementById('lcfg-wrap');
+  const lcfgToggle = document.getElementById('lcfg-toggle');
+  if (lcfgToggle && lcfgWrap) {
+    lcfgToggle.addEventListener('click', () => {
+      lcfgWrap.classList.toggle('open');
+    });
+  }
+
+  // View is locked to "changes only" (unchanged rows hidden via CSS class in HTML) — no toggle
+
+  const reject = document.getElementById('df-reject');
+  const approve = document.getElementById('df-approve');
+  reject.addEventListener('click', () => {
+    reject.classList.add('on'); approve.classList.remove('on');
+    reject.querySelector('input').checked = true;
+  });
+  approve.addEventListener('click', () => {
+    approve.classList.add('on'); reject.classList.remove('on');
+    approve.querySelector('input').checked = true;
+  });
+
+  const ta = document.getElementById('df-comment');
+  const counter = document.getElementById('df-counter');
+  if (ta && counter) ta.addEventListener('input', () => { counter.textContent = ta.value.length; });
+
+  const submit = document.getElementById('submit-decision');
+  if (submit) {
+    submit.addEventListener('click', () => {
+      const decision = document.querySelector('input[name="decision"]:checked').value;
+      const comment = (document.getElementById('df-comment')?.value || '').trim();
+      if (decision === 'reject' && !comment) {
+        // Reject requires a reason — surface inline instead of silent submit
+        const ta = document.getElementById('df-comment');
+        if (ta) { ta.focus(); ta.style.borderColor = 'var(--red)'; }
+        return;
+      }
+
+      // Stamp the decision onto the pending payload (if F1 sent one) so List
+      // Management can finish the loop with the right post-decision toast.
+      // If the page was opened standalone (no pending payload), we just
+      // redirect — F1 will treat it as a normal landing.
+      try {
+        const raw = localStorage.getItem(PENDING_REVISION_KEY);
+        if (raw) {
+          const payload = JSON.parse(raw);
+          const d = new Date();
+          const pad = n => String(n).padStart(2, '0');
+          const ts = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          payload.status = decision === 'approve' ? 'approved' : 'rejected';
+          payload.decision = decision;
+          payload.decision_comment = comment;
+          payload.decided_by = CHANGE_REQUEST.reviewer;
+          payload.decided_at = ts;
+          payload.lifecycle_result = decision === 'approve'
+            ? (payload.change_type === 'create' ? 'activate_new_list' : 'replace_active_version')
+            : (payload.change_type === 'create' ? 'save_as_draft' : 'discard_revision_keep_active');
+          localStorage.setItem(PENDING_REVISION_KEY, JSON.stringify(payload));
+        }
+      } catch (e) { /* swallow — the redirect still lands */ }
+
+      window.location.href = 'feature-platform-word-list-prototype-v0.3.html?reviewDecision=' + encodeURIComponent(decision);
+    });
+  }
+});
+</script>
+</body>
+</html>

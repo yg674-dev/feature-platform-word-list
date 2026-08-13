@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Feature Platform · G1 · IDSP Rule Edit · Word List Picker · v0.1</title>
+<!--
+  G1 · IDSP Strategy Rule Edit · Word List Picker
+  Acceptance Criteria mapping:
+   AC1  List Management supports compound search + filter         → picker top toolbar
+   AC2  IDSP only shows Active lists (no Draft / Pending / Archive) → ACTIVE_LISTS source, filter at data layer
+   AC3  Current Policy lists shown first (priority grouping)       → "Current Policy" section pinned to top
+   AC4  Active status / Scenario / Primary Key all visible per row → each picker row shows badges + primary key mono
+   AC5  Pending revision on a list does NOT affect current rule    → amber tag on row + tooltip "current Active version still served"
+-->
+<style>
+:root{
+ --bg-page:#F4F6FA; --bg-card:#FFFFFF; --bg-soft:#F8F9FC; --bg-softer:#FAFBFC;
+ --border:#E5E8EE; --border-soft:#EEF0F4;
+ --text-primary:#1F2937; --text-secondary:#5A6373; --text-muted:#6B7280;
+ --link:#2563EB; --link-hover:#1D4FCF; --link-bg:#EFF6FF; --link-border:#BFDBFE;
+ --green:#10B981; --green-bg:#D1FAE5; --green-text:#047857;
+ --amber:#F59E0B; --amber-bg:#FEF3C7; --amber-text:#92400E;
+ --red:#EF4444; --red-bg:#FEE2E2; --red-text:#991B1B;
+ --sidebar:linear-gradient(180deg,#4F8DEC 0%,#1E3A8A 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-page);color:var(--text-primary);font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,sans-serif;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--link-hover);text-decoration:underline}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+
+/* Sidebar */
+.sidebar{background:var(--sidebar);color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.brand-logo{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff 0%,#A7C5FF 60%,#3B5DDF 100%);display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800;font-size:14px}
+.brand-name{font-weight:700;font-size:15px;letter-spacing:0.2px}
+.brand-name small{display:block;font-weight:500;font-size:10.5px;opacity:.75;margin-top:1px}
+.nav-section{font-size:10px;letter-spacing:.5px;text-transform:uppercase;opacity:.55;margin:14px 4px 6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:#dbe6ff;cursor:pointer;margin-bottom:1px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.nav-sub{padding-left:18px;font-size:11.5px;opacity:.85;margin-top:2px}
+.nav-sub .nav-item{padding:5px 9px}
+.nav-sub .nav-item.active{background:rgba(255,255,255,.22);color:#fff;font-weight:700}
+
+.main{padding:0;background:var(--bg-page);position:relative}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#fff;border-bottom:1px solid var(--border)}
+.crumb{font-size:12.5px;color:var(--text-muted)}
+.crumb b{color:var(--text-primary);font-weight:600}
+.crumb a{color:var(--text-muted)}
+.crumb a:hover{color:var(--link)}
+.crumb .role-tag{margin-left:8px;font-size:9.5px;font-weight:700;background:#7C3AED;color:#fff;padding:1px 6px;border-radius:3px;letter-spacing:.4px}
+.topbar-right{display:flex;align-items:center;gap:14px;color:var(--text-muted);font-size:12px}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A7C5FF,#3B5DDF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+.canvas{padding:24px 28px 80px;position:relative}
+
+.frame-label{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:#7C3AED;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px}
+.frame-label .dot{width:6px;height:6px;border-radius:50%;background:#34D399}
+
+/* Context banner — shows current Policy / Scenario so user knows the picker's scope */
+.ctx-banner{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:11px 18px;margin-bottom:14px}
+.ctx-banner .cb-h{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.ctx-banner .cb-row{display:flex;gap:18px;flex-wrap:wrap}
+.ctx-banner .cb-item{display:flex;align-items:center;gap:6px;font-size:12px}
+.ctx-banner .cb-k{color:var(--text-muted);font-weight:600}
+.ctx-banner .cb-v{color:var(--text-primary);font-weight:600}
+.ctx-banner .cb-pill{background:var(--link-bg);color:var(--link);border:1px solid var(--link-border);padding:2px 8px;border-radius:4px;font-size:11.5px;font-weight:700;font-family:'JetBrains Mono',Menlo,monospace}
+
+/* Edit card (matches IDSP screenshot Edit modal pattern) */
+.edit-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.ec-head{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border)}
+.ec-title{font-size:17px;font-weight:700;color:var(--text-primary);letter-spacing:-.2px}
+.ec-x{width:28px;height:28px;border-radius:6px;background:transparent;color:var(--text-muted);font-size:16px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.ec-x:hover{background:var(--bg-soft);color:var(--text-primary)}
+
+.ec-body{display:grid;grid-template-columns:200px 1fr;min-height:640px}
+
+/* Left nav inside edit modal (Basic info / Conditions / Action) */
+.ec-nav{border-right:1px solid var(--border-soft);padding:18px 0;background:#fff}
+.ec-nav-item{display:flex;align-items:center;padding:10px 22px;font-size:13px;color:var(--text-secondary);cursor:pointer;border-left:3px solid transparent;font-weight:500}
+.ec-nav-item:hover{background:var(--bg-softer);color:var(--text-primary)}
+.ec-nav-item.active{border-left-color:var(--link);color:var(--link);font-weight:700;background:var(--link-bg)}
+
+/* Right pane */
+.ec-pane{padding:22px 28px 28px}
+.ec-pane-h{font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:18px;letter-spacing:-.1px}
+
+.ec-card{background:#fff;border:1px solid var(--border-soft);border-radius:10px;padding:18px 20px;margin-bottom:18px}
+.ec-card-h{font-size:13.5px;font-weight:700;color:var(--text-primary);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.ec-card-h .req{color:var(--red);font-weight:700}
+
+/* Basic / Advanced pill toggle */
+.pill-toggle{display:inline-flex;background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:7px;padding:2px;margin-bottom:14px}
+.pill-toggle button{padding:5px 16px;font-size:12px;font-weight:600;color:var(--text-secondary);border-radius:5px}
+.pill-toggle button.on{background:#fff;color:var(--text-primary);box-shadow:0 1px 2px rgba(15,23,42,.06)}
+
+/* Condition rows */
+.cond-row{display:grid;grid-template-columns:32px 1fr 90px 1fr 30px;gap:10px;align-items:center;margin-bottom:9px;position:relative}
+/* Feature cell shows feature name + optional DS chip when list_attr picked */
+.feature-trigger .feat-ds-chip{display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:2px 8px;border-radius:4px;background:#EFF6FF;border:1px solid #93C5FD;font-family:inherit;font-size:11.5px;font-weight:600;color:var(--link);vertical-align:middle}
+.feature-trigger .feat-ds-chip .fdc-code{font-family:'JetBrains Mono',Menlo,monospace;font-size:9.5px;color:var(--text-muted);background:#fff;padding:1px 4px;border-radius:3px;font-weight:500}
+/* DS chip inline inside feature dropdown rows (for list_attr items) */
+.fdd-opt .fdd-ds-chip{display:inline-flex;align-items:center;gap:5px;margin-left:10px;padding:2px 9px;border-radius:4px;background:#F0F9FF;border:1px dashed #93C5FD;font-size:10.5px;font-weight:700;color:var(--link);letter-spacing:.3px;text-transform:uppercase;cursor:pointer;flex-shrink:0}
+.fdd-opt .fdd-ds-chip:hover{background:#DBEAFE;border-style:solid}
+.fdd-opt .fdd-ds-chip.filled{background:#DBEAFE;border-style:solid;text-transform:none;letter-spacing:0}
+.fdd-opt .fdd-ds-chip.filled .fdc-code{font-family:'JetBrains Mono',Menlo,monospace;font-size:9.5px;color:var(--text-muted);background:#fff;padding:1px 4px;border-radius:3px;margin-left:4px;font-weight:500}
+.cond-row .cn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--bg-softer);color:var(--text-secondary);font-weight:700;font-size:11px;font-family:'JetBrains Mono',Menlo,monospace;justify-self:start}
+.cr-dd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border:1px solid var(--border);border-radius:7px;background:#fff;font-size:12.5px;color:var(--text-primary);cursor:pointer;min-height:36px}
+.cr-dd:hover{border-color:var(--link)}
+.cr-dd.empty .cr-text{color:var(--text-muted);font-weight:500}
+.cr-dd.error{border-color:#FB923C;background:#FFF7ED}
+.cr-dd .cr-text{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cr-dd .cr-caret{flex:none;color:var(--text-muted);font-size:11px}
+.cr-dd.op{justify-content:center;font-weight:700;font-family:'JetBrains Mono',Menlo,monospace;background:var(--bg-softer)}
+.cr-dd.op.locked{background:var(--bg-soft);color:var(--text-muted);cursor:not-allowed;position:relative}
+.cr-dd.op.locked::after{content:"🔒";position:absolute;right:6px;top:6px;font-size:8.5px;opacity:.55}
+/* Data source value chip · shown when list_attr feature picked and DS selected */
+.ds-value-chip{display:inline-flex;align-items:center;gap:8px;padding:2px 4px;font-size:12px}
+.ds-value-chip .ds-chip-label{font-weight:600;color:var(--text-primary)}
+.ds-value-chip .ds-chip-code{font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:var(--text-muted);background:var(--bg-softer);padding:1px 6px;border-radius:3px}
+.cr-dd.ds-mode{background:#F0F9FF}
+.cr-dd.ds-mode:not(.empty){border-color:#93C5FD}
+.cr-del{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;color:#FB7185;cursor:pointer;border-radius:5px;justify-self:start}
+.cr-del:hover{background:var(--red-bg);color:var(--red-text)}
+.cr-row-error{grid-column:2 / span 4;color:#C2410C;font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:6px;margin-top:-3px}
+.cr-row-error::before{content:"⊕";font-size:13px;color:#FB923C}
+
+.add-cond{display:inline-flex;align-items:center;gap:6px;color:var(--link);font-size:12.5px;font-weight:600;padding:7px 14px;border:1px dashed var(--link-border);border-radius:7px;background:var(--link-bg);margin-top:4px;cursor:pointer}
+.add-cond:hover{background:#DBEAFE}
+
+.section-err{color:#C2410C;font-size:11.5px;font-weight:600;margin-top:8px;display:flex;align-items:center;gap:6px}
+.section-err::before{content:"⊕";font-size:13px;color:#FB923C}
+
+/* Logical expression */
+.lex{margin-top:18px}
+.lex-h{font-size:13.5px;font-weight:700;color:var(--text-primary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.lex-h .help{color:var(--text-muted);font-size:11px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--text-muted)}
+.lex-h .req{color:var(--red)}
+.lex-box{background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:7px;padding:11px 14px;font-family:'JetBrains Mono',Menlo,monospace;font-size:13px;color:var(--text-primary);font-weight:600}
+.lex-ops{display:flex;gap:6px;margin-top:9px}
+.lex-op{padding:5px 14px;background:var(--link-bg);color:var(--link);border:1px solid var(--link-border);border-radius:5px;font-family:'JetBrains Mono',Menlo,monospace;font-size:12px;font-weight:700;cursor:pointer}
+.lex-op:hover{background:#DBEAFE}
+
+/* Preview */
+.pv{margin-top:18px}
+.pv-h{font-size:13.5px;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.pv-box{background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:7px;padding:30px 18px;position:relative;min-height:120px;display:flex;align-items:center;justify-content:center;gap:8px;overflow:auto}
+.pv-node{display:inline-flex;align-items:center;justify-content:center;min-width:50px;height:46px;padding:6px 14px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:14px;color:var(--text-primary);font-weight:600;font-family:'JetBrains Mono',Menlo,monospace}
+.pv-node.start,.pv-node.end{background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;font-family:inherit;border-radius:18px;padding:6px 18px;font-size:13px}
+.pv-arrow{flex:none;width:36px;height:2px;background:var(--border)}
+.pv-meta{position:absolute;bottom:10px;left:14px;font-size:10.5px;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace}
+.pv-zoom{position:absolute;bottom:10px;right:14px;font-size:10.5px;color:var(--text-muted);display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',Menlo,monospace}
+.pv-zoom button{font-size:11px;color:var(--text-muted);padding:0 4px}
+
+/* Footer */
+.ec-foot{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:14px 22px;border-top:1px solid var(--border);background:var(--bg-softer)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text-primary)}
+.btn:hover{background:var(--bg-soft)}
+.btn-p{background:var(--link);color:#fff;border-color:var(--link)}
+.btn-p:hover{background:var(--link-hover)}
+.btn-sm{padding:5px 11px;font-size:11.5px}
+
+/* ============================================================
+   Word list picker — opens below a condition row
+   Implements AC1 (compound search+filter), AC2 (Active only),
+   AC3 (current Policy first), AC4 (visible fields), AC5 (pending tag)
+   ============================================================ */
+.wlp{position:absolute;left:calc(32px + 1fr + 10px + 90px + 10px);top:46px;width:640px;background:#fff;border:1px solid var(--border);border-radius:9px;box-shadow:0 16px 40px rgba(15,23,42,.18);z-index:20;display:none}
+.wlp.show{display:flex;flex-direction:column}
+/* The CSS position above is descriptive; override below to anchor under value cell */
+.cond-row{position:relative}
+.cond-row .wlp{position:absolute;top:46px;left:0;right:0;width:auto;max-width:none}
+
+.wlp-h{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border-soft);background:var(--bg-softer);border-top-left-radius:9px;border-top-right-radius:9px}
+.wlp-h .wlp-title{font-size:12.5px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px}
+.wlp-h .wlp-title .wlp-scope{font-size:10.5px;color:var(--text-muted);font-weight:600;padding:2px 7px;background:#fff;border:1px solid var(--border);border-radius:3px;font-family:'JetBrains Mono',Menlo,monospace}
+.wlp-h .wlp-x{font-size:14px;color:var(--text-muted);width:22px;height:22px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.wlp-h .wlp-x:hover{background:var(--border-soft);color:var(--text-primary)}
+
+/* Search + filter toolbar — AC1 */
+.wlp-tb{display:flex;flex-direction:column;gap:9px;padding:12px 14px;border-bottom:1px solid var(--border-soft)}
+.wlp-search{display:flex;align-items:center;gap:8px;background:var(--bg-softer);border:1px solid var(--border);border-radius:7px;padding:7px 11px}
+.wlp-search input{flex:1;border:none;outline:none;background:transparent;font-family:inherit;font-size:12.5px;color:var(--text-primary)}
+.wlp-search input::placeholder{color:var(--text-muted)}
+.wlp-search svg{flex:none;color:var(--text-muted)}
+.wlp-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.wlp-filter{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:11.5px;color:var(--text-primary);font-weight:600;cursor:pointer;position:relative}
+.wlp-filter:hover{border-color:var(--link)}
+.wlp-filter.on{background:var(--link-bg);border-color:var(--link-border);color:var(--link)}
+.wlp-filter .wlf-caret{color:var(--text-muted);font-size:9px}
+.wlp-filter.on .wlf-caret{color:var(--link)}
+.wlp-reset{margin-left:auto;color:var(--text-muted);font-size:11px;font-weight:600;text-decoration:underline;cursor:pointer;padding:3px 4px}
+.wlp-reset:hover{color:var(--link)}
+
+/* Empty state toggle for demo */
+
+/* Body — grouped list */
+.wlp-body{max-height:380px;overflow-y:auto;padding:6px 0}
+.wlp-body::-webkit-scrollbar{width:8px}
+.wlp-body::-webkit-scrollbar-track{background:var(--bg-softer);border-radius:4px}
+.wlp-body::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px;border:2px solid var(--bg-softer)}
+
+.wlp-group{padding:0}
+.wlp-group-h{display:none} /* Scenario/policy category headers removed 2026-07-17 · no longer using this taxonomy in the WL picker */
+.wlp-group-h-legacy{display:flex;align-items:center;gap:8px;padding:9px 14px 5px;font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;cursor:pointer;user-select:none}
+.wlp-group-h:hover{background:var(--bg-softer)}
+.wlp-group-h .wlg-caret{font-size:10px;width:12px;display:inline-flex;justify-content:center;transition:transform .15s}
+.wlp-group.collapsed .wlg-caret{transform:rotate(-90deg)}
+.wlp-group-h .wlg-count{margin-left:auto;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px}
+/* AC3 — "Current Policy" group has subtle accent */
+.wlp-group.current .wlp-group-h{color:var(--link)}
+.wlp-group.current .wlp-group-h::before{content:"★";color:var(--amber);margin-right:4px}
+.wlp-group.collapsed .wlp-items{display:none}
+
+.wlp-item{display:flex;align-items:flex-start;gap:11px;padding:9px 14px;cursor:pointer;border-left:3px solid transparent;position:relative}
+.wlp-item:hover{background:var(--bg-softer)}
+.wlp-item.selected{background:var(--link-bg);border-left-color:var(--link)}
+.wlp-hover-summary{display:none;position:absolute;right:12px;top:calc(100% - 2px);z-index:30;width:320px;padding:9px 11px;border-radius:6px;background:#1F2937;color:#fff;font-size:10.5px;line-height:1.6;box-shadow:0 8px 22px rgba(0,0,0,.25);pointer-events:none}
+.wlp-item:hover .wlp-hover-summary{display:block}
+.schema-preview{margin-top:10px;padding:10px 12px;border:1px solid var(--link-border);border-radius:7px;background:var(--link-bg);font-size:11px;color:var(--text-secondary)}
+.schema-preview b{color:var(--link)}.schema-preview code{display:block;margin-top:5px;padding:7px 9px;background:#fff;border:1px solid var(--border);border-radius:5px;color:#334155;font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;white-space:pre-wrap}
+.wlp-cb{flex:none;width:16px;height:16px;border:1.5px solid var(--border);border-radius:3px;background:#fff;margin-top:2px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+.wlp-item.selected .wlp-cb{background:var(--link);border-color:var(--link)}
+.wlp-item.selected .wlp-cb::before{content:"✓"}
+.wlp-c{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.wlp-name{font-size:13px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wlp-name mark{background:#FEF08A;padding:0 1px;border-radius:2px;color:var(--text-primary)}
+.wlp-badges{display:inline-flex;gap:5px;align-items:center}
+.wlp-badge{font-size:9.5px;font-weight:700;letter-spacing:.3px;padding:1px 6px;border-radius:3px;text-transform:uppercase;display:inline-flex;align-items:center;gap:3px}
+.wlp-badge .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.wlp-badge-active{background:var(--green-bg);color:var(--green-text)}
+.wlp-meta{font-size:11.5px;color:var(--text-secondary);display:flex;flex-wrap:wrap;gap:0 16px;align-items:center}
+.wlp-meta .wlm-k{color:var(--text-muted);font-weight:600;margin-right:4px}
+.wlp-meta .wlm-v{color:var(--text-primary);font-weight:600}
+.wlp-meta .wlm-mono{font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px}
+/* AC5 — pending revision tag */
+.wlp-pending{display:inline-flex;align-items:center;gap:5px;background:var(--amber-bg);color:var(--amber-text);font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;border:1px solid #FCD34D;letter-spacing:.2px;margin-top:4px;position:relative;cursor:default}
+.wlp-pending::before{content:"⚠";font-size:11px}
+.wlp-pending .wlp-tip{display:none;position:absolute;left:0;top:calc(100% + 6px);background:#1F2937;color:#fff;font-size:10.5px;line-height:1.55;font-weight:500;padding:8px 11px;border-radius:6px;width:300px;z-index:25;box-shadow:0 8px 22px rgba(0,0,0,.25);letter-spacing:0;text-transform:none}
+.wlp-pending:hover .wlp-tip,.wlp-pending:focus .wlp-tip{display:block}
+.wlp-pending .wlp-tip b{color:#FCD34D;font-weight:700}
+
+/* Empty state — AC1 / AC2 cover via clear filters */
+.wlp-empty{padding:40px 18px;text-align:center;color:var(--text-muted)}
+.wlp-empty .wle-ico{font-size:22px;margin-bottom:6px;display:inline-block}
+.wlp-empty .wle-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:3px}
+.wlp-empty .wle-sub{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.55}
+.wlp-empty .wle-cta{display:inline-flex;gap:6px}
+
+/* Footer of picker */
+.wlp-foot{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-softer);border-top:1px solid var(--border-soft);border-bottom-left-radius:9px;border-bottom-right-radius:9px;gap:10px}
+.wlp-sel-summary{font-size:11.5px;color:var(--text-secondary)}
+.wlp-sel-summary b{color:var(--link);font-weight:700}
+.wlp-foot-r{display:flex;gap:8px}
+.wlp-foot-r .btn{padding:5px 14px;font-size:11.5px}
+
+/* Helper: visually mark when value cell is showing selected lists */
+.cr-dd.has-selection{background:var(--link-bg);border-color:var(--link-border)}
+.cr-dd.has-selection .cr-text{color:var(--link);font-weight:700}
+.cr-pills{display:inline-flex;gap:4px;flex-wrap:wrap}
+.cr-pill{display:inline-flex;align-items:center;gap:3px;background:#fff;color:var(--link);border:1px solid var(--link-border);font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:3px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cr-pill .cp-x{color:var(--text-muted);font-size:11px;cursor:pointer}
+.cr-pill .cp-x:hover{color:var(--red-text)}
+
+/* Inline help block above condition list — explains the IDSP picker behavior */
+.idsp-hint{display:flex;gap:10px;background:#EFF6FF;border:1px solid var(--link-border);border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:#1E40AF;line-height:1.6}
+.idsp-hint .ih-ico{flex:none;width:20px;height:20px;border-radius:50%;background:var(--link);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.idsp-hint b{color:#1E40AF;font-weight:700}
+
+/* ============================================================
+   Feature dropdown — Level 1 picker (user picks feature first)
+   Shared popup attached to whichever feature cell triggered it
+   Categorized into Room Attributes / Word List Features / User Behavior
+   ============================================================ */
+.feature-dd{position:absolute;width:380px;max-height:360px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 14px 36px rgba(15,23,42,.18);z-index:30;display:none;overflow:hidden;flex-direction:column}
+.feature-dd.show{display:flex}
+.fdd-h{padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;border-bottom:1px solid var(--border-soft);background:var(--bg-softer);display:flex;align-items:center;justify-content:space-between}
+.fdd-h .fdd-x{font-size:13px;color:var(--text-muted);cursor:pointer;width:18px;height:18px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center}
+.fdd-h .fdd-x:hover{background:var(--border-soft);color:var(--text-primary)}
+.fdd-search{padding:8px 14px;border-bottom:1px solid var(--border-soft);background:#fff}
+.fdd-search input{width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;font-family:inherit;color:var(--text-primary);outline:none}
+.fdd-search input:focus{border-color:var(--link)}
+.fdd-body{flex:1;overflow-y:auto;padding:4px 0}
+.fdd-group{padding:4px 0}
+.fdd-group-h{padding:7px 14px 3px;font-size:9.5px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase}
+.fdd-group.list-features .fdd-group-h{color:var(--link)}
+.fdd-group.list-features .fdd-group-h::before{content:"★ ";color:var(--amber)}
+.fdd-opt{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-left:3px solid transparent}
+.fdd-opt:hover{background:var(--bg-softer)}
+.fdd-opt.selected{background:var(--link-bg);border-left-color:var(--link)}
+.fdd-opt .fdd-name{flex:1;font-size:12.5px;font-weight:500;color:var(--text-primary)}
+.fdd-opt.selected .fdd-name{color:var(--link);font-weight:700}
+.fdd-opt .fdd-key{font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:var(--text-muted);background:var(--bg-softer);padding:1px 6px;border-radius:3px}
+.fdd-opt .fdd-kind{font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:1px 6px;border-radius:3px}
+.fdd-opt .fdd-kind-list{background:#FEF3C7;color:#92400E}
+.fdd-opt .fdd-kind-bool{background:#DBE8FE;color:#1D4ED8}
+.fdd-opt .fdd-kind-enum{background:#F3E8FF;color:#6D28D9}
+.fdd-opt .fdd-kind-number{background:#FAE8FF;color:#A21CAF}
+
+/* Empty cell placeholder · matches image 10 "Please select" / "Please input" */
+.cr-dd.empty .cr-text,
+.cr-dd.empty .cr-text-placeholder{color:var(--text-muted);font-weight:500}
+.cr-pills:empty + .cr-text-placeholder{display:inline}
+.cr-pills:not(:empty) + .cr-text-placeholder{display:none}
+
+/* Shared dropdown shell (used by op-dd operator chooser) */
+.type-dd{position:absolute;width:340px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 14px 36px rgba(15,23,42,.18);z-index:32;display:none;overflow:hidden}
+.type-dd.show{display:block}
+.type-dd-h{padding:9px 14px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;border-bottom:1px solid var(--border-soft);background:var(--bg-softer);display:flex;align-items:center;justify-content:space-between}
+.type-dd-h .tdh-x{font-size:13px;color:var(--text-muted);cursor:pointer;width:18px;height:18px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center}
+.type-dd-h .tdh-x:hover{background:var(--border-soft);color:var(--text-primary)}
+.type-dd-opt{display:flex;align-items:flex-start;gap:11px;padding:11px 14px;cursor:pointer;border-left:3px solid transparent;transition:background .12s}
+.type-dd-opt:hover{background:var(--bg-softer)}
+.type-dd-opt .tdo-chip{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.3px;padding:2px 8px;border-radius:3px;margin-top:2px;text-transform:uppercase}
+.type-dd-opt .tdo-meta{flex:1;display:flex;flex-direction:column;gap:2px}
+.type-dd-opt .tdo-name{font-size:13px;font-weight:600;color:var(--text-primary)}
+.type-dd-opt .tdo-sub{font-size:11px;color:var(--text-muted);line-height:1.5}
+
+/* Scenario filter dropdown — opens from the Scenario filter chip in the picker toolbar */
+.scenario-dd{position:absolute;width:300px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 32px rgba(15,23,42,.16);z-index:33;display:none;overflow:hidden;max-height:340px}
+.scenario-dd.show{display:flex;flex-direction:column}
+.scenario-dd-h{padding:9px 14px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;border-bottom:1px solid var(--border-soft);background:var(--bg-softer);display:flex;align-items:center;justify-content:space-between}
+.scenario-dd-h .sdh-x{font-size:13px;color:var(--text-muted);cursor:pointer;width:18px;height:18px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center}
+.scenario-dd-h .sdh-x:hover{background:var(--border-soft);color:var(--text-primary)}
+.scenario-dd-body{overflow-y:auto}
+.scenario-dd-opt{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;font-size:12px;color:var(--text-primary);cursor:pointer;border-left:3px solid transparent;line-height:1.4}
+.scenario-dd-opt:hover{background:var(--bg-softer)}
+.scenario-dd-opt.selected{background:var(--link-bg);border-left-color:var(--link);font-weight:700;color:var(--link)}
+.scenario-dd-opt.all{font-weight:600;border-bottom:1px dashed var(--border-soft);color:var(--text-secondary)}
+.scenario-dd-opt .scn-check{color:var(--link);font-weight:700;font-size:13px;visibility:hidden}
+.scenario-dd-opt.selected .scn-check{visibility:visible}
+
+/* Scenario group header (used inside word list picker, now Level 2)
+   .wlp-group.current is now scenario-belongs-to-current-policy (AC3 ordering) */
+.wlp-group-policy-pill{display:inline-flex;align-items:center;gap:3px;font-family:'JetBrains Mono',Menlo,monospace;font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--bg-softer);color:var(--text-secondary);border:1px solid var(--border)}
+.wlp-group.current .wlp-group-policy-pill{background:#FEF3C7;color:#92400E;border-color:#FCD34D}
+.wlp-group-sub{display:block;font-size:9.5px;font-weight:500;color:var(--text-muted);letter-spacing:0;text-transform:none;margin-top:1px;font-family:'Inter',sans-serif}
+.wlp-group.current .wlp-group-sub{color:#92400E}
+
+/* Divider between Current Policy scenarios and Other Policies scenarios */
+.wlp-section-div{padding:9px 18px 5px;font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;background:var(--bg-page);border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);margin:4px 0 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+ <div class="brand">
+  <div class="brand-logo">a</div>
+  <div class="brand-name">arena<small>Global</small></div>
+ </div>
+ <div class="nav-section">Workspace</div>
+ <div class="nav-item">Discover</div>
+ <div class="nav-item">Host Center</div>
+ <div class="nav-item">Resource Hub</div>
+ <div class="nav-item">LIVE Hub</div>
+ <div class="nav-item active">Ecosystem</div>
+ <div class="nav-sub">
+  <div class="nav-item active">Strategic Configuration</div>
+  <div class="nav-item">Strategic Monitor</div>
+  <div class="nav-item">Feature Center</div>
+ </div>
+ <div class="nav-section">Guardrail</div>
+ <div class="nav-item">List Management</div>
+ <div class="nav-item">Detection Item Config</div>
+ <div class="nav-item">Hit Analysis</div>
+ <div class="nav-section">Quick Access</div>
+ <div class="nav-item">Go LIVE</div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <div class="crumb">Ecosystem / TRIDENT (IDSP) / Strategic Configuration / <a href="#">LIVE_R3 · Low_Interaction</a> / <b>Edit Rule</b><span class="role-tag">IDSP VIEW</span></div>
+  <div class="topbar-right">
+   <span>YG</span>
+   <div class="avatar">YG</div>
+  </div>
+ </header>
+
+ <div class="canvas">
+
+  <span class="frame-label"><span class="dot"></span>FRAME G1 · IDSP RULE EDIT · WORD LIST PICKER</span>
+
+  <!-- Context banner: tells user which Policy / Scenario this rule belongs to. Picker uses these to scope (AC3) -->
+  <div class="ctx-banner">
+   <div class="cb-h">SCOPE</div>
+   <div class="cb-row">
+    <div class="cb-item"><span class="cb-k">Business Scenario</span><span class="cb-pill">LIVE_R3</span></div>
+    <div class="cb-item"><span class="cb-k">Policy</span><span class="cb-pill">Low_Interaction</span></div>
+    <div class="cb-item"><span class="cb-k">Canvas</span><span class="cb-v">LI Merge Version 1</span></div>
+    <div class="cb-item"><span class="cb-k">Rule Group</span><span class="cb-v">Filtering(Over all)</span></div>
+   </div>
+  </div>
+
+  <!-- Edit card (replicates IDSP rule edit modal layout) -->
+  <div class="edit-card">
+   <div class="ec-head">
+    <div class="ec-title">Edit Rule</div>
+    <button class="ec-x" title="Close">✕</button>
+   </div>
+
+   <div class="ec-body">
+
+    <!-- Left nav: same as IDSP reference (Basic info / Conditions / Action) -->
+    <nav class="ec-nav">
+     <div class="ec-nav-item">Basic information</div>
+     <div class="ec-nav-item active">Conditions</div>
+     <div class="ec-nav-item">Action</div>
+    </nav>
+
+    <!-- Right pane: Conditions -->
+    <section class="ec-pane">
+     <h2 class="ec-pane-h">Conditions</h2>
+
+     <div class="ec-card">
+      <div class="ec-card-h">Condition Checklist <span class="req">*</span></div>
+
+      <div class="pill-toggle" role="tablist">
+       <button class="on" data-mode="basic">Basic</button>
+       <button data-mode="advanced">Advanced</button>
+      </div>
+
+      <!-- Row 1: pre-filled (existing IDSP-style feature) -->
+      <div class="cond-row" id="row-1">
+       <span class="cn">1</span>
+       <div class="cr-dd feature-trigger" data-row="1" data-field="feature" data-feature="treco_room_is_secret">
+        <span class="cr-text">whether room is protect <span style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:var(--text-muted);background:var(--bg-softer);padding:1px 6px;border-radius:3px;margin-left:6px">treco_room_is_secret</span></span>
+        <span class="cr-caret">▾</span>
+       </div>
+       <div class="cr-dd op" data-row="1" data-field="op"><span class="cr-text">=</span></div>
+       <div class="cr-dd" data-row="1" data-field="value">
+        <span class="cr-text">True</span>
+        <span class="cr-caret">▾</span>
+       </div>
+       <button class="cr-del" title="Delete row">🗑</button>
+      </div>
+
+      <!-- Row 2: empty (Please select) · feature column unchanged · value column opens unified word list picker -->
+      <div class="cond-row" id="row-2">
+       <span class="cn">2</span>
+       <div class="cr-dd feature-trigger empty" data-row="2" data-field="feature" data-feature="">
+        <span class="cr-text">Please select</span>
+        <span class="cr-caret">▾</span>
+       </div>
+       <div class="cr-dd op" data-row="2" data-field="op"><span class="cr-text">in</span></div>
+       <div class="cr-dd empty value-trigger" data-row="2" data-field="value" id="picker-trigger-2">
+        <span class="cr-text">
+         <span class="cr-pills" id="row-2-pills"></span>
+         <span class="cr-text-placeholder">Please input</span>
+        </span>
+        <span class="cr-caret">▾</span>
+       </div>
+       <button class="cr-del" title="Delete row">🗑</button>
+
+       <!-- Picker for row 2 (unified word list picker) -->
+       <div class="wlp" id="picker-2" data-row="2">
+        <div class="wlp-h">
+         <div class="wlp-title">Word List Picker
+          <span class="wlp-scope" id="scope-2">Active only</span>
+         </div>
+         <button class="wlp-x" data-close="2" title="Close">✕</button>
+        </div>
+
+        <div class="wlp-tb">
+         <div class="wlp-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+          <input type="text" id="search-2" placeholder="Search by name · Policy Title · key..." />
+         </div>
+        </div>
+
+        <div class="wlp-body" id="body-2"><!-- rendered --></div>
+
+        <div class="wlp-foot">
+         <div class="wlp-sel-summary"><b id="sel-count-2">0</b> selected</div>
+         <div class="wlp-foot-r">
+          <button class="btn" data-close="2">Cancel</button>
+          <button class="btn btn-p" data-done="2">Done</button>
+         </div>
+        </div>
+       </div>
+      </div>
+
+      <!-- Row 3: empty (Please select) -->
+      <div class="cond-row" id="row-3">
+       <span class="cn">3</span>
+       <div class="cr-dd feature-trigger empty" data-row="3" data-field="feature" data-feature="">
+        <span class="cr-text">Please select</span>
+        <span class="cr-caret">▾</span>
+       </div>
+       <div class="cr-dd op" data-row="3" data-field="op"><span class="cr-text">in</span></div>
+       <div class="cr-dd empty value-trigger" data-row="3" data-field="value" id="picker-trigger-3">
+        <span class="cr-text">
+         <span class="cr-pills" id="row-3-pills"></span>
+         <span class="cr-text-placeholder">Please input</span>
+        </span>
+        <span class="cr-caret">▾</span>
+       </div>
+       <button class="cr-del" title="Delete row">🗑</button>
+
+       <div class="wlp" id="picker-3" data-row="3">
+        <div class="wlp-h">
+         <div class="wlp-title">Word List Picker
+          <span class="wlp-scope" id="scope-3">Active only</span>
+         </div>
+         <button class="wlp-x" data-close="3" title="Close">✕</button>
+        </div>
+
+        <div class="wlp-tb">
+         <div class="wlp-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+          <input type="text" id="search-3" placeholder="Search by name · Policy Title · key..." />
+         </div>
+        </div>
+
+        <div class="wlp-body" id="body-3"><!-- rendered --></div>
+
+        <div class="wlp-foot">
+         <div class="wlp-sel-summary"><b id="sel-count-3">0</b> selected</div>
+         <div class="wlp-foot-r">
+          <button class="btn" data-close="3">Cancel</button>
+          <button class="btn btn-p" data-done="3">Done</button>
+         </div>
+        </div>
+       </div>
+      </div>
+
+      <button class="add-cond"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Add condition item</button>
+      <div class="schema-preview" id="schema-preview"><b>Rule Schema Preview</b><code>condition.value: {
+  list_id: —,
+  list_name_snapshot: —
+}</code></div>
+
+      <!-- Logical Expression -->
+      <div class="lex">
+       <div class="lex-h">Logical Expression <span class="help" title="Combine row indices with && (and) / || (or) / () (group)">?</span><span class="req">*</span></div>
+       <div class="lex-box" id="lex-box">1 &amp;&amp; (2 || 3)</div>
+       <div class="lex-ops">
+        <button class="lex-op">&amp;&amp;</button>
+        <button class="lex-op">||</button>
+        <button class="lex-op">( )</button>
+       </div>
+      </div>
+
+      <!-- Preview rule flow (mirrors IDSP screenshot bottom block) -->
+      <div class="pv">
+       <div class="pv-h">Preview</div>
+       <div class="pv-box">
+        <span class="pv-node start">Start</span>
+        <span class="pv-arrow"></span>
+        <span class="pv-node">1</span>
+        <span class="pv-arrow"></span>
+        <span class="pv-node">2</span>
+        <span class="pv-arrow"></span>
+        <span class="pv-node">3</span>
+        <span class="pv-arrow"></span>
+        <span class="pv-node end">End</span>
+        <div class="pv-meta">canvas · LI Merge Version 1 · rule group · Filtering(Over all)</div>
+        <div class="pv-zoom"><button>−</button>140%<button>+</button></div>
+       </div>
+      </div>
+     </div>
+    </section>
+   </div>
+
+   <div class="ec-foot">
+    <button class="btn">Cancel</button>
+    <button class="btn btn-p">Preview</button>
+   </div>
+  </div>
+
+ </div>
+</main>
+</div>
+
+<!-- Shared Policy Title filter dropdown -->
+<div class="scenario-dd" id="scenario-dd" role="listbox">
+ <div class="scenario-dd-h">
+  <span>Filter by Policy Title</span>
+  <span class="sdh-x" id="sdh-x">✕</span>
+ </div>
+ <div class="scenario-dd-body" id="scenario-dd-body"><!-- options rendered by JS --></div>
+</div>
+
+<!-- Shared Op dropdown — opens when user clicks any op cell -->
+<div class="type-dd" id="op-dd" role="listbox" style="min-width:160px">
+ <div class="type-dd-h">
+  <span>Select operator</span>
+  <span class="tdh-x" id="op-dd-x">✕</span>
+ </div>
+ <div class="type-dd-opt" data-op-pick="=" style="border:none;padding:9px 14px">
+  <span class="tdo-chip" style="font-family:'JetBrains Mono',Menlo,monospace;background:#F3F4F6;color:#374151;border:1px solid var(--border)">=</span>
+  <div class="tdo-meta"><div class="tdo-name">Equals</div></div>
+ </div>
+ <div class="type-dd-opt" data-op-pick="in" style="border:none;padding:9px 14px">
+  <span class="tdo-chip" style="font-family:'JetBrains Mono',Menlo,monospace;background:#DBE8FE;color:#1D4ED8;border:1px solid #BFDBFE">in</span>
+  <div class="tdo-meta"><div class="tdo-name">In</div></div>
+ </div>
+ <div class="type-dd-opt" data-op-pick="not in" style="border:none;padding:9px 14px">
+  <span class="tdo-chip" style="font-family:'JetBrains Mono',Menlo,monospace;background:#F3F4F6;color:#374151;border:1px solid var(--border)">not in</span>
+  <div class="tdo-meta"><div class="tdo-name">Not in</div></div>
+ </div>
+ <div class="type-dd-opt" data-op-pick="!=" style="border:none;padding:9px 14px">
+  <span class="tdo-chip" style="font-family:'JetBrains Mono',Menlo,monospace;background:#F3F4F6;color:#374151;border:1px solid var(--border)">!=</span>
+  <div class="tdo-meta"><div class="tdo-name">Not equals</div></div>
+ </div>
+</div>
+
+<!-- Shared Feature dropdown — opens when user clicks any feature cell -->
+<div class="feature-dd" id="feature-dd" role="listbox">
+ <div class="fdd-h">
+  <span>Select feature</span>
+  <span class="fdd-x" id="fdd-x">✕</span>
+ </div>
+ <div class="fdd-search">
+  <input id="fdd-search" type="text" placeholder="Search features..." />
+ </div>
+ <div class="fdd-body" id="fdd-body"><!-- rendered by JS --></div>
+</div>
+
+<!-- Data Source picker — opens when a list_attr feature row's value cell is clicked -->
+<div class="feature-dd" id="ds-dd" role="listbox">
+ <div class="fdd-h">
+  <span>Select Data Source</span>
+  <span class="fdd-x" id="ds-dd-x">✕</span>
+ </div>
+ <div class="fdd-body" id="ds-dd-body">
+  <div class="fdd-group">
+   <div class="fdd-group-h">Data Source · single-select</div>
+   <!-- rendered by JS -->
+  </div>
+ </div>
+</div>
+
+<script>
+// ============================================================
+// AC2 — IDSP candidate source is Active lists only.
+// Draft / Pending Review / Archive are NOT in this array.
+// `pendingRevision: true` means the list has a change request under review;
+// the rule still uses the current Active version until approval (AC5).
+// ============================================================
+// Scenarios = TnS canonical 7-item policy taxonomy
+const SCENARIOS = [
+  'Nudity & Sexual Activity',
+  'Harassment & Hateful Behavior',
+  'Dangerous Activities and Challenges',
+  'Potentially Disturbing Content',
+  'Manipulation & Incentivisation',
+  'US Format Verification',
+  'UnifiedID',
+];
+
+const ACTIVE_LISTS = [
+  // === Nudity & Sexual Activity (NSA) ===
+  { id:'wl-001', name:'NSA Verified Hosts',          scenario:'Nudity & Sexual Activity',          policy:'LIVE_R3', primary:'room_id',              owner:'@ymgao',  pendingRevision:true },
+  { id:'wl-004', name:'NSA Sensitive Terms',           scenario:'Nudity & Sexual Activity',          policy:'LIVE_R3', primary:'user_id, room_id',     owner:'@ymgao',  pendingRevision:true },
+  { id:'wl-005', name:'NSA Sensitive Terms (legacy)',  scenario:'Nudity & Sexual Activity',          policy:'LIVE_R3', primary:'account_id',           owner:'@ymgao' },
+  { id:'wl-008', name:'Adult Content Exemption Set',  scenario:'Nudity & Sexual Activity',          policy:'LIVE_R1', primary:'room_id',              owner:'@lzwang' },
+
+  // === Harassment & Hateful Behavior ===
+  { id:'wl-013', name:'Hate Slur Terms',     scenario:'Harassment & Hateful Behavior',     policy:'LIVE_R3', primary:'user_id, content_id',  owner:'@rdyang' },
+  { id:'wl-010', name:'Spam Phrases',             scenario:'Harassment & Hateful Behavior',     policy:'LIVE_R2', primary:'account_id',           owner:'@lzwang' },
+  { id:'wl-019', name:'Verified Brand Anchors',   scenario:'Harassment & Hateful Behavior',     policy:'LIVE_R3', primary:'account_id',           owner:'@rdyang' },
+
+  // === Dangerous Activities and Challenges ===
+  { id:'wl-014', name:'Self-harm Terms',     scenario:'Dangerous Activities and Challenges', policy:'LIVE_R3', primary:'content_id',           owner:'@lzwang' },
+  { id:'wl-009', name:'High-risk Keywords',       scenario:'Dangerous Activities and Challenges', policy:'LIVE_R1', primary:'user_id, content_id',  owner:'@ymgao' },
+
+  // === Potentially Disturbing Content ===
+  { id:'wl-015', name:'Gore Imagery Terms',       scenario:'Potentially Disturbing Content',    policy:'LIVE_R3', primary:'content_id',           owner:'@ymgao' },
+  { id:'wl-016', name:'Disturbing Safe Anchors',  scenario:'Potentially Disturbing Content',    policy:'LIVE_R3', primary:'account_id',           owner:'@rdyang' },
+
+  // === Manipulation & Incentivisation (legacy PCF / commerce) ===
+  { id:'wl-002', name:'Trusted Brand Anchors',    scenario:'Manipulation & Incentivisation',    policy:'LIVE_R3', primary:'account_id',           owner:'@rdyang' },
+  { id:'wl-003', name:'PCF Exempt Phrases',  scenario:'Manipulation & Incentivisation',    policy:'LIVE_R3', primary:'user_id, room_id',     owner:'@lzwang' },
+  { id:'wl-006', name:'PCF Gift Solicitation v2', scenario:'Manipulation & Incentivisation',    policy:'LIVE_R3', primary:'user_id, room_id',     owner:'@ymgao' },
+
+  // === US Format Verification ===
+  { id:'wl-007', name:'Verified Creator Pool',    scenario:'US Format Verification',            policy:'LIVE_R2', primary:'user_id',              owner:'@rdyang' },
+  { id:'wl-011', name:'Replay Compliant Hosts',   scenario:'US Format Verification',            policy:'LIVE_R4', primary:'account_id',           owner:'@rdyang' },
+  { id:'wl-012', name:'Replay Excluded Hosts',      scenario:'US Format Verification',            policy:'LIVE_R4', primary:'user_id',              owner:'@ymgao' },
+
+  // === UnifiedID ===
+  { id:'wl-017', name:'Unified ID Trusted Set',     scenario:'UnifiedID',                         policy:'LIVE_R3', primary:'unified_id',           owner:'@ymgao' },
+  { id:'wl-018', name:'Unified ID Risk Set',    scenario:'UnifiedID',                         policy:'LIVE_R3', primary:'unified_id',           owner:'@lzwang' },
+];
+
+const CURRENT_POLICY = 'LIVE_R3';
+
+// Feature catalog — Level 1: the dropdown user sees when picking a feature for a condition row
+// Feature catalog · keeps the IDSP-style real production feature naming pattern (see image 11)
+// Word-list matching is represented by one Boolean feature; its value uses the two-level picker.
+// Data sources · single-select options for list_attr features
+const DATA_SOURCES = [
+  { id:'ocr_text_default_lower',                       label:'OCR'         },
+  { id:'slice_info_host_asr_text',                     label:'ASR'         },
+  { id:'treco_room_lower_title',                       label:'直播间标题'   },
+  { id:'treco_user_lower_bio_description',             label:'Bio'         },
+  { id:'treco_user_lower_name',                        label:'用户名称'     },
+  { id:'room_sub_feature_text_content_live_goal',      label:'LIVE goal'   },
+  { id:'room_sub_feature_text_content_about_me',       label:'About me'    },
+  { id:'room_sub_feature_text_content_pin_message',    label:'Pin'         },
+  { id:'room_sub_feature_text_content_sticker',        label:'Sticker'     },
+  { id:'room_sub_feature_text_content_live_board',     label:'LIVE board'  },
+  { id:'room_sub_feature_text_content_poll',           label:'Poll'        },
+];
+
+const FEATURE_CATALOG = [
+  { group:'List Attribute', items:[
+    { id:'is_hit_list',     name:'is_hit_list',     kind:'list_attr' },
+    { id:'is_not_hit_list', name:'is_not_hit_list', kind:'list_attr' },
+  ]},
+  { group:'Room Attributes', items:[
+    { id:'treco_room_is_secret', name:'whether room is protect', kind:'bool' },
+    { id:'treco_room_status',    name:'whether room status',     kind:'enum' },
+    { id:'treco_room_is_link',   name:'whether room is link',    kind:'bool' },
+  ]},
+  { group:'Model Predictions', items:[
+    { id:'vine_model_rc_motor_model_v1_max_20250822_084930', name:'rc motor model · v1 max',   kind:'number' },
+    { id:'aio_perceiver_cls_model_pred_dt3p',                name:'aio perceiver classifier',  kind:'enum'   },
+    { id:'vine_model_computer_screen_model_max',             name:'computer screen model max', kind:'number' },
+  ]},
+  { group:'Policy / Punish Signals', items:[
+    { id:'room_spam_policy_detected_count_b106534e',           name:'room spam policy · detected count',          kind:'number' },
+    { id:'room_policy_detected_count_lmg_dffb3f5f',            name:'room policy · detected count (lmg)',         kind:'number' },
+    { id:'anchor_room_punish_ids_c4a5f856_lmg_7_day',          name:'anchor room punish ids · 7-day',             kind:'list'   },
+    { id:'account_effective_violation_related_ids_12ca0e51_7_day', name:'account effective violation related ids',kind:'list'   },
+    { id:'account_eco_enforce_cnt_1d_duration_f4341b4c_90_day',name:'account eco-enforce count · 90-day duration',kind:'number' },
+  ]},
+  { group:'User Behavior', items:[
+    { id:'user_role',      name:'user role',      kind:'enum' },
+    { id:'watch_duration', name:'watch duration', kind:'number' },
+  ]},
+];
+
+function findFeature(id) {
+  for (const g of FEATURE_CATALOG) {
+    const f = g.items.find(x => x.id === id);
+    if (f) return f;
+  }
+  return null;
+}
+
+// Selection state per row · empty by default (rows 2/3 start blank "Please input")
+const SELECTED = {
+  '2': new Set(),
+  '3': new Set(),
+};
+
+// Filter state per row
+const FILTERS = {
+  '2': { search:'', scenario:null, primary:null, owner:null },
+  '3': { search:'', scenario:null, primary:null, owner:null },
+};
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function highlight(text, query) {
+  if (!query) return escapeHtml(text);
+  const q = query.trim();
+  if (!q) return escapeHtml(text);
+  const safe = escapeHtml(text);
+  const re = new RegExp(`(${q.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'ig');
+  return safe.replace(re, '<mark>$1</mark>');
+}
+
+function passesFilter(list, row) {
+  const f = FILTERS[row];
+  // AC2 — already only Active in source.
+  if (f.scenario && list.policy !== f.scenario) return false;
+  if (f.primary && !list.primary.includes(f.primary)) return false;
+  if (f.owner && list.owner !== f.owner) return false;
+  if (f.search) {
+    const q = f.search.toLowerCase();
+    if (!list.name.toLowerCase().includes(q) &&
+        !list.primary.toLowerCase().includes(q) &&
+        !list.policy.toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+
+function renderPicker(row) {
+  const body = document.getElementById('body-' + row);
+  if (!body) return;
+  const all = ACTIVE_LISTS.filter(l => passesFilter(l, row));
+
+  if (!all.length) {
+    body.innerHTML = `<div class="wlp-empty">
+      <div class="wle-ico">⚲</div>
+      <div class="wle-title">No matching Active lists in scope</div>
+      <div class="wle-cta"><button class="btn btn-sm" onclick="resetFilters('${row}')">Clear filters</button><button class="btn btn-sm" onclick="window.open('feature-platform-word-list-prototype-v0.3.html','_blank')">Open List Management</button></div>
+    </div>`;
+    updateSelCount(row);
+    return;
+  }
+
+  // AC3 (refined per user) — group by Scenario; Current Policy's Scenarios pinned first
+  // Bucket: scenario key → { items[], isCurrent (any list from current policy?), policy (display) }
+  const buckets = new Map();
+  all.forEach(l => {
+    // key is scenario + policy so two different policies sharing a scenario name don't collapse
+    const k = `${l.scenario}|${l.policy}`;
+    if (!buckets.has(k)) {
+      buckets.set(k, {
+        scenario: l.scenario,
+        policy: l.policy,
+        isCurrent: l.policy === CURRENT_POLICY,
+        items: []
+      });
+    }
+    buckets.get(k).items.push(l);
+  });
+  // Sort: current policy buckets first (alphabetical by scenario), then others (alphabetical)
+  const sorted = Array.from(buckets.values()).sort((a, b) => {
+    if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1;
+    if (a.policy !== b.policy) return a.policy.localeCompare(b.policy);
+    return a.scenario.localeCompare(b.scenario);
+  });
+
+  let html = '';
+  let lastIsCurrent = null;
+  sorted.forEach((g, i) => {
+    // Section divider between Current Policy block and Other Policies block
+    if (lastIsCurrent === true && g.isCurrent === false) {
+      html += `<div class="wlp-section-div">Other Policies</div>`;
+    } else if (i === 0 && g.isCurrent) {
+      html += `<div class="wlp-section-div">Current Policy · ${escapeHtml(CURRENT_POLICY)}</div>`;
+    } else if (i === 0 && !g.isCurrent) {
+      html += `<div class="wlp-section-div">Other Policies</div>`;
+    }
+    lastIsCurrent = g.isCurrent;
+
+    html += `<div class="wlp-group ${g.isCurrent ? 'current' : ''}" data-group="${escapeHtml(g.scenario)}|${escapeHtml(g.policy)}">
+      <div class="wlp-group-h">
+        <span class="wlg-caret">▾</span>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span>${escapeHtml(g.scenario)}</span>
+            <span class="wlp-group-policy-pill">${escapeHtml(g.policy)}</span>
+          </div>
+        </div>
+        <span class="wlg-count">${g.items.length}</span>
+      </div>
+      <div class="wlp-items">`;
+    g.items.forEach(l => {
+      const selected = SELECTED[row].has(l.id);
+      const pending = l.pendingRevision
+        ? `<span class="wlp-pending" tabindex="0">Changes pending review</span>`
+        : '';
+      const matchMode = l.matchMode || 'Fuzzy';
+      html += `<div class="wlp-item ${selected ? 'selected' : ''}" data-id="${l.id}" data-row="${row}">
+        <span class="wlp-cb"></span>
+        <div class="wlp-c">
+          <div class="wlp-name">
+            ${highlight(l.name, FILTERS[row].search)}
+            <span class="wlp-badges">
+              <span class="wlp-badge wlp-badge-active"><span class="dot"></span>Active</span>
+            </span>
+          </div>
+          <div class="wlp-meta">
+            <span><span class="wlm-k">Scenario</span><span class="wlm-v">${escapeHtml(l.scenario)}</span></span>
+            <span><span class="wlm-k">Policy</span><span class="wlm-v wlm-mono">${escapeHtml(l.policy)}</span></span>
+            <span><span class="wlm-k">Primary Key</span><span class="wlm-v wlm-mono">${escapeHtml(l.primary)}</span></span>
+            <span><span class="wlm-k">Secondary Key</span><span class="wlm-v wlm-mono">${escapeHtml(l.secondary || 'content_text')}</span></span>
+            <span><span class="wlm-k">Match Mode</span><span class="wlm-v">${escapeHtml(matchMode)}</span></span>
+            <span><span class="wlm-k">Owner</span><span class="wlm-v">${escapeHtml(l.owner)}</span></span>
+          </div>
+          ${pending}
+          <div class="wlp-hover-summary"><b>${escapeHtml(l.name)}</b><br/>Primary Key: ${escapeHtml(l.primary)}<br/>Secondary Key: ${escapeHtml(l.secondary || 'content_text')}<br/>Match Mode: ${escapeHtml(matchMode)}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+  body.innerHTML = html;
+
+  body.querySelectorAll('.wlp-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      // Tooltip clicks shouldn't toggle
+      if (e.target.closest('.wlp-pending')) return;
+      const id = el.dataset.id;
+      const r = el.dataset.row;
+      // One rule condition binds one specific word list.
+      if (SELECTED[r].has(id)) SELECTED[r].clear();
+      else SELECTED[r] = new Set([id]);
+      renderPicker(r);
+    });
+  });
+
+  // Group header collapse
+  body.querySelectorAll('.wlp-group-h').forEach(h => {
+    h.addEventListener('click', () => h.parentElement.classList.toggle('collapsed'));
+  });
+
+  updateSelCount(row);
+}
+
+function updateSelCount(row) {
+  const n = SELECTED[row].size;
+  const el = document.getElementById('sel-count-' + row);
+  if (el) el.textContent = String(n);
+}
+
+function syncPills(row) {
+  const wrap = document.getElementById(`row-${row}-pills`);
+  if (!wrap) return;
+  const selectedLists = ACTIVE_LISTS.filter(l => SELECTED[row].has(l.id));
+  const trigger = document.getElementById('picker-trigger-' + row);
+  if (!selectedLists.length) {
+    wrap.innerHTML = '';
+    if (trigger) {
+      trigger.classList.remove('has-selection');
+      trigger.classList.add('empty');
+    }
+    const schema = document.getElementById('schema-preview');
+    if (schema) schema.querySelector('code').textContent = 'condition.value: {\n  list_id: —,\n  list_name_snapshot: —\n}';
+    return;
+  }
+  wrap.innerHTML = selectedLists.map(l => `<span class="cr-pill">${escapeHtml(l.name)}<span class="cp-x" data-rm="${l.id}" data-row="${row}">×</span></span>`).join('');
+  wrap.querySelectorAll('.cp-x').forEach(x => {
+    x.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = x.dataset.rm;
+      const r = x.dataset.row || row;
+      SELECTED[r].delete(id);
+      syncPills(r);
+      renderPicker(r);
+    });
+  });
+  if (trigger) {
+    trigger.classList.remove('empty');
+    trigger.classList.add('has-selection');
+  }
+  const selected = selectedLists[0];
+  const schema = document.getElementById('schema-preview');
+  if (schema && selected) {
+    schema.querySelector('code').textContent = `condition.value: {\n  list_id: "${selected.id}",\n  list_name_snapshot: "${selected.name}"\n}`;
+  }
+}
+
+// Open the unified word list picker for a row
+function openPicker(row) {
+  // Close any other open pickers and the feature dropdown
+  document.querySelectorAll('.wlp.show').forEach(p => {
+    if (p.dataset.row !== String(row)) p.classList.remove('show');
+  });
+  const fdd = document.getElementById('feature-dd');
+  if (fdd) fdd.classList.remove('show');
+  const p = document.getElementById('picker-' + row);
+  if (p) {
+    p.classList.add('show');
+    renderPicker(row);
+  }
+}
+
+// Value cell click: open the picker directly (no type pre-selection)
+function handleValueClick(row, anchorEl) {
+  openPicker(row);
+}
+
+function closePicker(row) {
+  const p = document.getElementById('picker-' + row);
+  if (p) p.classList.remove('show');
+}
+
+window.resetFilters = function(row) {
+  const f = FILTERS[row];
+  f.search = '';
+  f.scenario = null;
+  f.primary = null;
+  f.owner = null;
+  const s = document.getElementById('search-' + row);
+  if (s) s.value = '';
+  const policyBtn = document.querySelector(`.wlp-filter[data-filter="scenario"][data-row="${row}"]`);
+  if (policyBtn) {
+    policyBtn.classList.remove('on');
+    policyBtn.querySelector('span').textContent = 'Policy Title';
+  }
+  renderPicker(row);
+};
+
+// ============================================================
+// Feature dropdown (Level 1) — single shared popup
+// Opens when user clicks any feature cell. Picking a Word List
+// feature auto-wires the value cell to the word list picker (Level 2).
+// ============================================================
+let FDD_ACTIVE_ROW = null;
+let FDD_SEARCH = '';
+
+function renderFeatureDD() {
+  const body = document.getElementById('fdd-body');
+  if (!body) return;
+  const q = FDD_SEARCH.toLowerCase().trim();
+  const currentSelected = FDD_ACTIVE_ROW
+    ? document.querySelector(`#row-${FDD_ACTIVE_ROW} .feature-trigger`)?.dataset.feature
+    : null;
+  let html = '';
+  FEATURE_CATALOG.forEach(g => {
+    const items = g.items.filter(it => !q || it.name.toLowerCase().includes(q) || it.id.toLowerCase().includes(q));
+    if (!items.length) return;
+    const groupCls = (g.group === 'Word List Features') ? 'list-features' : '';
+    html += `<div class="fdd-group ${groupCls}">
+      <div class="fdd-group-h">${escapeHtml(g.group)}</div>`;
+    items.forEach(it => {
+      const sel = it.id === currentSelected;
+      const kindCls = `fdd-kind-${it.kind}`;
+      // For list_attr items · inject a colored DS chip AFTER the mono code.
+      // Click DS chip opens DS picker; picking DS finalizes feature+DS selection.
+      const dsChip = (it.kind === 'list_attr')
+        ? `<span class="fdd-ds-chip" data-ds-for-feature="${it.id}">Data Source ▾</span>`
+        : '';
+      html += `<div class="fdd-opt ${sel ? 'selected' : ''}" data-feature-id="${it.id}">
+        <span class="fdd-name">${escapeHtml(it.name)}</span>
+        <span class="fdd-kind ${kindCls}">${escapeHtml(it.kind)}</span>
+        ${dsChip}
+        <span class="fdd-key">${escapeHtml(it.id)}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  if (!html) {
+    html = `<div style="padding:24px 18px;text-align:center;color:var(--text-muted);font-size:12px"><div style="font-size:18px;margin-bottom:4px">⚲</div>No features match "${escapeHtml(FDD_SEARCH)}"</div>`;
+  }
+  body.innerHTML = html;
+  body.querySelectorAll('.fdd-opt').forEach(el => {
+    // Row click → picks the feature. For list_attr items without a DS chosen yet, auto-open DS picker.
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.fdd-ds-chip')) return; // chip has its own handler
+      const id = el.dataset.featureId;
+      const feat = findFeature(id);
+      const row = FDD_ACTIVE_ROW;
+      if (feat?.kind === 'list_attr') {
+        // Need a DS before finalizing → open DS picker anchored on this row
+        openDsDDForFeaturePick(row, id, el.querySelector('.fdd-ds-chip'));
+        return;
+      }
+      pickFeature(row, id);
+      closeFeatureDD();
+    });
+  });
+  // DS chip click inside a list_attr row also opens the DS picker (same as row click for list_attr)
+  body.querySelectorAll('.fdd-ds-chip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const opt = chip.closest('.fdd-opt');
+      const id = opt?.dataset.featureId;
+      openDsDDForFeaturePick(FDD_ACTIVE_ROW, id, chip);
+    });
+  });
+}
+
+function openFeatureDD(row, anchorEl) {
+  FDD_ACTIVE_ROW = row;
+  FDD_SEARCH = '';
+  const dd = document.getElementById('feature-dd');
+  const search = document.getElementById('fdd-search');
+  if (search) search.value = '';
+  renderFeatureDD();
+  // Position the dropdown right below the anchor cell
+  const r = anchorEl.getBoundingClientRect();
+  dd.style.top = (window.scrollY + r.bottom + 4) + 'px';
+  dd.style.left = (window.scrollX + r.left) + 'px';
+  dd.classList.add('show');
+  // Close other word list pickers when feature dropdown opens
+  document.querySelectorAll('.wlp.show').forEach(p => p.classList.remove('show'));
+  setTimeout(() => search?.focus(), 60);
+}
+
+function closeFeatureDD() {
+  const dd = document.getElementById('feature-dd');
+  if (dd) dd.classList.remove('show');
+  FDD_ACTIVE_ROW = null;
+}
+
+function pickFeature(row, featureId, dsId) {
+  const feature = findFeature(featureId);
+  if (!feature) return;
+  const rowEl = document.getElementById('row-' + row);
+  if (!rowEl) return;
+  const triggerEl = rowEl.querySelector('.feature-trigger');
+  if (!triggerEl) return;
+  triggerEl.dataset.feature = featureId;
+  if (dsId) triggerEl.dataset.ds = dsId;
+  triggerEl.classList.remove('empty');
+  const ds = dsId ? DATA_SOURCES.find(d => d.id === dsId) : null;
+  const dsChipHtml = ds
+    ? ` <span class="feat-ds-chip" data-ds-id="${ds.id}">${ds.label} <span class="fdc-code">${ds.id}</span></span>`
+    : '';
+  triggerEl.querySelector('.cr-text').innerHTML =
+    `${escapeHtml(feature.name)} <span style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:var(--text-muted);background:var(--bg-softer);padding:1px 6px;border-radius:3px;margin-left:6px">${escapeHtml(featureId)}</span>${dsChipHtml}`;
+
+  // Default op based on feature kind · user can still change via op cell
+  const opCell = rowEl.querySelector('[data-field="op"]');
+  const opText = rowEl.querySelector('[data-field="op"] .cr-text');
+  if (opCell && opText) {
+    opCell.classList.remove('empty');
+    // list_attr and list features both use `in`. list_attr locks it.
+    opText.textContent = (feature.kind === 'list' || feature.kind === 'list_attr') ? 'in' : '=';
+    opCell.classList.toggle('locked', feature.kind === 'list_attr');
+  }
+  // Toggle .list-attr on the row → makes the ds-trigger cell visible via CSS.
+  rowEl.classList.toggle('list-attr', feature.kind === 'list_attr');
+  // Value cell for list_attr rows becomes a word list picker (same as list-kind rows with `in` op).
+  const valueCell = rowEl.querySelector('[data-field="value"]');
+  if (valueCell && feature.kind === 'list_attr') {
+    valueCell.classList.add('value-trigger', 'empty');
+    valueCell.querySelectorAll('.ds-value-chip').forEach(el => el.remove());
+    const crText = valueCell.querySelector('.cr-text');
+    if (crText) {
+      // If pills + placeholder structure doesn't exist yet, build it
+      if (!crText.querySelector('.cr-pills')) {
+        crText.innerHTML =
+          `<span class="cr-pills" id="row-${row}-pills"></span>` +
+          `<span class="cr-text-placeholder">Please select word list(s)</span>`;
+      } else {
+        const ph = crText.querySelector('.cr-text-placeholder');
+        if (ph) ph.textContent = 'Please select word list(s)';
+      }
+    }
+  }
+  // Reset ds-trigger cell content when feature changes → user must (re)pick DS.
+  const dsTrigger = rowEl.querySelector('.cr-dd.ds-trigger');
+  if (dsTrigger) {
+    dsTrigger.classList.add('empty');
+    dsTrigger.innerHTML = '<span class="cr-caret">▾</span>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Wire feature cell click handlers → open feature dropdown
+  document.querySelectorAll('.feature-trigger').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openFeatureDD(el.dataset.row, el);
+    });
+  });
+  // Feature dropdown close
+  document.getElementById('fdd-x')?.addEventListener('click', closeFeatureDD);
+  // Outside click closes
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('feature-dd');
+    if (!dd?.classList.contains('show')) return;
+    if (e.target.closest('#feature-dd') || e.target.closest('.feature-trigger')) return;
+    closeFeatureDD();
+  });
+  // Feature search
+  document.getElementById('fdd-search')?.addEventListener('input', (e) => {
+    FDD_SEARCH = e.target.value;
+    renderFeatureDD();
+  });
+
+  // ============================================================
+  // Op cell dropdown — when user picks `in`, the value cell auto-becomes the
+  // word-list picker; other ops keep value as plain input. Wire up here.
+  // ============================================================
+  let OP_DD_ROW = null;
+  const opDd = document.getElementById('op-dd');
+  function openOpDD(row, anchorEl){
+    OP_DD_ROW = row;
+    const r = anchorEl.getBoundingClientRect();
+    opDd.style.top = (window.scrollY + r.bottom + 4) + 'px';
+    opDd.style.left = (window.scrollX + r.left) + 'px';
+    const cur = anchorEl.querySelector('.cr-text')?.textContent.trim();
+    opDd.querySelectorAll('.type-dd-opt').forEach(o => o.classList.toggle('on', o.dataset.opPick === cur));
+    document.querySelectorAll('.wlp.show').forEach(p => p.classList.remove('show'));
+    opDd.classList.add('show');
+  }
+  function closeOpDD(){ opDd?.classList.remove('show'); OP_DD_ROW = null; }
+  document.querySelectorAll('.cr-dd.op').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openOpDD(el.dataset.row, el);
+    });
+  });
+  opDd?.querySelectorAll('.type-dd-opt').forEach(opt => {
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const op = opt.dataset.opPick;
+      const row = OP_DD_ROW;
+      if (row != null) {
+        const rowEl = document.getElementById('row-' + row);
+        const opText = rowEl?.querySelector('[data-field="op"] .cr-text');
+        if (opText) opText.textContent = op;
+        // Reset value cell state when op changes
+        if (op === 'in') {
+          // value cell stays/becomes picker mode
+        } else {
+          // clear any selected lists in non-`in` ops
+          if (SELECTED[row]) { SELECTED[row].clear(); syncPills(row); }
+        }
+      }
+      closeOpDD();
+    });
+  });
+  document.getElementById('op-dd-x')?.addEventListener('click', closeOpDD);
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#op-dd') && !e.target.closest('.cr-dd.op')) closeOpDD();
+    // Block op cell clicks on list_attr rows (op is locked to `=`)
+    const opCell = e.target.closest('.cr-dd.op.locked');
+    if (opCell) { e.stopPropagation(); }
+  });
+
+  // ============================================================
+  // Data Source picker — opens when a list_attr feature-dropdown row's DS chip is clicked.
+  // Single-select from DATA_SOURCES. Picking a DS also finalizes the feature+DS choice.
+  // ============================================================
+  let DS_DD_PENDING = null;  // { row, featureId } for pending feature+DS pick from feature dropdown
+  const dsDd = document.getElementById('ds-dd');
+  function renderDsDD() {
+    const body = dsDd.querySelector('#ds-dd-body .fdd-group');
+    body.innerHTML = '<div class="fdd-group-h">Data Source · single-select</div>' +
+      DATA_SOURCES.map(ds =>
+        `<div class="fdd-opt" data-ds-id="${ds.id}">
+           <span class="fdd-name">${ds.label}</span>
+           <span class="fdd-key">${ds.id}</span>
+         </div>`
+      ).join('');
+    body.querySelectorAll('.fdd-opt').forEach(el => {
+      el.addEventListener('click', () => pickDataSource(el.dataset.dsId));
+    });
+  }
+  window.openDsDDForFeaturePick = function(row, featureId, anchorEl) {
+    DS_DD_PENDING = { row, featureId };
+    renderDsDD();
+    const anchor = anchorEl || document.querySelector(`.fdd-opt[data-feature-id="${featureId}"]`);
+    const r = (anchor || document.body).getBoundingClientRect();
+    dsDd.style.top = (window.scrollY + r.bottom + 4) + 'px';
+    dsDd.style.left = (window.scrollX + r.left) + 'px';
+    dsDd.classList.add('show');
+    document.querySelectorAll('.wlp.show').forEach(p => p.classList.remove('show'));
+  };
+  function closeDsDD() { dsDd?.classList.remove('show'); DS_DD_PENDING = null; }
+  function pickDataSource(dsId) {
+    if (!DS_DD_PENDING) return closeDsDD();
+    const { row, featureId } = DS_DD_PENDING;
+    pickFeature(row, featureId, dsId);
+    closeDsDD();
+    closeFeatureDD();
+  }
+  document.getElementById('ds-dd-x')?.addEventListener('click', closeDsDD);
+  document.addEventListener('click', (e) => {
+    if (!dsDd?.classList.contains('show')) return;
+    if (e.target.closest('#ds-dd') || e.target.closest('.fdd-ds-chip') || e.target.closest('.fdd-opt')) return;
+    closeDsDD();
+  });
+
+  // Wire row 2 + row 3 value cells — clicking value opens the unified word list picker when op is `in`/`not in`
+  ['2','3'].forEach(row => {
+    // value cell click → only when op is list-typed, open the picker directly
+    const trigger = document.getElementById('picker-trigger-' + row);
+    if (trigger) {
+      trigger.addEventListener('click', (e) => {
+        if (e.target.classList.contains('cp-x')) return;
+        e.stopPropagation();
+        const rowEl = document.getElementById('row-' + row);
+        const op = rowEl?.querySelector('[data-field="op"] .cr-text')?.textContent.trim();
+        if (op !== 'in' && op !== 'not in') {
+          // op is not list-typed — show small inline toast
+          const orig = trigger.querySelector('.cr-text-placeholder')?.textContent;
+          const ph = trigger.querySelector('.cr-text-placeholder');
+          if (ph) {
+            ph.textContent = 'Set op to `in` first';
+            ph.style.color = '#B91C1C';
+            setTimeout(() => { if (ph) { ph.textContent = orig || 'Please input'; ph.style.color = ''; } }, 1800);
+          }
+          return;
+        }
+        handleValueClick(row, trigger);
+      });
+    }
+
+    // Initial pill x handlers (rows start empty but bind for any dynamically added pills)
+    document.querySelectorAll(`#row-${row}-pills .cp-x`).forEach(x => {
+      x.addEventListener('click', (e) => {
+        e.stopPropagation();
+        SELECTED[row].delete(x.dataset.rm);
+        syncPills(row);
+        renderPicker(row);
+      });
+    });
+
+    // Search
+    const s = document.getElementById('search-' + row);
+    if (s) s.addEventListener('input', () => {
+      FILTERS[row].search = s.value;
+      renderPicker(row);
+    });
+
+    // Reset filters
+    const reset = document.querySelector(`[data-reset="${row}"]`);
+    if (reset) reset.addEventListener('click', () => resetFilters(row));
+
+    // Close button
+    document.querySelectorAll(`[data-close="${row}"]`).forEach(b => {
+      b.addEventListener('click', () => closePicker(row));
+    });
+
+    // Done button — sync selection back to row value cell
+    const done = document.querySelector(`[data-done="${row}"]`);
+    if (done) done.addEventListener('click', () => {
+      syncPills(row);
+      closePicker(row);
+    });
+
+    // First render
+    renderPicker(row);
+    syncPills(row);
+  });
+
+  // Policy Title filter dropdown · reuses the existing dropdown component.
+  let SDD_ACTIVE_ROW = null;
+  function renderScenarioDD() {
+    const body = document.getElementById('scenario-dd-body');
+    if (!body) return;
+    const current = SDD_ACTIVE_ROW ? FILTERS[SDD_ACTIVE_ROW]?.scenario : null;
+    const policyTitles = Array.from(new Set(ACTIVE_LISTS.map(l => l.policy))).sort();
+    const optAll = `<div class="scenario-dd-opt all ${!current ? 'selected' : ''}" data-scn=""><span>All Policy Titles</span><span class="scn-check">✓</span></div>`;
+    const opts = policyTitles.map(s => {
+      const sel = (current === s) ? 'selected' : '';
+      return `<div class="scenario-dd-opt ${sel}" data-scn="${escapeHtml(s)}"><span>${escapeHtml(s)}</span><span class="scn-check">✓</span></div>`;
+    }).join('');
+    body.innerHTML = optAll + opts;
+    body.querySelectorAll('.scenario-dd-opt').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const row = SDD_ACTIVE_ROW;
+        if (!row) return;
+        const scn = el.dataset.scn || null;
+        FILTERS[row].scenario = scn;
+        const scenBtn = document.querySelector(`.wlp-filter[data-filter="scenario"][data-row="${row}"]`);
+        if (scenBtn) {
+          scenBtn.classList.toggle('on', !!scn);
+          scenBtn.querySelector('span').textContent = scn ? `Policy Title · ${scn.length > 22 ? scn.slice(0,20)+'…' : scn}` : 'Policy Title';
+        }
+        closeScenarioDD();
+        renderPicker(row);
+      });
+    });
+  }
+  function openScenarioDD(row, anchorEl) {
+    SDD_ACTIVE_ROW = row;
+    const dd = document.getElementById('scenario-dd');
+    if (!dd || !anchorEl) return;
+    renderScenarioDD();
+    const r = anchorEl.getBoundingClientRect();
+    dd.style.top = (window.scrollY + r.bottom + 4) + 'px';
+    dd.style.left = (window.scrollX + r.left) + 'px';
+    dd.classList.add('show');
+  }
+  function closeScenarioDD() {
+    const dd = document.getElementById('scenario-dd');
+    if (dd) dd.classList.remove('show');
+    SDD_ACTIVE_ROW = null;
+  }
+  document.querySelectorAll('.wlp-filter[data-filter="scenario"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const row = btn.dataset.row;
+      openScenarioDD(row, btn);
+    });
+  });
+  document.getElementById('sdh-x')?.addEventListener('click', closeScenarioDD);
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('scenario-dd');
+    if (!dd?.classList.contains('show')) return;
+    if (e.target.closest('#scenario-dd') || e.target.closest('.wlp-filter[data-filter="scenario"]')) return;
+    closeScenarioDD();
+  });
+
+  // Pill-toggle Basic/Advanced (visual only)
+  document.querySelectorAll('.pill-toggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      b.parentElement.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+    });
+  });
+});
+</script>
+</body>
+</html>

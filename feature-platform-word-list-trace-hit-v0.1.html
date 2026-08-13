@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Trace · Word List Hit · v0.1</title>
+<style>
+:root{
+ --bg-page:#F4F6FA; --bg-card:#FFFFFF; --bg-soft:#F8F9FC; --bg-softer:#FAFBFC;
+ --border:#E5E8EE; --border-soft:#EEF0F4;
+ --text-primary:#0F172A; --text-secondary:#475569; --text-muted:#94A3B8;
+ --link:#2563EB; --link-hover:#1D4FCF;
+ --green:#10B981; --green-bg:#D1FAE5; --green-text:#047857;
+ --orange:#EA580C; --orange-bg:#FED7AA; --orange-soft:#FFEDD5; --orange-text:#9A3412;
+ --red:#DC2626; --red-bg:#FEE2E2; --red-text:#991B1B;
+ --amber:#B45309; --amber-bg:#FEF3C7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-page);color:var(--text-primary);font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,sans-serif;font-size:13px;line-height:1.55}
+a{color:var(--link);text-decoration:none}
+code,.mono{font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px}
+
+/* ===== Data Report container (mimics current trace popup) ===== */
+.report{background:#fff;min-height:100vh;padding:22px 28px;position:relative}
+.report-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:var(--text-muted);cursor:pointer;line-height:1}
+.rep-title-row{display:flex;align-items:baseline;gap:16px;color:var(--text-primary);margin-bottom:6px}
+.rep-title-row h1{font-size:16px;font-weight:700}
+.rep-title-row .rep-meta{color:var(--text-muted);font-size:12px}
+.rep-scene{font-size:22px;font-weight:700;color:var(--text-primary);margin:6px 0 14px}
+
+/* Meta grid: scene / object / trace + hit list */
+.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 32px;margin-bottom:8px;font-size:12.5px}
+.meta-grid .mk{color:var(--text-secondary);margin-right:8px}
+.meta-grid .mv{color:var(--text-primary);font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px}
+.meta-row{display:flex;align-items:center;gap:26px;margin-top:6px;font-size:12.5px}
+.meta-row .hit-list-lbl{color:var(--text-secondary)}
+.meta-row .hit-count{color:var(--text-primary);font-weight:600;margin-right:4px}
+.meta-row .ds-hdr{color:var(--link);font-weight:600;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+
+/* Action banner (Detection / Enforcement) */
+.action-banner{background:#F1F5F9;border-radius:6px;padding:13px 18px;margin:14px 0 12px;display:grid;grid-template-columns:1fr 1fr;gap:10px 40px;font-size:12.5px}
+.action-banner .ab-h{color:var(--text-secondary);font-weight:500;margin-bottom:4px}
+.action-banner .ab-opts{display:flex;gap:16px;align-items:center;font-weight:600}
+.action-banner .ab-opts .opt{color:var(--text-primary)}
+.action-banner .ab-opts .opt.on{color:var(--link)}
+.action-banner .ab-eff{color:var(--red);font-weight:700;margin-top:8px}
+.action-banner .ab-eff .eff{margin-right:22px}
+
+/* Body layout: left sidebar + main + right action panel */
+.body{display:grid;grid-template-columns:220px 1fr 300px;gap:14px;margin-top:6px}
+.sb{background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:6px;padding:6px 0;max-height:70vh;overflow:auto}
+.sb-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-size:11.5px;color:var(--text-secondary);cursor:pointer;gap:6px;border-left:2px solid transparent}
+.sb-item.hit{color:var(--text-primary);font-weight:500}
+.sb-item.hit .tag-hit,.sb-item.hit .tag-eff{display:inline-block}
+.sb-item .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.sb-item .badges{display:flex;gap:4px;flex-shrink:0}
+.tag-hit{background:var(--orange);color:#fff;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.3px}
+.tag-eff{background:var(--orange-soft);color:var(--orange-text);font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.3px}
+.sb-item.active{background:#DBE8FE;color:var(--link);border-left-color:var(--link);font-weight:600}
+.sb-caret{width:12px;color:var(--text-muted);font-size:10px;text-align:center}
+
+.main{background:#fff;border:1px solid var(--border-soft);border-radius:6px;padding:14px 18px;max-height:70vh;overflow:auto}
+.search-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.search-input{flex:0 1 300px;border:1px solid var(--border);border-radius:6px;padding:6px 30px 6px 12px;font-size:12px;color:var(--text-primary);position:relative;background:#fff}
+.search-radios{display:flex;gap:14px;align-items:center;font-size:12px;color:var(--text-secondary)}
+.search-radios label{cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.search-radios label input{accent-color:var(--link)}
+
+.rule-header{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0 4px;border-bottom:1px dashed var(--border-soft);margin-bottom:12px}
+.rule-header .rh-l{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700;color:var(--text-primary)}
+.rule-header .rh-l .order{color:var(--link)}
+.rule-header .cont-chip{margin-left:8px;background:#DBEAFE;color:var(--link);font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:3px;text-transform:none}
+.rule-header .rh-r{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:14px}
+.rule-header .rh-r .owner{display:inline-flex;align-items:center;gap:6px}
+.rule-header .rh-r .owner .avatar{width:16px;height:16px;border-radius:50%;background:#94A3B8;color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center}
+
+.cond-h{font-size:13.5px;font-weight:700;color:var(--text-primary);margin:8px 0 6px}
+.cond-list{display:flex;flex-direction:column;gap:8px}
+.cond{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--orange-soft);font-size:12.5px}
+.cond .cno{color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;text-align:right}
+.cond .cbody{display:flex;flex-wrap:wrap;align-items:center;gap:5px;color:var(--text-primary)}
+.cond .feat{color:var(--text-primary);font-weight:500}
+.cond .op{color:var(--text-secondary);font-weight:500}
+.cond .literal{color:var(--text-secondary)}
+.cond .neu-chip{display:inline-block;background:var(--bg-soft);color:var(--text-primary);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11px}
+.cond .hit-chip{display:inline-block;background:var(--orange);color:#fff;border-radius:4px;padding:2px 8px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;font-weight:600}
+.cond .lit-value{color:var(--text-primary);font-weight:500;margin-left:6px}
+.cond .lit-quoted{color:var(--text-primary);font-family:'JetBrains Mono',Menlo,monospace;font-size:11px}
+
+/* Word-list-hit condition — special */
+.cond.wl{border-bottom:1px solid var(--orange-soft);padding:9px 0 10px}
+.cond.wl .cbody{gap:6px}
+.wl-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%}
+.wl-lbl{color:var(--text-muted);font-size:10.5px;font-weight:700;letter-spacing:.35px;text-transform:uppercase;margin-right:4px}
+.wl-configured-chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg-soft);border:1px solid var(--border);border-radius:4px;padding:2.5px 9px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--text-secondary);cursor:default}
+.wl-hit-chip{display:inline-flex;align-items:center;gap:5px;background:var(--orange);color:#fff;border-radius:4px;padding:2.5px 9px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;font-weight:600;cursor:pointer;transition:filter .12s}
+.wl-hit-chip:hover{filter:brightness(1.08)}
+.wl-hit-chip::before{content:"★";margin-right:2px;font-size:9.5px;color:#FEF3C7}
+.wl-hit-chip .eye{margin-left:3px;font-size:11px;opacity:.85}
+.wl-not-hit-chip{opacity:.55}
+
+.log-expr{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border-soft);font-size:12.5px;color:var(--text-primary)}
+.log-expr .lbl{color:var(--text-secondary);font-weight:600;margin-right:4px}
+.log-expr .expr{color:var(--text-primary);font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px}
+.eye-btn{width:28px;height:28px;border-radius:6px;background:#DBE8FE;color:var(--link);border:1px solid #93C5FD;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;transition:background .12s}
+.eye-btn:hover{background:#BFDBFE}
+.eye-btn.active{background:var(--link);color:#fff;border-color:var(--link)}
+
+/* Action side panel */
+.action-panel{background:#fff;border:1px solid var(--border-soft);border-radius:6px;padding:14px 16px;max-height:70vh;overflow:auto}
+.ap-h{font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text-primary)}
+.ap-row{display:grid;grid-template-columns:100px 1fr;gap:6px 12px;font-size:12px;color:var(--text-secondary);margin-bottom:6px}
+.ap-row .k{color:var(--text-secondary)}
+.ap-row .v{color:var(--text-primary)}
+.ap-row .v.link{color:var(--link);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+
+/* ============================================================
+   Preview popup — flow diagram of conditions with HIT nodes orange
+   ============================================================ */
+.preview-pop{display:none;position:fixed;top:220px;right:32px;width:640px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 24px 60px rgba(15,23,42,.24);z-index:60;overflow:hidden;animation:popIn .18s ease-out}
+.preview-pop.show{display:block}
+@keyframes popIn{0%{opacity:0;transform:translateY(6px) scale(.98)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.preview-pop-h{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;background:var(--bg-softer);border-bottom:1px solid var(--border-soft)}
+.preview-pop-h h4{font-size:13px;font-weight:700}
+.preview-pop-h .x{background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer}
+.preview-pop-b{padding:14px 18px}
+.preview-selected{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:6px;padding:10px 14px;font-size:12px;font-family:'JetBrains Mono',Menlo,monospace;color:var(--text-primary);margin-bottom:14px}
+.preview-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.flow-node{width:52px;height:36px;border-radius:5px;background:var(--bg-soft);border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',Menlo,monospace;font-size:13px;font-weight:700;color:var(--text-secondary);position:relative}
+.flow-node.hit{background:var(--orange);color:#fff;border-color:var(--orange);box-shadow:0 2px 4px rgba(234,88,12,.28)}
+.flow-node.selected{background:#DBEAFE;border:2px solid var(--link);color:var(--link)}
+.flow-node.start{background:transparent;border:none;color:var(--link);font-family:inherit;font-weight:600;font-size:12px;width:auto}
+.flow-arrow{color:var(--text-muted);font-size:10px}
+.preview-tools{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:11px;color:var(--text-muted)}
+.preview-tools .zoom-controls{display:flex;align-items:center;gap:6px}
+.preview-tools button{background:#fff;border:1px solid var(--border);border-radius:4px;padding:3px 8px;cursor:pointer;color:var(--text-secondary)}
+
+/* ============================================================
+   Right drawer — Word list detail (opens on wl-hit-chip click)
+   ============================================================ */
+.wl-drawer-mask{display:none;position:fixed;inset:0;background:rgba(15,23,42,.42);z-index:80}
+.wl-drawer-mask.show{display:block}
+.wl-drawer{position:fixed;top:0;right:-960px;width:960px;height:100vh;background:#fff;border-left:1px solid var(--border);box-shadow:-14px 0 32px rgba(15,23,42,.14);z-index:90;transition:right .22s ease;display:flex;flex-direction:column;overflow:hidden}
+.wl-drawer.show{right:0}
+/* Top card · Feature + Original Value (prominent) */
+.wl-top{display:grid;grid-template-columns:220px 1fr 32px;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border-soft);background:var(--bg-softer);align-items:stretch}
+.wl-top-lbl{font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px}
+.wl-top-l{background:#fff;border:1px solid var(--border);border-radius:7px;padding:10px 12px;display:flex;flex-direction:column;justify-content:center}
+.wl-top-l .feat{font-size:13.5px;font-weight:700;color:var(--text-primary);line-height:1.4}
+.wl-top-l .feat-code{margin-top:5px;font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:var(--text-muted)}
+.wl-top-r{background:#fff;border:1px solid var(--border);border-radius:7px;padding:10px 12px;display:flex;flex-direction:column;min-width:0}
+.wl-orig-value{font-size:13px;color:var(--text-primary);line-height:1.6;word-break:break-word;max-height:56px;overflow-y:auto;padding-right:8px;list-style:none;margin:0}
+.wl-orig-value li{padding:5px 0;border-bottom:1px dashed var(--border-soft);display:flex;gap:8px;align-items:flex-start;font-size:12.5px}
+.wl-orig-value li:last-child{border-bottom:none}
+.wl-orig-value .idx{color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;font-size:10px;flex:none;min-width:22px;padding-top:1px}
+.wl-orig-value .txt{flex:1;line-height:1.5}
+.wl-orig-value::-webkit-scrollbar{width:6px}
+.wl-orig-value::-webkit-scrollbar-track{background:var(--bg-softer)}
+.wl-orig-value::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.wl-orig-count{margin-top:4px;font-size:9.5px;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace}
+.wl-close-btn{background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;line-height:1;padding:6px;align-self:flex-start;border-radius:4px}
+.wl-close-btn:hover{background:var(--border-soft);color:var(--text-primary)}
+/* Small meta strip (lower priority) */
+.wl-meta-strip{padding:6px 22px;background:#fff;border-bottom:1px solid var(--border-soft);display:flex;gap:22px;font-size:11px;color:var(--text-muted)}
+.wl-meta-strip .k{color:var(--text-muted)}
+.wl-meta-strip b{color:var(--text-secondary);font-weight:600;margin-left:4px}
+.wl-meta-strip .status-active{color:var(--green-text);font-weight:700;display:inline-flex;align-items:center;gap:5px}
+.wl-meta-strip .status-active::before{content:"";width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block}
+/* Hit-list tabs */
+.wl-hit-tabs{padding:10px 22px 0;border-bottom:1px solid var(--border-soft);display:flex;gap:0;overflow-x:auto;flex-wrap:nowrap}
+.wl-hit-tab{padding:9px 16px;border:none;background:none;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;font-family:'JetBrains Mono',Menlo,monospace;white-space:nowrap;transition:color .12s,border-color .12s}
+.wl-hit-tab:hover{color:var(--text-primary)}
+.wl-hit-tab.active{color:var(--orange);border-bottom-color:var(--orange);background:var(--orange-soft)}
+.wl-hit-tab .tab-hit-count{background:var(--orange);color:#fff;font-family:'Inter',sans-serif;font-size:9px;font-weight:700;padding:1px 5px;border-radius:2px;margin-left:6px;letter-spacing:.35px}
+
+/* Data-source tabs removed 2026-07-16 · each data source is its own condition → drawer opens per-condition */
+
+.drawer-body{flex:1;overflow:auto;padding:14px 22px}
+/* Tab content · language panels (side-by-side when multi, full-width when single) */
+.wl-tab-content{flex:1;overflow:auto;padding:14px 20px;background:#fff}
+.wl-lang-grid{display:grid;gap:12px}
+.wl-lang-grid.n1{grid-template-columns:1fr}
+.wl-lang-grid.n2{grid-template-columns:1fr 1fr}
+.wl-lang-grid.n3{grid-template-columns:1fr 1fr 1fr}
+.wl-lang-grid.n4{grid-template-columns:1fr 1fr 1fr 1fr}
+.wl-lang-panel{border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+.wl-lang-h{padding:9px 14px;background:var(--bg-softer);border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:8px;font-size:11.5px}
+.wl-lang-h .lang-name{font-weight:700;color:var(--text-primary)}
+.wl-lang-h .lang-code{font-family:'JetBrains Mono',Menlo,monospace;font-size:9.5px;padding:1.5px 6px;border-radius:3px;background:#fff;color:var(--text-muted);border:1px solid var(--border-soft)}
+.wl-lang-h .lang-hit-count{margin-left:auto;color:var(--orange);font-weight:700;font-size:10.5px}
+.wl-hit-list{list-style:none;padding:0;margin:0;max-height:340px;overflow-y:auto;background:#fff}
+.wl-hit-list::-webkit-scrollbar{width:5px}
+.wl-hit-list::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.wl-hit-term{position:relative;display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border-soft);cursor:default;background:#fff}
+.wl-hit-term.is-hit{background:var(--orange-bg)}
+.wl-hit-term:last-child{border-bottom:none}
+.wl-hit-term .term-text{flex:1;font-family:'JetBrains Mono',Menlo,monospace;font-size:12px;font-weight:500;color:var(--text-secondary)}
+.wl-hit-term.is-hit .term-text{font-weight:700;color:var(--orange-text)}
+.wl-hit-term .term-text.zh{font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;font-size:12.5px}
+.wl-hit-term .badge-hit{background:var(--orange);color:#fff;font-family:'Inter',sans-serif;font-size:8.5px;font-weight:700;padding:1.5px 6px;border-radius:2px;letter-spacing:.4px;flex:none}
+.wl-hit-term:not(.is-hit) .badge-hit{display:none}
+.wl-hit-term:not(.is-hit) .hover-hint{color:var(--text-muted);opacity:.7}
+.wl-hit-term .hover-hint{color:var(--text-muted);font-size:9.5px;font-family:'Inter',sans-serif;font-style:italic;margin-right:6px}
+/* JS-driven floating tooltip · position:fixed escapes any overflow:hidden container */
+.wl-en-tooltip{position:fixed;background:#1F2937;color:#fff;padding:6px 10px;border-radius:5px;font-family:'Inter',sans-serif;font-size:11.5px;line-height:1.4;pointer-events:none;box-shadow:0 8px 20px rgba(15,23,42,.28);z-index:200;max-width:320px;opacity:0;transform:translateY(-4px);transition:opacity .12s,transform .12s}
+.wl-en-tooltip.show{opacity:1;transform:translateY(0)}
+.wl-en-tooltip::after{content:"";position:absolute;left:18px;top:100%;width:0;height:0;border:5px solid transparent;border-top-color:#1F2937}
+
+/* Context blocks · 2-column source-lang / english */
+.ctx-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.ctx-col{background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:6px;padding:10px 12px;min-height:100px}
+.ctx-col.raw{background:#F0F9FF;border-color:#BAE6FD}
+.ctx-col.en{background:#FAFBFC;border-color:var(--border-soft)}
+.ctx-col-h{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.ctx-col.raw .ctx-col-h{color:#075985}
+.ctx-col-h .ctx-src-tag{background:#fff;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;font-size:9px;padding:1.5px 6px;border-radius:3px;border:1px solid var(--border-soft);text-transform:none;letter-spacing:0}
+.tok-list{display:flex;flex-wrap:wrap;gap:4px}
+.tok{display:inline-block;padding:3px 8px;background:#fff;border:1px solid var(--border);border-radius:4px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--text-primary);line-height:1.3}
+.tok.hit{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:600}
+.tok.hit::before{content:"★";font-size:8px;margin-right:2px;color:#FEF3C7}
+
+/* Cleaned context (below the 2-col) · smaller */
+.cleaned-strip{margin-bottom:12px;padding:8px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:5px;font-size:11px;color:var(--amber);line-height:1.55}
+.cleaned-strip .cs-h{font-weight:700;text-transform:uppercase;letter-spacing:.35px;font-size:9.5px;color:var(--amber);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.cleaned-strip .cs-toks{display:flex;flex-wrap:wrap;gap:3px}
+.cleaned-strip .cs-tok{display:inline-block;font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;padding:1px 6px;background:#fff;border:1px solid #FDE68A;color:var(--amber);border-radius:3px}
+.cleaned-strip .cs-tok.hit{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:600}
+
+/* Match terms · orange chip row */
+.match-terms-block{margin-bottom:14px}
+.match-terms-h{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+.match-terms{display:flex;flex-wrap:wrap;gap:6px}
+.match-term{background:var(--orange);color:#fff;padding:3px 9px;border-radius:4px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;font-weight:600}
+.match-term::before{content:"★ ";font-size:9px;color:#FEF3C7}
+
+.mvp-note{margin:6px 0 12px;padding:8px 12px;background:#F0F9FF;border:1px dashed #BAE6FD;color:#075985;font-size:11px;border-radius:5px;line-height:1.55}
+.mvp-note b{color:#0C4A6E}
+
+/* Word list · bilingual 2-column view · HIT sorted to top · scroll window for long lists */
+.wl-bi-h{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:var(--text-muted);margin:6px 0 8px}
+.wl-bi-h .list-id{color:var(--text-primary);font-family:'JetBrains Mono',Menlo,monospace;font-weight:500;font-size:11.5px}
+.wl-bi-h .count{color:var(--text-secondary);font-weight:500}
+.wl-bi-h .count .hit-num{color:var(--orange);font-weight:700}
+.wl-bi{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wl-col{border:1px solid var(--border-soft);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+.wl-col.src{border-color:#BAE6FD}
+.wl-col-h{padding:8px 12px;background:var(--bg-softer);border-bottom:1px solid var(--border-soft);font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center}
+.wl-col.src .wl-col-h{background:#F0F9FF;border-bottom-color:#BAE6FD;color:#075985}
+.wl-col-h .lang-tag{font-family:'JetBrains Mono',Menlo,monospace;font-size:9px;padding:1.5px 6px;border-radius:3px;background:#fff;color:var(--text-muted);border:1px solid var(--border-soft);text-transform:none;letter-spacing:0}
+.wl-scroll{max-height:320px;overflow-y:auto;list-style:none;padding:0;margin:0;font-size:12px;font-family:'JetBrains Mono',Menlo,monospace;color:var(--text-primary)}
+.wl-scroll::-webkit-scrollbar{width:6px}
+.wl-scroll::-webkit-scrollbar-track{background:var(--bg-softer)}
+.wl-scroll::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.wl-row{padding:7px 12px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:8px;color:var(--text-primary)}
+.wl-row:last-child{border-bottom:none}
+.wl-row.hit{background:var(--orange-bg)}
+.wl-row.hit .term{color:var(--orange-text);font-weight:700}
+.wl-row.hit::before{content:"★";color:var(--orange);font-size:10px;flex:none}
+.wl-row .term{font-family:'JetBrains Mono',Menlo,monospace}
+.wl-row .zh-term{font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;font-size:12.5px}
+.wl-row.hit .badge-hit{display:inline-block;background:var(--orange);color:#fff;font-family:'Inter',sans-serif;font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:2px;letter-spacing:.35px;margin-left:auto;flex:none}
+.wl-row .row-num{color:var(--text-muted);font-size:10px;min-width:20px;text-align:right}
+</style>
+</head>
+<body>
+
+<div class="report">
+ <button class="report-close" title="Close">×</button>
+
+ <div class="rep-title-row">
+  <h1>Data Report</h1>
+  <span class="rep-meta">Data Generation Time: 2026-07-16 13:21:54</span>
+ </div>
+ <div class="rep-scene">Live_Reproduced_Content</div>
+
+ <!-- Meta grid -->
+ <div class="meta-grid">
+  <div><span class="mk">Scene ID:</span><span class="mv">live_reproduced_content</span></div>
+  <div><span class="mk">Object ID:</span><span class="mv">tikcast_idsp_room_60_trigger@7663117997…</span></div>
+  <div><span class="mk">Trace ID:</span><span class="mv">24188dca-1711-4633-be07-b6b853848a4…</span></div>
+ </div>
+ <div class="meta-row">
+  <span class="hit-list-lbl"><span class="hit-count">Hit List:</span> x1 📋</span>
+  <span class="ds-hdr">Data Source</span>
+ </div>
+
+ <!-- Action banner -->
+ <div class="action-banner">
+  <div>
+   <div class="ab-h">Detection Hit Action:</div>
+   <div class="ab-opts"><span class="opt">Filter</span><span class="opt on">Enforcement</span><span class="opt">Transfer</span></div>
+   <div class="ab-h" style="margin-top:6px">Detection Effective Action:</div>
+   <div class="ab-eff">Enforcement [RoW]dedup mm v2 aggregation model</div>
+  </div>
+  <div>
+   <div class="ab-h">Enforcement Hit Action:</div>
+   <div class="ab-opts"><span class="opt on">Filter</span><span class="opt on">Sentencing</span><span class="opt">Exemption (Policy)</span><span class="opt">Exemption (Action)</span></div>
+   <div class="ab-h" style="margin-top:6px">Enforcement Effective Action:</div>
+   <div class="ab-eff"><span class="eff">Filter Enforcement filtering</span><span class="eff">Enforcement [RoW]dedup mm v2 aggregation model</span></div>
+  </div>
+ </div>
+
+ <!-- Body: sidebar + main + action -->
+ <div class="body">
+
+  <!-- Left sidebar (rule execution list) -->
+  <aside class="sb">
+   <div class="sb-item"><span class="name">[US] [4-8] RC cont…</span></div>
+   <div class="sb-item"><span class="name">[RoW&amp;EEA] [4-8] R…</span></div>
+   <div class="sb-item"><span class="name">[US] [4-8] RC cont…</span></div>
+   <div class="sb-item"><span class="name">[RoW&amp;EEA] [4-8] R…</span></div>
+   <div class="sb-item hit"><span class="sb-caret">▾</span><span class="name">RC De…</span><span class="badges"><span class="tag-hit">Hit</span><span class="tag-eff">Effective</span></span></div>
+   <div class="sb-item"><span class="name">(host row&amp;eea)SD…</span></div>
+   <div class="sb-item"><span class="name">(Host US) SDS CV …</span></div>
+   <div class="sb-item"><span class="name">[4-8 RoW&amp;EEA] De…</span></div>
+   <div class="sb-item"><span class="name">[US] Dedup CV AS…</span></div>
+   <div class="sb-item"><span class="name">SDS CV Model (Ro…</span></div>
+   <div class="sb-item"><span class="name">SDS CV Model (US…</span></div>
+   <div class="sb-item"><span class="name">[0-3 RoW&amp;EEA] De…</span></div>
+   <div class="sb-item"><span class="name">[RoW&amp;EEA] Dedup …</span></div>
+   <div class="sb-item hit active"><span class="name">[R…</span><span class="badges"><span class="tag-hit">Hit</span><span class="tag-eff">Effective</span></span></div>
+   <div class="sb-item"><span class="name">[US] Dedup MM Ag…</span></div>
+   <div class="sb-item"><span class="name">[US] Dedup MM Q…</span></div>
+   <div class="sb-item hit"><span class="name">[R…</span><span class="badges"><span class="tag-hit">Hit</span><span class="tag-eff">Effective</span></span></div>
+  </aside>
+
+  <!-- Center main -->
+  <main class="main">
+   <div class="search-row">
+    <input class="search-input" placeholder="Enter keywords to search for k…" />
+    <div class="search-radios">
+     <label><input type="radio" name="rf" checked /> All</label>
+     <label><input type="radio" name="rf" /> Rule Hit</label>
+     <label><input type="radio" name="rf" /> Rule Active</label>
+    </div>
+   </div>
+
+   <div class="rule-header">
+    <div class="rh-l">
+     <span class="order">Exec. Order3</span>
+     <span>录播内容模型V2(EEA)</span>
+     <span class="cont-chip">Continue</span>
+    </div>
+    <div class="rh-r">
+     <span>Update time: 2026-07-15 22:14:22</span>
+     <span class="owner">Owner: <span class="avatar">杜</span><span>杜轶楠(Yinan Du)</span></span>
+    </div>
+   </div>
+
+   <div class="cond-h">Conditions</div>
+   <div class="cond-list">
+    <div class="cond"><span class="cno">1</span>
+     <div class="cbody"><span class="feat">rc_room_report_total_cnt</span><span class="op">≥</span><span class="lit-value">3</span><span class="neu-chip">0</span></div>
+    </div>
+    <div class="cond"><span class="cno">2</span>
+     <div class="cbody"><span class="feat">rc_behavior_v1_model_score_most_recent</span><span class="op">&gt;</span><span class="lit-value">0.3</span><span class="neu-chip">0</span></div>
+    </div>
+    <div class="cond"><span class="cno">3</span>
+     <div class="cbody"><span class="feat">room_anchor_store_area</span><span class="op">In</span><span class="neu-chip">EEA</span><span class="neu-chip">Row</span><span class="hit-chip">"row"</span></div>
+    </div>
+
+    <!-- ==== WORD LIST HIT CONDITION #4 ==== -->
+    <div class="cond wl">
+     <span class="cno">4</span>
+     <div class="cbody">
+      <div class="wl-line">
+       <span class="feat">host_asr_text</span>
+       <span class="op">hit any of</span>
+      </div>
+      <div class="wl-line">
+       <span class="wl-lbl">Configured:</span>
+       <span class="wl-configured-chip">list_live_nsa_lex_v3</span>
+       <span class="wl-configured-chip wl-not-hit-chip">list_live_pcf_gift</span>
+       <span class="wl-configured-chip wl-not-hit-chip">list_live_dac_kw</span>
+      </div>
+      <div class="wl-line">
+       <span class="wl-lbl">Actual Hit:</span>
+       <span class="wl-hit-chip" data-list-id="list_live_nsa_lex" data-list-name="LIVE_NSA_lexicon" data-ds="ASR" data-ds-code="slice_info_host_asr_text" data-hits="2" onclick="openWlDrawer(this)">list_live_nsa_lex<span class="eye">👁</span></span>
+      </div>
+     </div>
+    </div>
+
+    <!-- ==== WORD LIST HIT CONDITION #5 ==== -->
+    <div class="cond wl">
+     <span class="cno">5</span>
+     <div class="cbody">
+      <div class="wl-line">
+       <span class="feat">ocr_text_default_lower</span>
+       <span class="op">hit any of</span>
+      </div>
+      <div class="wl-line">
+       <span class="wl-lbl">Configured:</span>
+       <span class="wl-configured-chip">list_live_hshi_lex_v2</span>
+       <span class="wl-configured-chip wl-not-hit-chip">list_preset_globalsafe</span>
+      </div>
+      <div class="wl-line">
+       <span class="wl-lbl">Actual Hit:</span>
+       <span class="wl-hit-chip" data-list-id="list_live_hshi_lex" data-list-name="LIVE_HSHI_lexicon" data-ds="OCR" data-ds-code="ocr_text_default_lower" data-hits="1" onclick="openWlDrawer(this)">list_live_hshi_lex<span class="eye">👁</span></span>
+      </div>
+     </div>
+    </div>
+
+    <div class="cond"><span class="cno">6</span>
+     <div class="cbody"><span class="feat">User ID</span><span class="op">Not in bundle</span><span class="lit-value">TNS Copyright</span><span class="hit-chip">7010627899192673281</span></div>
+    </div>
+    <div class="cond"><span class="cno">7</span>
+     <div class="cbody"><span class="feat">User ID</span><span class="op">Not in bundle</span><span class="lit-value">Private Account</span><span class="hit-chip">7010627899192673281</span></div>
+    </div>
+    <div class="cond"><span class="cno">8</span>
+     <div class="cbody"><span class="feat">treco_room_is_ecommerce_live</span><span class="op">=</span><span class="literal">False</span><span class="hit-chip">false</span></div>
+    </div>
+    <div class="cond"><span class="cno">9</span>
+     <div class="cbody"><span class="feat">treco_user_has_gpppa_tag</span><span class="op">=</span><span class="literal">False</span><span class="hit-chip">false</span></div>
+    </div>
+    <div class="cond"><span class="cno">10</span>
+     <div class="cbody"><span class="feat">anchor_revenue_group</span><span class="op">Not in</span><span class="neu-chip">Group09</span><span class="neu-chip">Group10</span><span class="literal">…</span><span class="hit-chip">"Group06"</span></div>
+    </div>
+   </div>
+
+   <!-- Logical expression + eye -->
+   <div class="log-expr">
+    <span class="lbl">Logical Expression:</span>
+    <span class="expr">1 &amp;&amp; 2 &amp;&amp; 3 &amp;&amp; 4 &amp;&amp; 5 &amp;&amp; 6 &amp;&amp; 7 &amp;&amp; 8 &amp;&amp; 9 &amp;&amp; 10</span>
+    <button class="eye-btn" id="eye-btn" onclick="togglePreview()" title="View which conditions hit">👁</button>
+   </div>
+  </main>
+
+  <!-- Right side · Action -->
+  <aside class="action-panel">
+   <div class="ap-h">Action</div>
+   <div class="ap-row"><span class="k">Result:</span><span class="v link">Enforcement</span></div>
+   <div class="ap-row"><span class="k">Detected Reason:</span><span class="v link">2417 - Reproduced Content User re…</span></div>
+   <div class="ap-row"><span class="k">Policy:</span><span class="v link">[LEG][de532ee5] - [EEA][LEG]Reproduced co…</span></div>
+   <div class="ap-row"><span class="k">violation_entities:</span><span class="v link">streaming_room</span></div>
+  </aside>
+ </div>
+</div>
+
+<!-- Preview popup (flow of condition hit/not) -->
+<div class="preview-pop" id="preview-pop">
+ <div class="preview-pop-h">
+  <h4>Preview · Condition Hit Flow</h4>
+  <button class="x" onclick="togglePreview()">×</button>
+ </div>
+ <div class="preview-pop-b">
+  <div class="preview-selected">
+   host_asr_text  hit any of  list_live_nsa_lex_v3 → <span style="color:var(--orange);font-weight:700">HIT</span>
+  </div>
+  <div class="preview-flow">
+   <span class="flow-node start">开始</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node">1</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node">2</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node">3</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node hit selected">4</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node hit">5</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node hit">6</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node hit">7</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node hit">8</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node hit">9</span>
+   <span class="flow-arrow">→</span>
+   <span class="flow-node hit">10</span>
+  </div>
+  <div class="preview-tools">
+   <span>Orange = condition hit · Blue outline = currently selected</span>
+   <div class="zoom-controls">
+    <button>↺</button>
+    <button>⛶</button>
+    <button>−</button>
+    <span style="color:var(--text-secondary)">100%</span>
+    <button>+</button>
+   </div>
+  </div>
+ </div>
+</div>
+
+<!-- Right drawer · Word list detail -->
+<div class="wl-drawer-mask" id="wl-drawer-mask" onclick="closeWlDrawer()"></div>
+<aside class="wl-drawer" id="wl-drawer">
+ <!-- Top card: Feature · Data Source (left) + Original Value (right, wide) -->
+ <div class="wl-top">
+  <div class="wl-top-l">
+   <div class="wl-top-lbl">Feature · Data Source</div>
+   <div class="feat" id="wl-feat-name">Room Title</div>
+   <div class="feat-code" id="wl-drawer-ds">treco_room_lower_title</div>
+  </div>
+  <div class="wl-top-r">
+   <div class="wl-top-lbl">Original Value <span id="wl-orig-count" class="wl-orig-count"></span></div>
+   <ul class="wl-orig-value" id="wl-orig-value"></ul>
+  </div>
+  <button class="wl-close-btn" onclick="closeWlDrawer()" title="Close">×</button>
+ </div>
+
+ <!-- Small meta strip: Owner · Status · Hit at (lower priority) -->
+ <div class="wl-meta-strip">
+  <span><span class="k">Owner:</span><b>@ymgao</b></span>
+  <span><span class="k">Status:</span><span class="status-active">Active</span></span>
+  <span><span class="k">Trace hit at:</span><b>2026-07-16 13:21:54</b></span>
+ </div>
+
+ <!-- Hit-list tabs (populated by JS) -->
+ <div class="wl-hit-tabs" id="wl-hit-tabs"></div>
+
+ <!-- Tab content: language panels for current tab (populated by JS) -->
+ <div class="wl-tab-content" id="wl-tab-content"></div>
+ <div class="drawer-body" id="drawer-body" style="display:none">
+
+  <!-- ASR content (default) -->
+  <div class="ds-panel" data-ds="asr">
+   <div class="wl-bi-h">
+    <span>Word List Content · <span class="list-id">list_live_nsa_lex</span></span>
+    <span class="count">17 total · <span class="hit-num" id="wl-hits-label">2 hit on ASR</span></span>
+   </div>
+   <div class="wl-bi">
+    <!-- Source language column -->
+    <div class="wl-col src">
+     <div class="wl-col-h"><span>源语言 · Source Language</span><span class="lang-tag">zh-cn</span></div>
+     <ul class="wl-scroll">
+      <li class="wl-row hit"><span class="row-num">1</span><span class="term zh-term">沙雕</span><span class="badge-hit">HIT</span></li>
+      <li class="wl-row hit"><span class="row-num">2</span><span class="term zh-term">求打赏</span><span class="badge-hit">HIT</span></li>
+      <li class="wl-row"><span class="row-num">3</span><span class="term zh-term">仇恨言论</span></li>
+      <li class="wl-row"><span class="row-num">4</span><span class="term zh-term">暴力威胁</span></li>
+      <li class="wl-row"><span class="row-num">5</span><span class="term zh-term">歧视性侮辱</span></li>
+      <li class="wl-row"><span class="row-num">6</span><span class="term zh-term">深度伪造内容</span></li>
+      <li class="wl-row"><span class="row-num">7</span><span class="term zh-term">地下用语</span></li>
+      <li class="wl-row"><span class="row-num">8</span><span class="term zh-term">诱导消费</span></li>
+      <li class="wl-row"><span class="row-num">9</span><span class="term zh-term">不当言论</span></li>
+      <li class="wl-row"><span class="row-num">10</span><span class="term zh-term">骚扰</span></li>
+      <li class="wl-row"><span class="row-num">11</span><span class="term zh-term">露骨内容</span></li>
+      <li class="wl-row"><span class="row-num">12</span><span class="term zh-term">诈骗信息</span></li>
+      <li class="wl-row"><span class="row-num">13</span><span class="term zh-term">钓鱼链接</span></li>
+      <li class="wl-row"><span class="row-num">14</span><span class="term zh-term">虚假声明</span></li>
+      <li class="wl-row"><span class="row-num">15</span><span class="term zh-term">赌博推广</span></li>
+      <li class="wl-row"><span class="row-num">16</span><span class="term zh-term">涉毒暗语</span></li>
+      <li class="wl-row"><span class="row-num">17</span><span class="term zh-term">冒充身份</span></li>
+     </ul>
+    </div>
+    <!-- English master column -->
+    <div class="wl-col en">
+     <div class="wl-col-h"><span>英语 · English (Master)</span><span class="lang-tag">en</span></div>
+     <ul class="wl-scroll">
+      <li class="wl-row hit"><span class="row-num">1</span><span class="term">wtf</span><span class="badge-hit">HIT</span></li>
+      <li class="wl-row hit"><span class="row-num">2</span><span class="term">asking (spam)</span><span class="badge-hit">HIT</span></li>
+      <li class="wl-row"><span class="row-num">3</span><span class="term">hate speech</span></li>
+      <li class="wl-row"><span class="row-num">4</span><span class="term">violence threats</span></li>
+      <li class="wl-row"><span class="row-num">5</span><span class="term">discriminatory slurs</span></li>
+      <li class="wl-row"><span class="row-num">6</span><span class="term">deepfake content</span></li>
+      <li class="wl-row"><span class="row-num">7</span><span class="term">underground phrasing</span></li>
+      <li class="wl-row"><span class="row-num">8</span><span class="term">inducing spending</span></li>
+      <li class="wl-row"><span class="row-num">9</span><span class="term">improper speech</span></li>
+      <li class="wl-row"><span class="row-num">10</span><span class="term">harassment</span></li>
+      <li class="wl-row"><span class="row-num">11</span><span class="term">explicit content</span></li>
+      <li class="wl-row"><span class="row-num">12</span><span class="term">scam offers</span></li>
+      <li class="wl-row"><span class="row-num">13</span><span class="term">phishing links</span></li>
+      <li class="wl-row"><span class="row-num">14</span><span class="term">fraudulent claims</span></li>
+      <li class="wl-row"><span class="row-num">15</span><span class="term">gambling promotion</span></li>
+      <li class="wl-row"><span class="row-num">16</span><span class="term">drug references</span></li>
+      <li class="wl-row"><span class="row-num">17</span><span class="term">impersonation attempts</span></li>
+     </ul>
+    </div>
+   </div>
+  </div>
+
+ </div>
+</aside>
+
+<script>
+// Eye button toggles the flow preview
+function togglePreview(){
+ const pop = document.getElementById('preview-pop');
+ const btn = document.getElementById('eye-btn');
+ pop.classList.toggle('show');
+ btn.classList.toggle('active');
+}
+// ============================================================
+// Trace hits mock · keyed by the condition's data source.
+// Each condition can hit multiple lists; each list can hit in multiple languages.
+// Only actually-hit lists + languages + terms are stored (未命中不入结构).
+// ============================================================
+const TRACE_HITS_BY_DS = {
+  // Condition #4 · host_asr_text (ASR)
+  'slice_info_host_asr_text': {
+    feature: 'Host ASR',
+    ds_code: 'slice_info_host_asr_text',
+    original_value: [
+      '💗SSSSS 😊 SexyXXX 💀 真实 💐 De amo wtf',
+      '服is我去给i的事情我i电话i欺骗我好的;',
+      '大家好欢迎来到直播间🎉 老铁们双击666',
+      'chiedendo un regalo, per favore mandami un cuore 💕',
+      'Free giveaway click DM 免费送手机🎁',
+      '老铁们看看这个 wtf 是啥啊哈哈',
+      'Ciao ragazzi come state 今天很开心',
+      '有没有人想充值 Star ⭐ 我这边有活动',
+      '这个主播真的是 asking too much 求求了',
+      'Te amo mi corazón 💗 快来加我 wechat',
+      '哥哥们不要走留下来打赏一下嘛~',
+      '有事情联系我私信 telegram 也可以',
+      'ok ok ok wtf 什么鬼 lol lmao',
+      '关注一下就送礼物哦亲爱的',
+      'FREE PHONE giveaway link in bio!! click now',
+    ],
+    hit_lists: [
+      {
+        list_id: 'list_live_nsa_lex',
+        list_name: 'LIVE_NSA_lexicon',
+        hits: [
+          { lang:'Spanish',  code:'es', terms:[
+            { term:'wtf',                        en:'what the fuck',                       hit:true },
+            { term:'asking',                     en:'asking (spam solicitation)',          hit:true },
+            { term:'odio',                       en:'hate speech',                         hit:false },
+            { term:'amenazas de violencia',      en:'violence threats',                    hit:false },
+            { term:'insultos discriminatorios',  en:'discriminatory slurs',                hit:false },
+            { term:'contenido deepfake',         en:'deepfake content',                    hit:false },
+            { term:'jerga clandestina',          en:'underground phrasing',                hit:false },
+            { term:'inducción al gasto',         en:'inducing spending',                   hit:false },
+            { term:'discurso inapropiado',       en:'improper speech',                     hit:false },
+            { term:'acoso',                      en:'harassment',                          hit:false },
+            { term:'contenido explícito',        en:'explicit content',                    hit:false },
+            { term:'ofertas de estafa',          en:'scam offers',                         hit:false },
+            { term:'enlaces de phishing',        en:'phishing links',                      hit:false },
+            { term:'afirmaciones falsas',        en:'fraudulent claims',                   hit:false },
+            { term:'promoción de apuestas',      en:'gambling promotion',                  hit:false },
+            { term:'referencias a drogas',       en:'drug references',                     hit:false },
+            { term:'suplantación de identidad',  en:'impersonation attempts',              hit:false }
+          ]},
+          { lang:'Italian',  code:'it', terms:[
+            { term:'wtf',                        en:'what the fuck',                       hit:true },
+            { term:'chiedendo',                  en:'asking (spam)',                       hit:true },
+            { term:"incitamento all'odio",       en:'hate speech',                         hit:false },
+            { term:'minacce di violenza',        en:'violence threats',                    hit:false },
+            { term:'insulti discriminatori',     en:'discriminatory slurs',                hit:false },
+            { term:'contenuto deepfake',         en:'deepfake content',                    hit:false },
+            { term:'gergo clandestino',          en:'underground phrasing',                hit:false },
+            { term:'indurre alla spesa',         en:'inducing spending',                   hit:false },
+            { term:'linguaggio improprio',       en:'improper speech',                     hit:false },
+            { term:'molestie',                   en:'harassment',                          hit:false },
+            { term:'contenuto esplicito',        en:'explicit content',                    hit:false },
+            { term:'offerte truffa',             en:'scam offers',                         hit:false },
+            { term:'link di phishing',           en:'phishing links',                      hit:false },
+            { term:'affermazioni fraudolente',   en:'fraudulent claims',                   hit:false },
+            { term:"promozione del gioco d'azzardo", en:'gambling promotion',              hit:false },
+            { term:'riferimenti alla droga',     en:'drug references',                     hit:false },
+            { term:'tentativi di sostituzione',  en:'impersonation attempts',              hit:false }
+          ]}
+        ]
+      },
+      {
+        list_id: 'list_live_hshi_lex',
+        list_name: 'LIVE_HSHI_lexicon',
+        hits: [
+          { lang:'Chinese',  code:'zh-cn', terms:[
+            { term:'欺骗',       en:'fraud / deceit',      hit:true },
+            { term:'仇恨言论',   en:'hate speech',         hit:false },
+            { term:'暴力威胁',   en:'violence threats',    hit:false },
+            { term:'歧视言论',   en:'discriminatory',      hit:false },
+            { term:'深度伪造',   en:'deepfake',            hit:false },
+            { term:'地下用语',   en:'underground',         hit:false },
+            { term:'诱导消费',   en:'inducing spending',   hit:false },
+            { term:'不当言论',   en:'improper speech',     hit:false },
+            { term:'骚扰',       en:'harassment',          hit:false },
+            { term:'露骨内容',   en:'explicit',            hit:false },
+            { term:'诈骗信息',   en:'scam',                hit:false },
+            { term:'钓鱼链接',   en:'phishing',            hit:false },
+            { term:'虚假声明',   en:'fraud claim',         hit:false },
+            { term:'赌博推广',   en:'gambling',            hit:false },
+            { term:'涉毒暗语',   en:'drug reference',      hit:false },
+            { term:'冒充身份',   en:'impersonation',       hit:false }
+          ]}
+        ]
+      },
+      {
+        list_id: 'list_live_pcf_gift',
+        list_name: 'LIVE_PCF_gift_solicitation',
+        hits: [
+          { lang:'English',  code:'en', terms:[
+            { term:'wtf',              en:null, hit:true },
+            { term:'giveaway',         en:null, hit:false },
+            { term:'free phone',       en:null, hit:false },
+            { term:'send me a heart',  en:null, hit:false },
+            { term:'add my wechat',    en:null, hit:false },
+            { term:'star bomb',        en:null, hit:false },
+            { term:'gift solicitation',en:null, hit:false },
+            { term:'drop link',        en:null, hit:false },
+            { term:'click bio',        en:null, hit:false },
+            { term:'subscribe now',    en:null, hit:false },
+            { term:'tip me',           en:null, hit:false },
+            { term:'follow for prize', en:null, hit:false }
+          ]}
+        ]
+      }
+    ]
+  },
+  // Condition #5 · ocr_text_default_lower (OCR)
+  'ocr_text_default_lower': {
+    feature: 'Room Title (OCR)',
+    ds_code: 'ocr_text_default_lower',
+    original_value: [
+      'FREE iPhone 15 giveaway!!',
+      'Click DM 免费送手机🎁',
+      'wtf so lucky today 🎉',
+      '大放送直播间🎁 快来抢购',
+      '限时优惠 last chance!!',
+      'giveaway 免费领 只要关注',
+      '第 1 名送 iPhone 第 2 名送 iPad',
+      '扫码添加客服 wechat 私聊',
+      '骗子退散 我这个是真的活动',
+      'Only 100 winners 名额有限',
+      '直播打赏满 1000 送手机',
+      '欺骗你的都是假的 认准官方渠道',
+      'link in bio 点击链接立即参与',
+    ],
+    hit_lists: [
+      {
+        list_id: 'list_live_hshi_lex',
+        list_name: 'LIVE_HSHI_lexicon',
+        hits: [
+          { lang:'English',  code:'en', terms:[
+            { term:'giveaway',       en:null, hit:true },
+            { term:'wtf',            en:null, hit:true },
+            { term:'hate speech',    en:null, hit:false },
+            { term:'violence threats', en:null, hit:false },
+            { term:'discriminatory slurs', en:null, hit:false },
+            { term:'deepfake content', en:null, hit:false },
+            { term:'underground phrasing', en:null, hit:false },
+            { term:'inducing spending', en:null, hit:false },
+            { term:'improper speech', en:null, hit:false },
+            { term:'harassment',     en:null, hit:false },
+            { term:'explicit content', en:null, hit:false },
+            { term:'scam offers',    en:null, hit:false },
+            { term:'phishing links', en:null, hit:false },
+            { term:'fraudulent claims', en:null, hit:false },
+            { term:'gambling promotion', en:null, hit:false },
+            { term:'drug references', en:null, hit:false }
+          ]},
+          { lang:'Chinese',  code:'zh-cn', terms:[
+            { term:'免费送手机',    en:'free phone giveaway (scam pattern)', hit:true },
+            { term:'仇恨言论',     en:'hate speech',    hit:false },
+            { term:'暴力威胁',     en:'violence',       hit:false },
+            { term:'歧视言论',     en:'discriminatory', hit:false },
+            { term:'深度伪造',     en:'deepfake',       hit:false },
+            { term:'地下用语',     en:'underground',    hit:false },
+            { term:'诱导消费',     en:'inducing spending', hit:false },
+            { term:'不当言论',     en:'improper speech', hit:false },
+            { term:'骚扰',         en:'harassment',     hit:false },
+            { term:'露骨内容',     en:'explicit',       hit:false },
+            { term:'诈骗信息',     en:'scam',           hit:false },
+            { term:'钓鱼链接',     en:'phishing',       hit:false },
+            { term:'虚假声明',     en:'fraud claim',    hit:false },
+            { term:'赌博推广',     en:'gambling',       hit:false },
+            { term:'涉毒暗语',     en:'drug reference', hit:false },
+            { term:'冒充身份',     en:'impersonation',  hit:false }
+          ]}
+        ]
+      }
+    ]
+  }
+};
+
+// Currently active tab (list_id) within the drawer session.
+let WL_DRAWER_ACTIVE_TAB = null;
+let WL_DRAWER_TRACE = null;
+
+function openWlDrawer(chip){
+ const dsCode = chip.dataset.dsCode || 'slice_info_host_asr_text';
+ const trace = TRACE_HITS_BY_DS[dsCode];
+ if (!trace) return;
+ WL_DRAWER_TRACE = trace;
+
+ // Top card
+ document.getElementById('wl-feat-name').textContent = trace.feature;
+ document.getElementById('wl-drawer-ds').textContent = trace.ds_code;
+ const ov = document.getElementById('wl-orig-value');
+ const items = Array.isArray(trace.original_value) ? trace.original_value : [trace.original_value];
+ ov.innerHTML = items.map((t, i) =>
+  `<li><span class="idx">${String(i + 1).padStart(2, '0')}</span><span class="txt">${escapeText(t)}</span></li>`
+ ).join('');
+ const cntEl = document.getElementById('wl-orig-count');
+ if (cntEl) cntEl.textContent = `${items.length} chunks captured`;
+
+ // Default active tab = the clicked chip's list, or the first hit list
+ const clickedListId = chip.dataset.listId;
+ WL_DRAWER_ACTIVE_TAB = trace.hit_lists.find(l => l.list_id === clickedListId)?.list_id
+                     || trace.hit_lists[0]?.list_id;
+
+ renderHitTabs();
+ renderTabContent();
+
+ document.getElementById('wl-drawer').classList.add('show');
+ document.getElementById('wl-drawer-mask').classList.add('show');
+}
+
+function renderHitTabs(){
+ const tabsEl = document.getElementById('wl-hit-tabs');
+ if (!tabsEl || !WL_DRAWER_TRACE) return;
+ const lists = WL_DRAWER_TRACE.hit_lists;
+ tabsEl.innerHTML = lists.map(l => {
+  const totalHits = l.hits.reduce((n, h) => n + h.terms.length, 0);
+  const active = (l.list_id === WL_DRAWER_ACTIVE_TAB) ? ' active' : '';
+  return `<button class="wl-hit-tab${active}" data-list-id="${l.list_id}">${l.list_id}<span class="tab-hit-count">${totalHits}</span></button>`;
+ }).join('');
+ tabsEl.querySelectorAll('.wl-hit-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+   WL_DRAWER_ACTIVE_TAB = btn.dataset.listId;
+   renderHitTabs();
+   renderTabContent();
+  });
+ });
+}
+
+function renderTabContent(){
+ const contentEl = document.getElementById('wl-tab-content');
+ if (!contentEl || !WL_DRAWER_TRACE) return;
+ const list = WL_DRAWER_TRACE.hit_lists.find(l => l.list_id === WL_DRAWER_ACTIVE_TAB);
+ if (!list) { contentEl.innerHTML = ''; return; }
+ const langs = list.hits;
+ const nClass = 'n' + Math.min(langs.length, 4);
+ const isZh = code => code === 'zh-cn' || code === 'zh';
+ contentEl.innerHTML = `<div class="wl-lang-grid ${nClass}">` + langs.map(lg => {
+  // Sort: hits first, then non-hits. Preserve original order within each group.
+  const sorted = [...lg.terms].sort((a, b) => (b.hit ? 1 : 0) - (a.hit ? 1 : 0));
+  const hitCount = lg.terms.filter(t => t.hit).length;
+  const totalCount = lg.terms.length;
+  const rows = sorted.map(t => {
+   const attr = t.en ? ` data-en="EN: ${escapeAttr(t.en)}"` : '';
+   const hint = t.en ? '<span class="hover-hint">hover for EN</span>' : '';
+   const termCls = isZh(lg.code) ? 'term-text zh' : 'term-text';
+   const rowCls = t.hit ? 'wl-hit-term is-hit' : 'wl-hit-term';
+   return `<li class="${rowCls}"${attr}><span class="${termCls}">${escapeText(t.term)}</span>${hint}<span class="badge-hit">HIT</span></li>`;
+  }).join('');
+  return `<div class="wl-lang-panel">
+    <div class="wl-lang-h">
+     <span class="lang-name">${escapeText(lg.lang)}</span>
+     <span class="lang-code">${lg.code}</span>
+     <span class="lang-hit-count">${hitCount} hit · ${totalCount} total</span>
+    </div>
+    <ul class="wl-hit-list">${rows}</ul>
+   </div>`;
+ }).join('') + `</div>`;
+}
+
+function escapeAttr(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeText(s){ return escapeAttr(s); }
+
+// ============================================================
+// EN-gloss tooltip · JS-positioned, escapes overflow:hidden containers.
+// Delegated: hover on any .wl-hit-term[data-en] anywhere in the doc.
+// ============================================================
+(function initEnTooltip(){
+ const tip = document.createElement('div');
+ tip.className = 'wl-en-tooltip';
+ document.body.appendChild(tip);
+ function show(target){
+  const en = target.getAttribute('data-en');
+  if (!en) return;
+  tip.textContent = en;
+  tip.classList.add('show');
+  const r = target.getBoundingClientRect();
+  const tr = tip.getBoundingClientRect();
+  // Position above the row, aligned to left edge
+  let top = r.top - tr.height - 10;
+  let left = r.left + 14;
+  // If off-screen top, flip below
+  if (top < 8) top = r.bottom + 10;
+  // Clamp right edge
+  const maxLeft = window.innerWidth - tr.width - 12;
+  if (left > maxLeft) left = maxLeft;
+  tip.style.top = top + 'px';
+  tip.style.left = left + 'px';
+ }
+ function hide(){ tip.classList.remove('show'); }
+ document.addEventListener('mouseover', (e) => {
+  const target = e.target.closest('.wl-hit-term[data-en]');
+  if (target) show(target);
+ });
+ document.addEventListener('mouseout', (e) => {
+  const target = e.target.closest('.wl-hit-term[data-en]');
+  if (target && !target.contains(e.relatedTarget)) hide();
+ });
+ // Also hide on scroll to avoid stuck tooltip
+ document.addEventListener('scroll', hide, true);
+})();
+function closeWlDrawer(){
+ document.getElementById('wl-drawer').classList.remove('show');
+ document.getElementById('wl-drawer-mask').classList.remove('show');
+}
+// Close popup on outside click
+document.addEventListener('click', (e) => {
+ const pop = document.getElementById('preview-pop');
+ const btn = document.getElementById('eye-btn');
+ if (!pop.contains(e.target) && !btn.contains(e.target)) {
+  pop.classList.remove('show');
+  btn.classList.remove('active');
+ }
+});
+</script>
+</body>
+</html>

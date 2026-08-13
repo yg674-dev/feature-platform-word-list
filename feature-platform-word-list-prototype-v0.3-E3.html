@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Feature Platform · E3 Language Translation & Review</title>
+<style>
+:root{
+ --bg-page:#F4F6FA; --bg-card:#FFFFFF; --bg-soft:#F8F9FC; --bg-softer:#FAFBFC;
+ --border:#E5E8EE; --border-soft:#EEF0F4;
+ --text-primary:#1F2937; --text-secondary:#5A6373; --text-muted:#6B7280;
+ --link:#2563EB; --link-hover:#1D4FCF;
+ --green:#10B981; --green-bg:#D1FAE5; --green-text:#047857;
+ --amber:#F59E0B; --amber-bg:#FEF3C7; --amber-text:#92400E;
+ --red:#EF4444; --red-bg:#FEE2E2; --red-text:#991B1B;
+ --cyan-bg:#ECFEFF; --cyan-text:#0E7490; --cyan-border:#A5F3FC;
+ --sidebar:#1E3A8A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-page);color:var(--text-primary);font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,sans-serif;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}a:hover{color:var(--link-hover);text-decoration:underline}button{font-family:inherit;cursor:pointer;border:none;background:none}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100dvh}.sidebar{background:var(--sidebar);color:#fff;padding:18px 14px;position:sticky;top:0;height:100dvh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}.brand-logo{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800;font-size:14px}.brand-name{font-weight:700;font-size:15px}.brand-name small{display:block;font-weight:500;font-size:10.5px;opacity:.75;margin-top:1px}
+.nav-section{font-size:10px;letter-spacing:.5px;text-transform:uppercase;opacity:.55;margin:14px 4px 6px}.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:#dbe6ff;cursor:pointer;margin-bottom:1px}.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}.nav-sub{padding-left:18px;font-size:11.5px;opacity:.9;margin-top:2px}.nav-sub .nav-item{padding:5px 9px}.nav-sub .nav-item.active{background:rgba(255,255,255,.22);font-weight:700}
+.main{background:var(--bg-page)}.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#fff;border-bottom:1px solid var(--border)}.crumb{font-size:12.5px;color:var(--text-muted)}.crumb b{color:var(--text-primary);font-weight:600}.topbar-right{display:flex;align-items:center;gap:14px;color:var(--text-muted);font-size:12px}.search{padding:7px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;width:340px;font-size:12px;color:var(--text-muted)}.avatar{width:28px;height:28px;border-radius:50%;background:#2563EB;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.canvas{padding:24px 28px 60px}.frame-label{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:#1F2937;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}.frame-label .dot{width:6px;height:6px;border-radius:50%;background:#34D399}.frame-title{font-size:19px;font-weight:750;margin-bottom:14px;text-wrap:balance}
+.modal-mask{background:rgba(15,23,42,.10);padding:24px;border-radius:14px}.modal{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(15,23,42,.18);width:1120px;max-width:100%;margin:0 auto;overflow:hidden;border:1px solid var(--border)}
+.modal-h{padding:14px 22px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}.stepper{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-muted);font-weight:700}.st{display:inline-flex;align-items:center;gap:5px}.stn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#E5E7EB;color:#6B7280;font-size:10px;font-weight:800}.st.on{color:var(--link)}.st.on .stn{background:var(--link);color:#fff}.st.done{color:var(--green-text)}.st.done .stn{background:var(--green);color:#fff}.arrow{color:#CBD5E1}.x{font-size:18px;color:var(--text-muted)}
+.modal-b{padding:18px 22px;background:#fff}.modal-f{padding:14px 22px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;gap:14px}.mf-l{font-size:11.5px;color:var(--text-muted);line-height:1.6}.mf-r{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:650;border:1px solid var(--border);background:#fff;color:var(--text-primary)}.btn:hover{background:var(--bg-soft)}.btn-p{background:var(--link);color:#fff;border-color:var(--link)}.btn-p:hover{background:var(--link-hover)}.btn-sm{padding:5px 9px;font-size:11.5px}
+.chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:700;line-height:1.5;margin:1px 2px 1px 0;white-space:nowrap}.chip-blue{background:#DBEAFE;color:#1D4ED8}.chip-green{background:#D1FAE5;color:#047857}.chip-amber{background:#FEF3C7;color:#92400E}.chip-red{background:#FEE2E2;color:#991B1B}.chip-gray{background:var(--bg-soft);color:var(--text-secondary);border:1px solid var(--border)}.chip-cyan{background:var(--cyan-bg);color:var(--cyan-text);border:1px solid var(--cyan-border)}
+.recap{border:1px solid var(--border-soft);background:var(--bg-softer);border-radius:10px;margin-bottom:16px;overflow:hidden}.recap-h{padding:10px 14px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}.recap-h h5{font-size:12px}.recap-grid{display:grid;grid-template-columns:120px 1fr 120px 1fr;gap:0}.recap-grid .k,.recap-grid .v{padding:9px 12px;border-bottom:1px solid var(--border-soft);font-size:11.5px}.recap-grid .k{font-weight:800;color:var(--text-muted);text-transform:uppercase;font-size:10px}.mono{font-family:'JetBrains Mono',Menlo,monospace}
+.section-title{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}.section-title h3{font-size:14.5px;margin:0}.section-title p{font-size:11.5px;color:var(--text-muted);margin-top:3px;text-wrap:pretty}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}.mode-card{border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:14px;cursor:pointer;position:relative;min-height:145px;transition:border-color .15s ease,background .15s ease}.mode-card:hover{border-color:#93C5FD;background:#F8FBFF}.mode-card.selected{border-color:#2563EB;background:#EFF6FF}.mode-card.multi.selected{border-color:#0891B2;background:#ECFEFF}.radio{position:absolute;right:14px;top:14px;width:18px;height:18px;border:2px solid #CBD5E1;border-radius:50%;background:#fff}.mode-card.selected .radio{border-color:#2563EB}.mode-card.multi.selected .radio{border-color:#0891B2}.mode-card.selected .radio::after{content:"";display:block;width:8px;height:8px;border-radius:50%;background:#2563EB;margin:3px}.mode-card.multi.selected .radio::after{background:#0891B2}.mc-kicker{font-size:10.5px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px}.mode-card h4{font-size:15px;margin-bottom:6px;text-wrap:balance}.mode-card p{font-size:11.8px;color:var(--text-secondary);line-height:1.55;max-width:90%}
+.phase{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}.phase.input{border-color:#BFDBFE}.phase.output{border-color:#A5F3FC}.phase-h{padding:13px 16px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;gap:14px}.phase.input .phase-h{background:#EFF6FF}.phase.output .phase-h{background:#ECFEFF}.phase-h h4{font-size:13.5px}.phase-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px}.phase-b{padding:16px;background:#fff}
+.form-row{display:grid;grid-template-columns:170px 1fr;gap:14px;align-items:start;padding:10px 0;border-bottom:1px solid var(--border-soft)}.form-row:last-child{border-bottom:none}.form-row label{font-size:10.5px;text-transform:uppercase;font-weight:800;color:var(--text-muted);padding-top:5px}.req{color:var(--red);margin-left:2px}.field-note{font-size:11.5px;color:var(--text-muted);margin-top:7px;line-height:1.55}
+.locked-field{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;border-radius:8px;padding:8px 12px;box-shadow:0 1px 2px rgba(15,23,42,.04);font-weight:700}.select-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.select-box{display:inline-flex;align-items:center;justify-content:space-between;min-width:170px;border:1px solid var(--border);border-radius:8px;background:#fff;padding:8px 10px;font-size:12px;font-weight:650}.select-box::after{content:"▾";color:var(--text-muted);margin-left:16px}
+.lang-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.lang-pill{border:1px solid var(--border);background:#fff;border-radius:8px;padding:8px 10px;font-size:12px;display:flex;align-items:center;gap:8px;color:var(--text-secondary);cursor:pointer;user-select:none}.lang-pill:hover{border-color:#93C5FD;background:#F8FBFF}.lang-pill.on{border-color:#2563EB;background:#EFF6FF;color:#1D4ED8;font-weight:700}.lang-pill.on::after{content:"✓";margin-left:auto;font-size:11px;color:#2563EB}.lang-pill.runtime{border-color:#67E8F9;background:#ECFEFF;color:#0E7490;font-weight:700}.lp-code{font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;background:rgba(15,23,42,.06);padding:1px 6px;border-radius:4px;color:inherit}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.preview{border:1px solid var(--border-soft);border-radius:10px;overflow:hidden;background:#fff}.preview-h{padding:9px 12px;border-bottom:1px solid var(--border-soft);background:var(--bg-softer);display:flex;align-items:center;justify-content:space-between}.preview-h b{font-size:12px}.preview-b{padding:10px 12px}
+.mini-table,.runtime-table{width:100%;border-collapse:collapse}.mini-table th,.runtime-table th{background:var(--bg-softer);border-bottom:1px solid var(--border-soft);font-size:10.2px;text-transform:uppercase;color:var(--text-muted);font-weight:800;padding:7px 8px;text-align:left}.mini-table td,.runtime-table td{border-bottom:1px solid var(--border-soft);padding:8px;font-size:11.5px;vertical-align:top}.runtime-table th,.runtime-table td{border:1px solid var(--border-soft)}.mini-table tr:last-child td{border-bottom:none}
+.rate{display:flex;align-items:center;gap:8px;min-width:136px}.rate-bar{width:88px;height:7px;border-radius:999px;background:#E2E8F0;overflow:hidden;flex:none}.rate-bar i{display:block;height:100%;border-radius:999px;background:#10B981}.rate.warn .rate-bar i{background:#F59E0B}.rate-num{font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;font-weight:800;color:var(--text-primary)}
+.callout{border:1px solid #BFDBFE;background:#EFF6FF;color:#1E3A8A;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:11.8px;line-height:1.6}.callout b{color:#1D4ED8}.runtime-note{border-color:#A5F3FC;background:#ECFEFF;color:#155E75}.runtime-note b{color:#0E7490}
+.agent-card{border:1px solid #BFDBFE;background:#F8FBFF;border-radius:10px;padding:12px 14px;margin:10px 0 2px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.agent-title{font-size:12.5px;font-weight:800;color:#1E3A8A}.agent-desc{font-size:11.5px;color:#475569;margin-top:3px;line-height:1.55}.agent-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.agent-actions{display:flex;gap:8px;flex:none;padding-top:4px}.agent-btn{background:#2563EB;color:#fff;border-color:#2563EB}.agent-btn:hover{background:#1D4FCF}.select-tools{display:flex;gap:8px;margin-bottom:8px;align-items:center;justify-content:space-between}.select-tools .hint{font-size:11px;color:var(--text-muted)}
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}.goal-card{border:1px solid var(--border-soft);background:#fff;border-radius:10px;padding:12px 14px}.goal-card b{display:block;font-size:12.5px;margin-bottom:4px}.goal-card p{font-size:11.5px;color:var(--text-muted);line-height:1.55}
+.qa-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.qa{border:1px solid var(--border-soft);border-radius:8px;padding:9px;background:#fff}.qa b{display:block;font-size:15px}.qa span{font-size:10.5px;color:var(--text-muted)}
+.action-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:12px;border:1px solid #DBEAFE;border-radius:10px;background:#F8FBFF}.action-copy b{display:block;font-size:12.5px;color:#1E3A8A}.action-copy span{display:block;font-size:11.5px;color:#475569;margin-top:2px}.action-buttons{display:flex;gap:8px;flex:none}.btn-green{background:#10B981;color:#fff;border-color:#10B981}.btn-green:hover{background:#059669}.btn-red{background:#fff;color:#991B1B;border-color:#FCA5A5}.btn-red:hover{background:#FEF2F2}
+.journey-panel{border:1px solid var(--border);border-radius:12px;background:#fff;overflow:hidden;margin-top:14px}.journey-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;background:#FAFBFC;border-bottom:1px solid var(--border-soft)}.journey-h b{font-size:12.5px}.journey-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;padding:14px}.j-step{position:relative;border:1px solid var(--border-soft);background:#fff;border-radius:10px;padding:10px 10px 10px 12px;min-height:88px}.j-step:not(:last-child)::after{content:"→";position:absolute;right:-16px;top:30px;color:#94A3B8;font-size:18px;font-weight:800;z-index:1}.j-step b{display:block;font-size:12px;margin-bottom:4px}.j-step p{font-size:10.8px;color:var(--text-muted);line-height:1.45}.j-step.green{border-color:#86EFAC;background:#F0FDF4}.j-step.blue{border-color:#BFDBFE;background:#EFF6FF}.j-step.cyan{border-color:#A5F3FC;background:#ECFEFF}.j-step.red{border-color:#FCA5A5;background:#FFF7F6}.review-split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.review-card{border:1px solid var(--border-soft);border-radius:10px;padding:12px;background:#fff}.review-card.pass{border-color:#86EFAC;background:#F0FDF4}.review-card.reject{border-color:#FCA5A5;background:#FFF7F6}.review-card b{display:block;font-size:12.5px;margin-bottom:5px}.review-card p{font-size:11.5px;color:var(--text-muted);line-height:1.55}
+.hidden{display:none!important}.btn:disabled{cursor:not-allowed;opacity:.46;background:#F8FAFC;color:#94A3B8;border-color:#E5E7EB}.status-line{margin-top:10px;border:1px dashed #BFDBFE;background:#F8FBFF;border-radius:10px;padding:10px 12px;font-size:11.8px;color:#475569;display:flex;justify-content:space-between;gap:12px;align-items:center}.status-line b{color:#1E3A8A}.status-line.success{border-color:#86EFAC;background:#F0FDF4;color:#166534}.status-line.warn{border-color:#FCD34D;background:#FFFBEB;color:#92400E}.empty-state{padding:18px;text-align:center;color:#64748B;font-size:11.8px;background:#FAFBFC;border-radius:8px}.edit-panel{border:1px solid #FCA5A5;background:#FFF7F6;border-radius:10px;margin-top:12px;overflow:hidden}.edit-panel-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #FEE2E2}.edit-panel-h b{font-size:12.5px;color:#991B1B}.edit-panel-b{padding:10px 12px}.editable{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden}.editable th,.editable td{border:1px solid #FEE2E2;padding:8px;font-size:11.5px;text-align:left}.editable th{background:#FFF1F2;color:#991B1B;text-transform:uppercase;font-size:10px}.editable td[contenteditable="true"]{background:#FFFBFB;outline-color:#EF4444}.review-gate{border:1px solid #FDE68A;background:#FFFBEB;border-radius:10px;padding:12px;margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px}.review-gate b{display:block;color:#92400E;font-size:12.5px}.review-gate span{font-size:11.5px;color:#78350F}.toast{position:fixed;right:28px;bottom:24px;z-index:10;background:#111827;color:#fff;border-radius:8px;padding:10px 12px;font-size:12px;box-shadow:0 10px 28px rgba(15,23,42,.22)}
+</style>
+</head>
+<body>
+<div class="app">
+ <aside class="sidebar">
+  <div class="brand"><div class="brand-logo">FP</div><div class="brand-name">Feature Platform<small>Word List Lifecycle</small></div></div>
+  <div class="nav-section">Platform</div><div class="nav-item">Feature Market</div><div class="nav-item active">Guardrail</div>
+  <div class="nav-sub"><div class="nav-item">List Management</div><div class="nav-item active">Create Wizard</div><div class="nav-item">Approval Inbox</div></div>
+  <div class="nav-section">Linked Systems</div><div class="nav-item">IDSP Rules</div><div class="nav-item">Runtime Cache</div>
+ </aside>
+ <main class="main">
+  <div class="topbar"><div class="crumb">Ecosystem / TRIDENT (IDSP) / Feature Center / Guardrail / List Management / <b>Create List</b></div><div class="topbar-right"><input class="search" value="Search list / policy / owner" aria-label="Search" /><span>EN</span><div class="avatar">YG</div></div></div>
+  <div class="canvas">
+   <span class="frame-label"><span class="dot"></span>FRAME E3 · LANGUAGE TRANSLATION CONFIG</span>
+   <h1 class="frame-title">Create List · E3 — Language Translation & Review / 词表多语言翻译与审批配置</h1>
+   <div class="modal-mask"><div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-h"><div class="stepper"><span class="st done"><span class="stn">✓</span>Basics</span><span class="arrow">→</span><span class="st on"><span class="stn">2</span>Language Strategy</span><span class="arrow">→</span><span class="st"><span class="stn">3</span>Import & Check</span><span class="arrow">→</span><span class="st"><span class="stn">4</span>Preview</span><span class="arrow">→</span><span class="st"><span class="stn">5</span>Review</span></div><span class="x">×</span></div>
+    <div class="modal-b">
+     <div class="recap"><div class="recap-h"><h5>Step 1 Recap · Basic List Configuration</h5><a href="feature-platform-word-list-prototype-v0.3-E2.html">← Edit basics</a></div><div class="recap-grid">
+      <span class="k">List Name</span><span class="v mono">LIVE_PCF_gift_solicitation_v2</span><span class="k">List Type</span><span class="v"><span class="chip chip-red">Block list</span></span>
+      <span class="k">Policy Title</span><span class="v">LIVE · Gift Solicitation</span><span class="k">Match Mode</span><span class="v"><span class="chip chip-gray">Exact</span></span>
+     </div></div>
+
+     <div class="section-title"><div><h3>1. Select business scenario / 选择业务场景</h3><p>先确认这份词表服务单市场还是多市场。平台据此推荐录入语种、翻译检查方式，以及审批通过后的本地语言撞库方式。</p></div><span class="chip chip-blue">Required</span></div>
+     <div class="mode-grid" role="radiogroup" aria-label="Business scenario">
+      <div class="mode-card selected" id="mode-single" role="radio" aria-checked="true" tabindex="0" onclick="selectMode('single')"><span class="radio"></span><div class="mc-kicker">Scenario A</div><h4>Single-market quick config / 单市场快速配置</h4><p>适合只服务一个目标市场的词表。录入侧可用本地语言，平台输出英语翻译结果用于 double check；执行侧使用该市场本地语言撞库。</p></div>
+      <div class="mode-card multi" id="mode-multi" role="radio" aria-checked="false" tabindex="0" onclick="selectMode('multi')"><span class="radio"></span><div class="mc-kicker">Scenario B</div><h4>Multi-market strategy reuse / 多市场策略复用</h4><p>适合一份策略复用多个市场。业务可选择多种录入语言，英语作为默认归一语言；执行侧按目标市场语种匹配本地语言版本。</p></div>
+     </div>
+     <div class="goal-grid">
+      <div class="goal-card"><b>Input · 多语言录入与翻译检查</b><p>业务选择录入语种后，点击 Translate Agent。平台只展示各语种转化成功度，不展示逐词翻译；用户可导出结果或手动修改后提交审批。</p></div>
+      <div class="goal-card"><b>Output · 审批后本地语言撞库</b><p>审批通过后词表进入 Active，被 IDSP 规则引用；执行时自动按来源语种 / 目标市场语种使用本地语言版本撞库。</p></div>
+     </div>
+
+     <section class="phase input">
+      <div class="phase-h"><div><h4>2. Select languages + run Translate Agent / 选择语种并执行翻译</h4><div class="phase-sub">Users select one or multiple supported languages. Selected language buttons turn blue; Translate Agent is the only entry for translation.</div></div><span class="chip chip-blue">Input Translation</span></div>
+      <div class="phase-b">
+       <div class="form-row"><label>Input Languages <span class="req">*</span></label><div><div class="select-tools"><span class="hint">Click languages to select. 选择后按钮变蓝；可多选，例如 English + Spanish。</span><span><button class="btn btn-sm" onclick="selectAllInputLangs()" type="button">Select all</button><button class="btn btn-sm" onclick="clearOptionalInputLangs()" type="button">Clear optional</button></span></div><div class="lang-grid" id="input-langs"></div><div class="field-note" id="input-note">Single-market default: use the target market language + English. Business can add more supported languages if the source collection requires it.</div></div></div>
+       <div class="form-row"><label>Translate Agent <span class="req">*</span></label><div><div class="agent-card"><div><div class="agent-title">Translate Agent</div><div class="agent-desc">One-click translation for selected languages. The result area below shows language-level conversion success for business double check.</div><div class="agent-meta"><span class="chip chip-blue" id="agent-lang-count">2 selected languages</span><span class="chip chip-green">English double check default</span><span class="chip chip-amber">Manual edit when needed</span></div></div><div class="agent-actions"><button class="btn btn-sm agent-btn" id="translate-btn" onclick="runTranslate()" type="button">Translate →</button></div></div><div class="status-line" id="agent-status"><b>Waiting for translation</b><span>Select languages, then click Translate Agent.</span></div></div></div>
+       <div class="two-col">
+        <div class="preview"><div class="preview-h"><b>Conversion success by input language</b><span class="chip chip-gray">language-level</span></div><div class="preview-b"><div class="empty-state" id="rate-empty">No result yet. Click Translate to generate success rate.</div><table class="mini-table hidden" id="rate-table"><thead><tr><th>Language</th><th>Rows</th><th>Converted</th></tr></thead><tbody id="input-rate-body"></tbody></table></div></div>
+        <div class="preview"><div class="preview-h"><b>Business double-check summary</b><span class="chip chip-green">after input translation</span></div><div class="preview-b"><div class="empty-state" id="summary-empty">Translation summary will appear here after Translate Agent finishes.</div><table class="mini-table hidden" id="summary-table"><thead><tr><th>Metric</th><th>Value</th><th>Action</th></tr></thead><tbody id="input-summary-body"></tbody></table></div></div>
+       </div>
+       <div class="edit-panel hidden" id="manual-edit-panel">
+        <div class="edit-panel-h"><b>Manual Edit / 手动修改低成功度语种</b><button class="btn btn-sm btn-red" onclick="saveManualEdit()" type="button">Save edits</button></div>
+        <div class="edit-panel-b"><table class="editable"><thead><tr><th>Language</th><th>Issue</th><th>Editable note / correction</th></tr></thead><tbody><tr><td>ar · Arabic</td><td>Low conversion confidence</td><td contenteditable="true">Replace ambiguous slang terms with verified local expressions.</td></tr><tr><td>mixed source rows</td><td>Language unclear</td><td contenteditable="true">Split mixed rows by source language before approval.</td></tr></tbody></table></div>
+       </div>
+      </div>
+     </section>
+
+     <section class="phase output">
+      <div class="phase-h"><div><h4>3. After translation · export, edit, submit review / 翻译完成后处理</h4><div class="phase-sub">After Translate Agent finishes, users can export the result, manually edit low-confidence languages, or submit the word list for approval.</div></div><span class="chip chip-cyan">Review Path</span></div>
+      <div class="phase-b">
+       <div class="action-row">
+        <div class="action-copy"><b id="action-title">Translation result not ready / 翻译结果未生成</b><span id="action-desc">Click Translate first. Export, manual edit and review submission are enabled after translation finishes.</span></div>
+        <div class="action-buttons"><button class="btn btn-sm" id="export-btn" onclick="exportResult()" type="button" disabled>Export Result</button><button class="btn btn-sm btn-red" id="manual-btn" onclick="openManualEdit()" type="button" disabled>Manual Edit</button><button class="btn btn-sm btn-green" id="submit-btn" onclick="submitReview()" type="button" disabled>Submit Review</button></div>
+       </div>
+       <div class="review-gate hidden" id="review-gate"><div><b>Review submitted / 已提交审批</b><span>Demo decision: reviewer can approve or reject this submitted version.</span></div><div class="action-buttons"><button class="btn btn-sm btn-green" onclick="approveReview()" type="button">Approve</button><button class="btn btn-sm btn-red" onclick="rejectReview()" type="button">Reject</button></div></div>
+       <div class="review-split hidden" id="review-result">
+        <div class="review-card pass hidden" id="pass-card"><b>Approval passed / 审批通过</b><p>Word list becomes Active. IDSP rules can reference the list, and runtime automatically uses local-language matching by source / target market language.</p></div>
+        <div class="review-card reject hidden" id="reject-card"><b>Approval rejected / 审批不通过</b><p>The submitted version is automatically saved as draft. Owner can reopen the draft later, edit the word list, and submit again.</p></div>
+       </div>
+       <div class="journey-panel hidden" id="activation-panel">
+        <div class="journey-h"><b>Activation path after approval / 审批通过后的生效路径</b><span class="chip chip-cyan">IDSP auto reads active version</span></div>
+        <div class="journey-steps">
+         <div class="j-step green"><b>Active</b><p>Approved language version becomes the latest Active word list.</p></div>
+         <div class="j-step blue"><b>Rule Reference</b><p>IDSP rule references stable list_id, not a frozen translation copy.</p></div>
+         <div class="j-step cyan"><b>Resolve Locale</b><p>Runtime reads source language / target market language.</p></div>
+         <div class="j-step cyan"><b>Local Match</b><p>Hit detection uses the local-language word list version.</p></div>
+         <div class="j-step red"><b>No English-only Hit</b><p>English is for double check by default, not universal matching.</p></div>
+        </div>
+       </div>
+       <div class="callout runtime-note"><b>Runtime contract:</b> IDSP automatically reads the newest Active version by <span class="mono">list_id</span>. Rules do not need to republish after a word-list version update.</div>
+      </div>
+     </section>
+
+     <div class="qa-strip"><div class="qa"><b>16</b><span>supported languages</span></div><div class="qa"><b id="qa-market">1</b><span id="qa-market-t">target market</span></div><div class="qa"><b>Input</b><span>main translator call stage</span></div><div class="qa"><b>Local</b><span>runtime matching language</span></div></div>
+    </div>
+    <div class="modal-f"><div class="mf-l" id="footer-summary"><b>Single-market quick config:</b> select the market language + English, run Translate Agent, then submit for approval. Approved lists become Active for local-language matching.</div><div class="mf-r"><button class="btn btn-sm" onclick="showToast('Canceled. No change saved.')" type="button">Cancel</button><button class="btn btn-sm" onclick="showToast('Saved as draft.')" type="button">Save as draft</button><button class="btn btn-sm" onclick="exportResult()" type="button">Export Result</button><button class="btn btn-p btn-sm" onclick="submitReview()" type="button">Submit Review →</button></div></div>
+   </div></div>
+  </div>
+ </main>
+</div>
+<script>
+const languages=[
+ ['en','English'],['es','Spanish'],['id','Indonesian'],['ar','Arabic'],['vi','Vietnamese'],['th','Thai'],['ms','Malay'],['tr','Turkish'],['fil','Filipino'],['ja','Japanese'],['fr','French'],['de','German'],['ro','Romanian'],['it','Italian'],['pt','Portuguese'],['ko','Korean']
+];
+let selectedInputLangs=new Set(['en','th']);
+let currentMode='single';
+let translationReady=false;
+let manualEdited=false;
+function langPill([code,name],selected,klass='on'){return `<button type="button" class="lang-pill ${selected?klass:''}" data-code="${code}" onclick="toggleInputLang('${code}')"><span class="lp-code">${code}</span>${name}</button>`}
+function rateRow(lang,rows,pct,warn=false){return `<tr><td>${lang}</td><td>${rows}</td><td><span class="rate ${warn?'warn':''}"><span class="rate-bar"><i style="width:${pct}%"></i></span><span class="rate-num">${pct}%</span></span></td></tr>`}
+function setHidden(id,hidden){const el=document.getElementById(id); if(el) el.classList.toggle('hidden',hidden)}
+function setActionEnabled(enabled){
+ ['export-btn','manual-btn','submit-btn'].forEach(id=>{const el=document.getElementById(id); if(el) el.disabled=!enabled});
+}
+function showToast(message){
+ const old=document.querySelector('.toast'); if(old) old.remove();
+ const toast=document.createElement('div'); toast.className='toast'; toast.textContent=message; document.body.appendChild(toast);
+ window.setTimeout(()=>toast.remove(),1800);
+}
+function renderInputLanguageButtons(){
+ document.getElementById('input-langs').innerHTML=languages.map(l=>langPill(l,selectedInputLangs.has(l[0]),'on')).join('');
+ updateAgentCount();
+}
+function updateAgentCount(){
+ const el=document.getElementById('agent-lang-count');
+ if(el) el.textContent=selectedInputLangs.size+' selected language'+(selectedInputLangs.size>1?'s':'');
+}
+function toggleInputLang(code){
+ if(code==='en') return;
+ if(selectedInputLangs.has(code)) selectedInputLangs.delete(code); else selectedInputLangs.add(code);
+ selectedInputLangs.add('en');
+ renderInputLanguageButtons();
+ resetTranslationState('Language selection changed. Click Translate again to refresh results.');
+}
+function selectAllInputLangs(){ selectedInputLangs=new Set(languages.map(l=>l[0])); renderInputLanguageButtons(); resetTranslationState('All supported languages selected. Click Translate to generate new results.'); }
+function clearOptionalInputLangs(){ selectedInputLangs=new Set(['en']); renderInputLanguageButtons(); resetTranslationState('Optional languages cleared. Click Translate to refresh results.'); }
+function resetTranslationState(message='Select languages, then click Translate Agent.'){
+ translationReady=false; manualEdited=false;
+ setHidden('rate-empty',false); setHidden('summary-empty',false); setHidden('rate-table',true); setHidden('summary-table',true);
+ setHidden('manual-edit-panel',true); setHidden('review-gate',true); setHidden('review-result',true); setHidden('pass-card',true); setHidden('reject-card',true); setHidden('activation-panel',true);
+ setActionEnabled(false);
+ document.getElementById('input-rate-body').innerHTML='';
+ document.getElementById('input-summary-body').innerHTML='';
+ document.getElementById('action-title').textContent='Translation result not ready / 翻译结果未生成';
+ document.getElementById('action-desc').textContent='Click Translate first. Export, manual edit and review submission are enabled after translation finishes.';
+ const status=document.getElementById('agent-status'); status.className='status-line'; status.innerHTML=`<b>Waiting for translation</b><span>${message}</span>`;
+}
+function fillTranslationResult(){
+ const isMulti=currentMode==='multi';
+ document.getElementById('input-rate-body').innerHTML=isMulti?
+  [rateRow('es · Spanish',128,97),rateRow('id · Indonesian',96,94),rateRow('ar · Arabic',72,82,true),rateRow('ko · Korean',31,78,true)].join(''):
+  [rateRow('th · Thai',84,92),rateRow('en · English',26,100),rateRow('mixed source rows',12,88)].join('');
+ document.getElementById('input-summary-body').innerHTML=isMulti?
+  `<tr><td>Supported source languages</td><td>${selectedInputLangs.size}</td><td><span class="chip chip-green">Translated</span></td></tr><tr><td>English double-check output</td><td>91%</td><td><span class="chip chip-green">Can submit</span></td></tr><tr><td>Manual edit languages</td><td>ar / ko / ja</td><td><span class="chip chip-amber">Recommended</span></td></tr>`:
+  `<tr><td>Selected source languages</td><td>${[...selectedInputLangs].join(' + ')}</td><td><span class="chip chip-green">Translated</span></td></tr><tr><td>English double-check output</td><td>92%</td><td><span class="chip chip-green">Can submit</span></td></tr><tr><td>Manual edit rows</td><td>7</td><td><span class="chip chip-amber">Optional</span></td></tr>`;
+}
+function runTranslate(){
+ const btn=document.getElementById('translate-btn');
+ const status=document.getElementById('agent-status');
+ btn.disabled=true; btn.textContent='Translating…';
+ status.className='status-line warn'; status.innerHTML='<b>Translate Agent running</b><span>Generating language-level success rate…</span>';
+ window.setTimeout(()=>{
+  fillTranslationResult();
+  translationReady=true;
+  btn.disabled=false; btn.textContent='Re-translate →';
+  setHidden('rate-empty',true); setHidden('summary-empty',true); setHidden('rate-table',false); setHidden('summary-table',false);
+  setActionEnabled(true);
+  document.getElementById('action-title').textContent='Translation result ready / 翻译结果已生成';
+  document.getElementById('action-desc').textContent='You can export, manually edit low-confidence languages, or submit this version for review.';
+  status.className='status-line success'; status.innerHTML='<b>Translation completed</b><span>Success rate generated by language. No word-by-word display.</span>';
+ },500);
+}
+function openManualEdit(){
+ if(!translationReady){showToast('Please run Translate first.'); return;}
+ setHidden('manual-edit-panel',false);
+ showToast('Manual edit panel opened.');
+}
+function saveManualEdit(){
+ manualEdited=true;
+ setHidden('manual-edit-panel',true);
+ const status=document.getElementById('agent-status'); status.className='status-line success'; status.innerHTML='<b>Manual edits saved</b><span>Edited result is ready for review submission.</span>';
+ showToast('Manual edits saved.');
+}
+function exportResult(){
+ if(!translationReady){showToast('Please run Translate first.'); return;}
+ showToast('Translation result exported.');
+}
+function submitReview(){
+ if(!translationReady){showToast('Please run Translate first.'); return;}
+ setHidden('review-gate',false); setHidden('review-result',true); setHidden('pass-card',true); setHidden('reject-card',true); setHidden('activation-panel',true);
+ document.getElementById('action-title').textContent='Review submitted / 已提交审批';
+ document.getElementById('action-desc').textContent=manualEdited?'Submitted with manual edits. Choose reviewer decision below.':'Submitted without manual edits. Choose reviewer decision below.';
+ showToast('Submitted to reviewer.');
+}
+function approveReview(){
+ setHidden('review-result',false); setHidden('pass-card',false); setHidden('reject-card',true); setHidden('activation-panel',false);
+ document.getElementById('action-title').textContent='Active / 审批通过并生效';
+ document.getElementById('action-desc').textContent='IDSP can reference this list_id and automatically use local-language matching.';
+ showToast('Approved: word list is Active.');
+}
+function rejectReview(){
+ setHidden('review-result',false); setHidden('pass-card',true); setHidden('reject-card',false); setHidden('activation-panel',true);
+ document.getElementById('action-title').textContent='Saved as draft / 已保存为 draft';
+ document.getElementById('action-desc').textContent='Rejected version is kept as editable draft. Owner can edit and submit again.';
+ showToast('Rejected: saved as draft.');
+}
+function selectMode(mode){
+ const isMulti=mode==='multi';
+ currentMode=mode;
+ document.getElementById('mode-single').classList.toggle('selected',!isMulti);
+ document.getElementById('mode-multi').classList.toggle('selected',isMulti);
+ document.getElementById('mode-single').setAttribute('aria-checked',String(!isMulti));
+ document.getElementById('mode-multi').setAttribute('aria-checked',String(isMulti));
+ selectedInputLangs=isMulti?new Set(languages.map(l=>l[0])):new Set(['en','th']);
+ renderInputLanguageButtons();
+ document.getElementById('input-note').textContent=isMulti?'Multi-market default: all 16 supported languages are available for source collection; business can deselect languages not used by the strategy.':'Single-market default: target market language + English. Business can add more supported languages if source collection requires it.';
+ document.getElementById('qa-market').textContent=isMulti?'N':'1';
+ document.getElementById('qa-market-t').textContent=isMulti?'target markets':'target market';
+ document.getElementById('footer-summary').innerHTML=isMulti?'<b>Multi-market strategy reuse:</b> select multiple languages, run Translate Agent, then submit for approval. Approved lists become Active and IDSP auto-matches local language.':'<b>Single-market quick config:</b> select the market language + English, run Translate Agent, then submit for approval. Approved lists become Active for local-language matching.';
+ resetTranslationState(isMulti?'Multi-market selected. Click Translate to generate multi-language results.':'Single-market selected. Click Translate to generate market-language results.');
+}
+document.getElementById('mode-single').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectMode('single')}})
+document.getElementById('mode-multi').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectMode('multi')}})
+selectMode('single')
+</script>
+</body>
+</html>

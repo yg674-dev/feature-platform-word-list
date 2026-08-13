@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Feature Platform · List Configuration · v0.3 (F3)</title>
+<style>
+:root{
+ --bg-page:#F4F6FA; --bg-card:#FFFFFF; --bg-soft:#F8F9FC; --bg-softer:#FAFBFC;
+ --border:#E5E8EE; --border-soft:#EEF0F4;
+ --text-primary:#1F2937; --text-secondary:#5A6373; --text-muted:#6B7280;
+ --link:#2563EB; --link-hover:#1D4FCF;
+ --green:#10B981; --green-bg:#D1FAE5; --green-text:#047857;
+ --amber:#F59E0B; --amber-bg:#FEF3C7; --amber-text:#92400E;
+ --red:#EF4444; --red-bg:#FEE2E2; --red-text:#991B1B;
+ --sidebar:linear-gradient(180deg,#4F8DEC 0%,#1E3A8A 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-page);color:var(--text-primary);font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,sans-serif;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--link-hover);text-decoration:underline}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+
+.sidebar{background:var(--sidebar);color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.brand-logo{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff 0%,#A7C5FF 60%,#3B5DDF 100%);display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800;font-size:14px}
+.brand-name{font-weight:700;font-size:15px;letter-spacing:0.2px}
+.brand-name small{display:block;font-weight:500;font-size:10.5px;opacity:.75;margin-top:1px}
+.nav-section{font-size:10px;letter-spacing:.5px;text-transform:uppercase;opacity:.55;margin:14px 4px 6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:#dbe6ff;cursor:pointer;margin-bottom:1px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.nav-sub{padding-left:18px;font-size:11.5px;opacity:.85;margin-top:2px}
+.nav-sub .nav-item{padding:5px 9px}
+.nav-sub .nav-item.active{background:rgba(255,255,255,.22);color:#fff;font-weight:700}
+
+.main{padding:0;background:var(--bg-page);position:relative}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#fff;border-bottom:1px solid var(--border)}
+.crumb{font-size:12.5px;color:var(--text-muted)}
+.crumb b{color:var(--text-primary);font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:14px;color:var(--text-muted);font-size:12px}
+.search{padding:7px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;width:340px;font-size:12px;color:var(--text-muted)}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A7C5FF,#3B5DDF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+.canvas{padding:24px 28px 60px;position:relative}
+
+.frame-label{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:#1F2937;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.frame-label .dot{width:6px;height:6px;border-radius:50%;background:#34D399}
+
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 3px rgba(15,23,42,.05);overflow:visible}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text-primary)}
+.btn:hover{background:var(--bg-soft)}
+.btn-p{background:var(--link);color:#fff;border-color:var(--link)}
+.btn-p:hover{background:var(--link-hover)}
+.btn-sm{padding:5px 9px;font-size:11.5px}
+.btn-disabled{background:#F8F9FC;color:#94A3B8;border:1px dashed #CBD5E1;cursor:not-allowed}
+.btn-disabled:hover{background:#F8F9FC}
+
+.chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.5;margin:1px 2px 1px 0;letter-spacing:.1px;white-space:nowrap}
+.chip-blue{background:#DBE8FE;color:#1D4ED8}
+.chip-gray{background:var(--bg-soft);color:var(--text-secondary);border:1px solid var(--border)}
+.match-exact{background:#F3F4F6;color:#374151;border:1px solid var(--border)}
+.match-fuzzy{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+
+.status{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600}
+.status .ds{width:6px;height:6px;border-radius:50%}
+.status.ok .ds{background:#10B981}
+.status.ok{color:#047857}
+.status-cell{display:flex;flex-direction:column;gap:3px;line-height:1.35;align-items:flex-start}
+.status-cell .node-lines{display:flex;flex-direction:column;gap:1px;font-size:10px;color:#6B7280;font-weight:500}
+.status-cell .node-lines .nl{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
+.status-cell .node-lines .nl-k{color:#9CA3AF;font-weight:600;letter-spacing:.2px;font-size:9.5px;text-transform:uppercase;flex:none}
+.status-cell .node-lines .nl-v{color:#374151;font-weight:600}
+.status-cell.s-online .nl-v{color:#047857}
+
+.pk-cell{font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--text-secondary);background:var(--bg-softer);padding:2px 7px;border-radius:4px;border:1px solid var(--border-soft);display:inline-block;letter-spacing:.2px;white-space:nowrap}
+
+/* ===== Page header row ===== */
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px}
+.ph-l .back-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;margin-bottom:8px}
+.ph-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ph-title h1{font-size:19px;font-weight:700;letter-spacing:-.2px}
+.ph-meta{margin-top:5px;font-size:11.5px;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace}
+.ph-r{display:flex;align-items:center;gap:8px;flex:none;padding-top:24px}
+
+/* ===== Read-only banner ===== */
+.ro-banner{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;background:#ECFDF5;border:1px solid #6EE7B7;border-radius:10px;margin-bottom:16px;font-size:12px;color:#065F46;line-height:1.6}
+.ro-banner .rb-dot{flex:none;width:8px;height:8px;border-radius:50%;background:#10B981;margin-top:5px}
+.ro-banner b{color:#047857;font-weight:700}
+
+/* ===== Config grid ===== */
+.sec-h{padding:13px 20px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}
+.sec-h h3{font-size:13.5px;font-weight:700}
+.sec-h .sec-hint{font-size:11px;color:var(--text-muted)}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+
+/* ===== Collapsible List Configuration · default collapsed ===== */
+.lcfg-wrap .lcfg-toggle{cursor:pointer;transition:background .15s}
+.lcfg-wrap .lcfg-toggle:hover{background:var(--bg-softer)}
+.lcfg-wrap .lcfg-toggle-l{display:flex;align-items:center;gap:10px;flex:1;min-width:0;flex-wrap:wrap}
+.lcfg-caret{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;color:var(--text-muted);transition:transform .2s ease;font-size:11px;flex:none}
+.lcfg-wrap.open .lcfg-caret{transform:rotate(90deg);color:var(--link)}
+.lcfg-summary-chips{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lcfg-sc{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:3px;background:var(--bg-softer);color:var(--text-secondary);border:1px solid var(--border-soft);font-family:'JetBrains Mono',Menlo,monospace;letter-spacing:.2px}
+.lcfg-sc.status-active{background:#D1FAE5;color:#047857;border-color:#6EE7B7;font-family:'Inter',sans-serif}
+.lcfg-wrap.open .lcfg-summary-chips{display:none}
+.lcfg-content{display:none}
+.lcfg-wrap.open .lcfg-content{display:block}
+.lcfg-hint{font-size:11px;color:var(--text-muted);font-weight:600;flex:none}
+.lcfg-wrap.open .lcfg-hint{color:var(--link)}
+.cfg-item{padding:13px 20px;border-bottom:1px solid var(--border-soft);display:flex;flex-direction:column;gap:5px}
+.cfg-item:nth-child(odd){border-right:1px solid var(--border-soft)}
+.cfg-item.full{grid-column:1 / -1;border-right:none}
+.cfg-k{font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--text-muted)}
+.cfg-v{font-size:12.5px;color:var(--text-primary);font-weight:500}
+.cfg-v .me-tag{font-size:10px;color:var(--green-text);background:var(--green-bg);padding:1px 6px;border-radius:3px;font-weight:700;margin-left:6px}
+
+/* List ID click-copy */
+.d-listid-copy{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px;color:var(--link);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer;padding:1px 0;transition:color .12s}
+.d-listid-copy:hover{color:var(--link-hover);text-decoration-style:solid}
+.d-listid-copy .copy-icon{font-size:10.5px;opacity:.7}
+.d-listid-copy.copied{color:var(--green-text);text-decoration:none}
+.d-listid-copy.copied::after{content:" · Copied";font-size:10.5px;color:var(--green-text);font-weight:600}
+
+/* Active Refs link */
+.d-refs-link{cursor:pointer;color:var(--link);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;font-weight:700;transition:color .12s}
+.d-refs-link:hover{color:var(--link-hover);text-decoration-style:solid}
+.d-refs-link::after{content:" · View Word List Rule Lineage →";font-family:'Inter','PingFang SC',sans-serif;font-size:10.5px;color:var(--text-muted);font-weight:500;margin-left:4px;text-decoration:none}
+.refs-tag{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:2px 7px;background:var(--green-bg);border:1px solid #6EE7B7;color:var(--green-text);border-radius:4px;font-size:10px;font-weight:700}
+
+/* ===== Entries table ===== */
+.toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border-soft);background:var(--bg-softer)}
+.tb-l{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tb-r{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--text-muted)}
+.filter{padding:6px 10px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-secondary);display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.filter:hover{background:var(--bg-soft)}
+.filter b{color:var(--text-primary);font-weight:600}
+.search-sm{padding:6px 10px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:12px;width:220px;color:var(--text-primary)}
+.search-sm::placeholder{color:var(--text-muted)}
+
+.filter-dd{position:relative}
+.filter-dd-panel{display:none;position:absolute;left:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--border);border-radius:7px;box-shadow:0 8px 24px rgba(15,23,42,.10);padding:5px;min-width:180px;z-index:15}
+.filter-dd.open .filter-dd-panel{display:block}
+.filter-dd-opt{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:5px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text-secondary)}
+.filter-dd-opt:hover{background:var(--bg-soft);color:var(--text-primary)}
+.filter-dd-opt.on{background:#EFF6FF;color:var(--link)}
+.filter-dd-opt .dd-check{margin-left:auto;color:var(--link);font-weight:700;font-size:13px;visibility:hidden}
+.filter-dd-opt.on .dd-check{visibility:visible}
+
+.table-wrap{overflow:visible}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{text-align:left;padding:10px 14px;background:var(--bg-soft);color:var(--text-secondary);font-weight:600;font-size:11.5px;letter-spacing:.2px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+tbody tr:hover{background:var(--bg-softer)}
+tbody tr.row-hidden{display:none}
+.row-num{font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px;color:var(--text-muted);font-weight:600}
+.entry-master{font-weight:600;color:var(--text-primary)}
+.entry-src{font-size:12px;color:var(--text-secondary)}
+.entry-src.same{color:var(--text-muted);font-style:italic}
+.lang-code{font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:#1D4ED8;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 6px;border-radius:3px;font-weight:600}
+.conf{display:inline-flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;font-size:11.5px;font-weight:700}
+.conf .conf-bar{width:54px;height:5px;border-radius:3px;background:var(--border-soft);overflow:hidden;position:relative}
+.conf .conf-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--green)}
+.conf.mid{color:var(--amber-text)}
+.conf.mid .conf-bar i{background:var(--amber)}
+.conf.high{color:var(--green-text)}
+.col-date{color:var(--text-secondary);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:11.5px}
+
+.tfoot-note{padding:11px 18px;border-top:1px solid var(--border-soft);background:var(--bg-softer);font-size:11px;color:var(--text-muted);display:flex;align-items:center;justify-content:space-between}
+.empty-row td{text-align:center;color:var(--text-muted);padding:28px 14px;font-size:12px}
+
+/* ===== Lineage drawer (same as F1) ===== */
+.lineage-drawer{position:fixed;right:0;top:0;height:100vh;width:460px;background:#fff;border-left:1px solid var(--border);box-shadow:-20px 0 48px rgba(15,23,42,.22);z-index:312;display:none;flex-direction:column;overflow:hidden}
+.lineage-drawer.open{display:flex}
+#lineage-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.18);z-index:311;cursor:pointer}
+#lineage-backdrop.show{display:block}
+
+.ld-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border-soft);background:#fff}
+.ld-head-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text-primary)}
+.ld-head-l .ld-ico{display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+.ld-head-r{display:flex;align-items:center;gap:14px}
+.ld-toggle{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--text-primary);cursor:pointer;user-select:none}
+.ld-switch{position:relative;width:30px;height:16px;border-radius:8px;background:var(--green);transition:.18s background}
+.ld-switch::after{content:"";position:absolute;left:16px;top:1.5px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.18);transition:.18s left}
+.ld-switch.off{background:#9CA3AF}
+.ld-switch.off::after{left:1.5px}
+.ld-x{color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1;padding:2px 6px}
+.ld-x:hover{color:var(--text-primary)}
+
+.ld-entity{padding:14px 18px;border-bottom:1px solid var(--border-soft);display:flex;align-items:flex-start;gap:10px;background:var(--bg-softer)}
+.ld-entity-ico{flex:none;width:28px;height:28px;border-radius:6px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--link)}
+.ld-entity-c{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ld-entity-name{font-size:14px;font-weight:700;color:var(--link)}
+.ld-entity-meta{font-size:10.5px;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;line-height:1.6}
+
+.ld-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border-soft)}
+.ld-stat{display:flex;flex-direction:column;align-items:center;padding:14px 8px;border-right:1px solid var(--border-soft);text-align:center}
+.ld-stat:last-child{border-right:none}
+.ld-stat-v{font-size:22px;font-weight:700;color:var(--text-primary);line-height:1.1}
+.ld-stat-k{font-size:10.5px;color:var(--text-muted);font-weight:600;margin-top:3px;line-height:1.3}
+
+.ld-body{flex:1;overflow:auto;padding:12px 18px 24px}
+.ld-section{margin-bottom:12px}
+.ld-section:last-child{margin-bottom:0}
+.bs-header{display:flex;align-items:center;gap:6px;padding:6px 0;font-size:10px;font-weight:600;letter-spacing:.3px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;border-bottom:1px solid var(--border-soft);cursor:pointer;user-select:none}
+.bs-header:hover{color:var(--text-secondary)}
+.bs-header .bs-label{color:var(--text-muted)}
+.bs-header .bs-name{color:var(--text-primary);font-weight:700;letter-spacing:.1px;text-transform:none}
+.bs-header .arr{margin-left:auto;color:var(--text-muted);font-size:11px;transition:transform .18s}
+.ld-card{background:#fff;border:1px solid var(--border-soft);border-radius:6px;margin-bottom:6px;overflow:hidden}
+.ld-version{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;cursor:pointer;user-select:none}
+.ld-version:hover{background:var(--bg-softer)}
+.ld-version-ico{flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);margin-top:1px}
+.ld-version-c{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ld-version-title{display:flex;align-items:flex-start;gap:6px;font-size:12px;font-weight:500;color:var(--text-primary);line-height:1.4}
+.ld-version-title .label-chip{flex:none;margin-top:1px}
+.ld-version-meta{font-size:10.5px;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;line-height:1.5}
+.arr{flex:none;color:var(--text-muted);font-size:11px;align-self:center;transition:transform .18s}
+.label-chip{display:inline-flex;align-items:center;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;background:transparent;color:var(--text-muted);border:1px solid var(--border)}
+.ld-canvas-row,.ld-node-row,.ld-rg-row{display:flex;align-items:center;gap:7px;padding:8px 12px;font-size:12px;border-top:1px dashed var(--border-soft);cursor:pointer;user-select:none}
+.ld-canvas-row{padding-left:22px}
+.ld-node-row{padding-left:38px}
+.ld-rg-row{padding-left:54px;cursor:default}
+.ld-canvas-row:hover,.ld-node-row:hover{background:var(--bg-softer)}
+.ld-bullet{flex:none;width:5px;height:5px;border-radius:50%;background:var(--text-muted)}
+.ld-rg-row .ld-bullet{background:#D1D5DB}
+.ld-row-l{flex:1;display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}
+.ld-row-name{font-weight:600;color:var(--text-primary)}
+.ld-row-meta{font-size:10.5px;color:var(--text-muted);display:inline-flex;align-items:center;gap:5px;margin-left:auto}
+.ld-row-meta .ord{color:var(--text-secondary);font-weight:600}
+.ld-row-meta .live{color:var(--green-text);font-weight:700}
+.collapsible{display:none}
+.collapsible.show{display:block}
+.expanded .arr{transform:rotate(180deg)}
+
+/* ===== Lark toast ===== */
+.lark-toast{position:fixed;top:24px;right:28px;background:#1F2937;color:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 10px 32px rgba(0,0,0,.30);font-size:12px;display:flex;align-items:flex-start;gap:11px;z-index:320;width:340px;opacity:0;transform:translateY(-12px);pointer-events:none;transition:opacity .25s, transform .25s;border-left:3px solid #00D6B9}
+.lark-toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.lark-toast .lt-ico{flex:none;width:24px;height:24px;border-radius:5px;background:#00D6B9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.lark-toast .lt-c{flex:1}
+.lark-toast .lt-h{font-weight:700;font-size:11.5px;color:#00D6B9;letter-spacing:.3px;text-transform:uppercase;margin-bottom:3px}
+.lark-toast .lt-msg{font-size:12px;line-height:1.55;color:#fff}
+.lark-toast .lt-msg b{color:#A7C5FF;font-weight:700}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+ <div class="brand">
+  <div class="brand-logo">a</div>
+  <div class="brand-name">arena<small>Global</small></div>
+ </div>
+ <div class="nav-section">Workspace</div>
+ <div class="nav-item">Discover</div>
+ <div class="nav-item">Host Center</div>
+ <div class="nav-item">Resource Hub</div>
+ <div class="nav-item">LIVE Hub</div>
+ <div class="nav-item active">Ecosystem</div>
+ <div class="nav-sub">
+  <div class="nav-item">Strategic Configuration</div>
+  <div class="nav-item">Strategic Monitor</div>
+  <div class="nav-item active">Feature Center</div>
+ </div>
+ <div class="nav-section">Guardrail</div>
+ <div class="nav-item active">List Management</div>
+ <div class="nav-item">Detection Item Config</div>
+ <div class="nav-item">Hit Analysis</div>
+ <div class="nav-section">Quick Access</div>
+ <div class="nav-item">Go LIVE</div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <div class="crumb">Ecosystem / TRIDENT (IDSP) / Feature Center / Guardrail / <a href="feature-platform-word-list-prototype-v0.3.html">List Management</a> / <b>LIVE_edu_safe_v1</b></div>
+  <div class="topbar-right">
+   <input class="search" placeholder="Please input UID / User Handle / Room ID / List ID / ..." />
+   <span>MY</span>
+   <span>35</span>
+   <div class="avatar">YG</div>
+  </div>
+ </header>
+
+ <div class="canvas">
+
+  <span class="frame-label"><span class="dot"></span>FRAME F3 · LIST CONFIGURATION · v0.3</span>
+
+  <div class="page-head">
+   <div class="ph-l">
+    <a class="back-link" href="feature-platform-word-list-prototype-v0.3.html">← Back to List Management</a>
+    <div class="ph-title">
+     <h1>LIVE_edu_safe_v1</h1>
+     <span class="status ok"><span class="ds"></span>Active</span>
+    </div>
+    <div class="ph-meta">List ID: list_live_edu_white_v1 · List Key: 7426674482939953801</div>
+   </div>
+   <div class="ph-r">
+    <button class="btn btn-sm" onclick="exportEntries()">Export CSV</button>
+    <button class="btn btn-sm" title="Edit terms through a Pending Revision; the current Active version stays live during review" onclick="window.location.href='feature-platform-word-list-prototype-v0.3.html'">Edit via Revision</button>
+    <button class="btn btn-sm btn-disabled" title="This list is still referenced by 2 Active rules · archiving is only possible after references drop to zero">Archive</button>
+   </div>
+  </div>
+
+  <div class="ro-banner">
+   <span class="rb-dot"></span>
+   <span><b>Active · Editable via Revision</b></span>
+  </div>
+
+  <!-- ===================== Card 1 · Configuration (collapsible) ===================== -->
+  <div class="card lcfg-wrap" id="lcfg-wrap" style="margin-bottom:18px">
+   <div class="sec-h lcfg-toggle" id="lcfg-toggle">
+    <div class="lcfg-toggle-l">
+     <span class="lcfg-caret">▶</span>
+     <h3>List Configuration</h3>
+     <span class="lcfg-summary-chips">
+      <span class="lcfg-sc">LIVE_edu_safe_v1</span>
+      <span class="lcfg-sc">Fuzzy Match</span>
+      <span class="lcfg-sc">Languages · 5</span>
+      <span class="lcfg-sc status-active">● Active · 2 refs</span>
+     </span>
+    </div>
+    <span class="lcfg-hint">click to expand</span>
+   </div>
+   <div class="lcfg-content">
+   <div class="cfg-grid">
+    <div class="cfg-item">
+     <span class="cfg-k">List Name</span>
+     <span class="cfg-v" style="font-weight:600">LIVE_edu_safe_v1</span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">List ID</span>
+     <span class="cfg-v"><span class="d-listid-copy" id="list-id" data-copy="list_live_edu_white">list_live_edu_white<span class="copy-icon">⎘</span></span></span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Match Mode</span>
+     <span class="cfg-v"><span class="chip match-fuzzy">Fuzzy Match</span></span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Primary Key</span>
+     <span class="cfg-v"><span class="pk-cell">bio_text</span></span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Scenario Type</span>
+     <span class="cfg-v"><span class="chip chip-blue">Eco-governance</span><span class="chip chip-gray">Just for Recall</span></span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Languages · 5</span>
+     <span class="cfg-v">
+      <span class="lang-code">en</span> <span class="lang-code">es</span> <span class="lang-code">id</span> <span class="lang-code">vi</span> <span class="lang-code">th</span>
+     </span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Owner</span>
+     <span class="cfg-v">@ymgao<span class="me-tag">Me</span></span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Status</span>
+     <div class="cfg-v">
+      <div class="status-cell s-online">
+       <span class="status ok"><span class="ds"></span>Active</span>
+       <div class="node-lines">
+        <span class="nl"><span class="nl-k">Ticket node</span><span class="nl-v">Published</span></span>
+        <span class="nl"><span class="nl-k">Node status</span><span class="nl-v">Running</span></span>
+       </div>
+      </div>
+     </div>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Active Refs</span>
+     <span class="cfg-v"><span class="d-refs-link" onclick="openDrawer()">2 rules</span><span class="refs-tag">In use</span></span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Last Updated</span>
+     <span class="cfg-v" style="font-variant-numeric:tabular-nums">2026-05-21 16:42 <span style="font-size:11px;color:var(--text-muted)">by @ymgao</span></span>
+    </div>
+    <div class="cfg-item">
+     <span class="cfg-k">Notes / Source</span>
+     <span class="cfg-v" style="font-size:12px;color:var(--text-secondary)">TnS false-positive case ticket #LIVE-8841</span>
+    </div>
+   </div>
+   </div>
+  </div>
+
+  <!-- ===================== Card 2 · Entries ===================== -->
+  <div class="card">
+   <div class="sec-h">
+    <h3>Language Coverage · Translation Completeness</h3>
+   </div>
+
+   <div class="toolbar">
+    <div class="tb-l">
+     <span style="font-size:11.5px;color:var(--text-muted);font-weight:600">Priority order: <b style="color:var(--text-primary)">en → es → id → ar → vi → th → ms → tr → fil → ja → fr → de → ro → it → pt → ko</b></span>
+    </div>
+    <div class="tb-r">
+     <span id="entry-count">10 entries across 5 languages</span>
+    </div>
+   </div>
+
+   <div class="table-wrap">
+    <table>
+     <thead>
+      <tr>
+       <th style="width:60px">Rank</th>
+       <th>Language</th>
+       <th style="width:110px">Entries</th>
+       <th style="width:200px">Translation Rate</th>
+       <th style="width:140px">Avg. Confidence</th>
+       <th style="width:130px">Status</th>
+      </tr>
+     </thead>
+     <tbody id="entries-body">
+      <tr data-lang="en">
+       <td><span class="row-num">1</span></td>
+       <td><span class="lang-code" style="background:#10B981;color:#fff">en</span>&nbsp;&nbsp;English&nbsp;<span style="font-size:10px;font-weight:600;color:var(--text-muted);background:var(--bg-softer);padding:1px 5px;border-radius:3px;margin-left:4px;border:1px solid var(--border)">Master · locked</span></td>
+       <td><b>4</b>&nbsp;<span style="color:var(--text-muted);font-size:11.5px">entries</span></td>
+       <td><span class="conf high"><span class="conf-bar"><i style="width:100%"></i></span>100%</span></td>
+       <td>100%</td>
+       <td><span style="font-size:10.5px;font-weight:700;color:#1D4ED8;background:#DBE8FE;padding:2px 7px;border-radius:3px;letter-spacing:.2px">MASTER</span></td>
+      </tr>
+      <tr data-lang="es">
+       <td><span class="row-num">2</span></td>
+       <td><span class="lang-code" style="background:#EC4899;color:#fff">es</span>&nbsp;&nbsp;Spanish</td>
+       <td><b>2</b>&nbsp;<span style="color:var(--text-muted);font-size:11.5px">entries</span></td>
+       <td><span class="conf high"><span class="conf-bar"><i style="width:100%"></i></span>100%</span></td>
+       <td>95.5%</td>
+       <td><span style="font-size:10.5px;font-weight:700;color:var(--green-text);background:var(--green-bg);padding:2px 7px;border-radius:3px;letter-spacing:.2px">COMPLETE</span></td>
+      </tr>
+      <tr data-lang="id">
+       <td><span class="row-num">3</span></td>
+       <td><span class="lang-code" style="background:#F59E0B;color:#fff">id</span>&nbsp;&nbsp;Indonesian</td>
+       <td><b>2</b>&nbsp;<span style="color:var(--text-muted);font-size:11.5px">entries</span></td>
+       <td><span class="conf high"><span class="conf-bar"><i style="width:100%"></i></span>100%</span></td>
+       <td>90%</td>
+       <td><span style="font-size:10.5px;font-weight:700;color:var(--green-text);background:var(--green-bg);padding:2px 7px;border-radius:3px;letter-spacing:.2px">COMPLETE</span></td>
+      </tr>
+      <tr data-lang="ar">
+       <td><span class="row-num">4</span></td>
+       <td><span class="lang-code" style="background:#8B5CF6;color:#fff">ar</span>&nbsp;&nbsp;Arabic</td>
+       <td><b>0</b>&nbsp;<span style="color:var(--text-muted);font-size:11.5px">entries</span></td>
+       <td><span class="conf low"><span class="conf-bar"><i style="width:0%"></i></span>0%</span></td>
+       <td style="color:var(--text-muted);font-style:italic">—</td>
+       <td><span style="font-size:10.5px;font-weight:700;color:#92400E;background:#FEF3C7;padding:2px 7px;border-radius:3px;letter-spacing:.2px">NOT COVERED</span></td>
+      </tr>
+      <tr data-lang="vi">
+       <td><span class="row-num">5</span></td>
+       <td><span class="lang-code" style="background:#06B6D4;color:#fff">vi</span>&nbsp;&nbsp;Vietnamese</td>
+       <td><b>1</b>&nbsp;<span style="color:var(--text-muted);font-size:11.5px">entry</span></td>
+       <td><span class="conf high"><span class="conf-bar"><i style="width:100%"></i></span>100%</span></td>
+       <td>94%</td>
+       <td><span style="font-size:10.5px;font-weight:700;color:var(--green-text);background:var(--green-bg);padding:2px 7px;border-radius:3px;letter-spacing:.2px">COMPLETE</span></td>
+      </tr>
+      <tr data-lang="th">
+       <td><span class="row-num">6</span></td>
+       <td><span class="lang-code" style="background:#3B82F6;color:#fff">th</span>&nbsp;&nbsp;Thai</td>
+       <td><b>1</b>&nbsp;<span style="color:var(--text-muted);font-size:11.5px">entry</span></td>
+       <td><span class="conf mid"><span class="conf-bar"><i style="width:100%"></i></span>100%</span></td>
+       <td>91%</td>
+       <td><span style="font-size:10.5px;font-weight:700;color:var(--green-text);background:var(--green-bg);padding:2px 7px;border-radius:3px;letter-spacing:.2px">COMPLETE</span></td>
+      </tr>
+      <tr data-lang="rest" style="background:var(--bg-softer)">
+       <td><span class="row-num" style="color:var(--text-muted)">7–16</span></td>
+       <td colspan="5" style="color:var(--text-muted);font-size:11.5px;font-style:italic">
+        <b style="color:var(--text-secondary);font-style:normal">ms · tr · fil · ja · fr · de · ro · it · pt · ko</b>
+        &nbsp;— <b>not configured</b>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+
+  </div>
+
+ </div><!-- /canvas -->
+</main>
+</div><!-- /app -->
+
+<!-- ===================== Lineage Drawer ===================== -->
+<div id="lineage-backdrop" onclick="closeDrawer()"></div>
+<aside class="lineage-drawer" id="drawer">
+
+ <div class="ld-head">
+  <div class="ld-head-l">
+   <span class="ld-ico">
+    <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A.75.75 0 0 1 11 9.25v.878a2.25 2.25 0 1 0 1.5 0V9.25A2.25 2.25 0 0 0 10.25 7h-4.5a.75.75 0 0 1-.75-.75v-.878ZM8 12.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"/></svg>
+   </span>
+   Word List Rule Lineage / 词表规则血缘
+  </div>
+  <div class="ld-head-r">
+   <div class="ld-toggle" id="active-toggle"><span class="ld-switch" id="active-switch"></span>Active only</div>
+   <span class="ld-x" id="drawer-close" onclick="closeDrawer()">×</span>
+  </div>
+ </div>
+
+ <div class="ld-entity">
+  <div class="ld-entity-ico">
+   <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2 1.75C2 .784 2.784 0 3.75 0h5.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 12.25 16h-8.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-9h-2.75A1.75 1.75 0 0 1 8 3.5V1.5Zm6.75.062V3.5c0 .138.112.25.25.25h1.938a.249.249 0 0 0-.057-.094L9.625 1.557A.25.25 0 0 0 9.5 1.5Z"/></svg>
+  </div>
+  <div class="ld-entity-c">
+   <div class="ld-entity-name">LIVE_edu_safe_v1</div>
+   <div class="ld-entity-meta">List ID: list_live_edu_white_v1<br/>List Key: 7426674482939953801</div>
+  </div>
+ </div>
+
+ <div class="ld-stats">
+  <div class="ld-stat"><div class="ld-stat-v">2</div><div class="ld-stat-k">Business Scenarios</div></div>
+  <div class="ld-stat"><div class="ld-stat-v">2</div><div class="ld-stat-k">Active Strategies</div></div>
+  <div class="ld-stat"><div class="ld-stat-v">2</div><div class="ld-stat-k">Active Rule Groups</div></div>
+ </div>
+
+ <div class="ld-body">
+
+  <!-- Business Scenario 1 -->
+  <div class="ld-section">
+   <div class="bs-header cascade" data-target="bs1">
+    <span class="bs-label">Business Scenario</span>
+    <span class="bs-name">· Eco-governance</span>
+    <span class="arr">▾</span>
+   </div>
+   <div class="collapsible" id="bs1">
+    <div class="ld-card">
+     <div class="ld-version cascade" data-target="ver1">
+      <div class="ld-version-ico">
+       <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A.75.75 0 0 1 11 9.25v.878a2.25 2.25 0 1 0 1.5 0V9.25A2.25 2.25 0 0 0 10.25 7h-4.5a.75.75 0 0 1-.75-.75v-.878ZM8 12.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"/></svg>
+      </div>
+      <div class="ld-version-c">
+       <div class="ld-version-title"><span class="label-chip">Version</span>Edu-content false-positive mitigation for live audit</div>
+       <div class="ld-version-meta">Ver: 2.1 · ID: 7638780796774681360</div>
+      </div>
+      <span class="arr">▾</span>
+     </div>
+     <div class="collapsible" id="ver1">
+      <div class="ld-canvas-row cascade" data-target="cv1">
+       <div class="ld-bullet"></div>
+       <div class="ld-row-l"><span class="label-chip">Canvas</span><span class="ld-row-name">Eco Live Detection Canvas</span></div>
+       <span class="arr">▾</span>
+      </div>
+      <div class="collapsible" id="cv1">
+       <div class="ld-node-row cascade" data-target="nd1">
+        <div class="ld-bullet"></div>
+        <div class="ld-row-l"><span class="label-chip">Node</span><span class="ld-row-name">Real-time Detection Recall</span></div>
+        <span class="arr">▾</span>
+       </div>
+       <div class="collapsible" id="nd1">
+        <div class="ld-rg-row">
+         <div class="ld-bullet"></div>
+         <div class="ld-row-l"><span class="label-chip">Rule Group</span><span class="ld-row-name">Edu Safe Terms · Recall Group</span><span class="ld-row-meta"><span class="ord">Exec. Order 2</span> · <span class="live">Active</span></span></div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <!-- Business Scenario 2 -->
+  <div class="ld-section">
+   <div class="bs-header cascade" data-target="bs2">
+    <span class="bs-label">Business Scenario</span>
+    <span class="bs-name">· Just for Recall</span>
+    <span class="arr">▾</span>
+   </div>
+   <div class="collapsible" id="bs2">
+    <div class="ld-card">
+     <div class="ld-version cascade" data-target="ver2">
+      <div class="ld-version-ico">
+       <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A.75.75 0 0 1 11 9.25v.878a2.25 2.25 0 1 0 1.5 0V9.25A2.25 2.25 0 0 0 10.25 7h-4.5a.75.75 0 0 1-.75-.75v-.878ZM8 12.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"/></svg>
+      </div>
+      <div class="ld-version-c">
+       <div class="ld-version-title"><span class="label-chip">Version</span>Edu recall pool exemption</div>
+       <div class="ld-version-meta">Ver: 1.2 · ID: 7638780796774681364</div>
+      </div>
+      <span class="arr">▾</span>
+     </div>
+     <div class="collapsible" id="ver2">
+      <div class="ld-canvas-row cascade" data-target="cv2">
+       <div class="ld-bullet"></div>
+       <div class="ld-row-l"><span class="label-chip">Canvas</span><span class="ld-row-name">Recall Pool Canvas</span></div>
+       <span class="arr">▾</span>
+      </div>
+      <div class="collapsible" id="cv2">
+       <div class="ld-node-row cascade" data-target="nd2">
+        <div class="ld-bullet"></div>
+        <div class="ld-row-l"><span class="label-chip">Node</span><span class="ld-row-name">Recall Aggregation</span></div>
+        <span class="arr">▾</span>
+       </div>
+       <div class="collapsible" id="nd2">
+        <div class="ld-rg-row">
+         <div class="ld-bullet"></div>
+         <div class="ld-row-l"><span class="label-chip">Rule Group</span><span class="ld-row-name">Edu Recall Exemption Group</span><span class="ld-row-meta"><span class="ord">Exec. Order 1</span> · <span class="live">Active</span></span></div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+ </div>
+</aside>
+
+<!-- Lark toast -->
+<div class="lark-toast" id="lark">
+ <div class="lt-ico">L</div>
+ <div class="lt-c">
+  <div class="lt-h" id="lark-h">Lark Notification</div>
+  <div class="lt-msg" id="lark-msg"></div>
+ </div>
+</div>
+
+<script>
+/* ===== Lark toast ===== */
+let larkTimer = null;
+function showLark(head, msg, dur){
+ const el = document.getElementById('lark');
+ document.getElementById('lark-h').textContent = head;
+ document.getElementById('lark-msg').innerHTML = msg;
+ el.classList.add('show');
+ clearTimeout(larkTimer);
+ larkTimer = setTimeout(()=>el.classList.remove('show'), dur || 2600);
+}
+
+/* ===== List ID click-copy ===== */
+document.getElementById('list-id').addEventListener('click', function(){
+ const key = this.dataset.copy;
+ if (navigator.clipboard) navigator.clipboard.writeText(key).catch(()=>{});
+ this.classList.add('copied');
+ showLark('List ID Copied', `<b>${key}</b> copied to clipboard`, 2400);
+ setTimeout(()=>this.classList.remove('copied'), 1800);
+});
+
+/* ===== Entries filter: Source Lang dropdown + keyword search ===== */
+// List Configuration · collapsible · default collapsed
+const lcfgToggle = document.getElementById('lcfg-toggle');
+const lcfgWrap = document.getElementById('lcfg-wrap');
+if (lcfgToggle && lcfgWrap) {
+ lcfgToggle.addEventListener('click', () => {
+  const open = lcfgWrap.classList.toggle('open');
+  const hint = lcfgToggle.querySelector('.lcfg-hint');
+  if (hint) hint.textContent = open ? 'click to collapse' : 'click to expand';
+ });
+}
+
+let currentLang = 'all';
+
+// (Entry filter / search dropdowns removed — section is now a 6-row per-language summary
+//  sorted by Ron's priority excel · no client-side filtering needed.)
+// Keep generic .filter-dd toggle handler in case any other dropdown uses it.
+document.querySelectorAll('.filter-dd').forEach(dd => {
+ const trigger = dd.querySelector('span');
+ if (!trigger) return;
+ trigger.addEventListener('click', e => {
+  e.stopPropagation();
+  document.querySelectorAll('.filter-dd.open').forEach(o => { if (o !== dd) o.classList.remove('open'); });
+  dd.classList.toggle('open');
+ });
+});
+document.addEventListener('click', () => document.querySelectorAll('.filter-dd.open').forEach(o => o.classList.remove('open')));
+
+/* ===== Export CSV (demo) ===== */
+function exportEntries(){
+ showLark('Export Started', '<b>LIVE_edu_safe_v1</b> · 10 entries exported as CSV', 2600);
+}
+
+/* ===== Lineage drawer ===== */
+function openDrawer(){
+ document.getElementById('drawer').classList.add('open');
+ document.getElementById('lineage-backdrop').classList.add('show');
+ const first = document.querySelector('.bs-header[data-target="bs1"]');
+ if (first && !first.classList.contains('expanded')) first.click();
+}
+function closeDrawer(){
+ document.getElementById('drawer').classList.remove('open');
+ document.getElementById('lineage-backdrop').classList.remove('show');
+}
+
+/* cascade expand/collapse */
+document.querySelectorAll('.cascade').forEach(h => {
+ h.addEventListener('click', e => {
+  e.stopPropagation();
+  const target = document.getElementById(h.dataset.target);
+  if (!target) return;
+  const open = target.classList.toggle('show');
+  h.classList.toggle('expanded', open);
+ });
+});
+
+/* Active only toggle (demo: all refs already active, toast explains) */
+document.getElementById('active-toggle').addEventListener('click', () => {
+ const sw = document.getElementById('active-switch');
+ sw.classList.toggle('off');
+ const on = !sw.classList.contains('off');
+ showLark('Lineage Filter', on ? 'Showing <b>Active</b> reference chains' : 'Showing <b>all</b> reference chains', 2200);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Feature Platform · Submit for Review (Owner) · v0.1</title>
+<style>
+:root{
+ --bg-page:#F4F6FA; --bg-card:#FFFFFF; --bg-soft:#F8F9FC; --bg-softer:#FAFBFC;
+ --border:#E5E8EE; --border-soft:#EEF0F4;
+ --text-primary:#1F2937; --text-secondary:#5A6373; --text-muted:#6B7280;
+ --link:#2563EB; --link-hover:#1D4FCF;
+ --green:#10B981; --green-bg:#D1FAE5; --green-text:#047857;
+ --amber:#F59E0B; --amber-bg:#FEF3C7; --amber-text:#92400E;
+ --red:#EF4444; --red-bg:#FEE2E2; --red-text:#991B1B;
+ --sidebar:linear-gradient(180deg,#4F8DEC 0%,#1E3A8A 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-page);color:var(--text-primary);font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,sans-serif;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--link-hover);text-decoration:underline}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+
+.sidebar{background:var(--sidebar);color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.brand-logo{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff 0%,#A7C5FF 60%,#3B5DDF 100%);display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800;font-size:14px}
+.brand-name{font-weight:700;font-size:15px;letter-spacing:0.2px}
+.brand-name small{display:block;font-weight:500;font-size:10.5px;opacity:.75;margin-top:1px}
+.nav-section{font-size:10px;letter-spacing:.5px;text-transform:uppercase;opacity:.55;margin:14px 4px 6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:#dbe6ff;cursor:pointer;margin-bottom:1px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.nav-sub{padding-left:18px;font-size:11.5px;opacity:.85;margin-top:2px}
+.nav-sub .nav-item{padding:5px 9px}
+.nav-sub .nav-item.active{background:rgba(255,255,255,.22);color:#fff;font-weight:700}
+
+.main{padding:0;background:var(--bg-page);position:relative}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#fff;border-bottom:1px solid var(--border)}
+.crumb{font-size:12.5px;color:var(--text-muted)}
+.crumb b{color:var(--text-primary);font-weight:600}
+.crumb .role-tag{margin-left:8px;font-size:9.5px;font-weight:700;background:var(--link);color:#fff;padding:1px 6px;border-radius:3px;letter-spacing:.4px}
+.topbar-right{display:flex;align-items:center;gap:14px;color:var(--text-muted);font-size:12px}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A7C5FF,#3B5DDF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+.canvas{padding:24px 28px 60px;position:relative}
+
+.frame-label{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:var(--link);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.frame-label .dot{width:6px;height:6px;border-radius:50%;background:#34D399}
+
+.page-head{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:14px}
+.page-head-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.page-head-l{display:flex;align-items:center;gap:10px}
+.back-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--bg-soft);color:var(--text-secondary);cursor:pointer;font-size:14px}
+.back-btn:hover{background:var(--border);color:var(--text-primary)}
+.page-title{font-size:17px;font-weight:700;color:var(--text-primary);letter-spacing:-.1px}
+.page-title small{color:var(--text-muted);font-weight:500;margin-left:8px;font-family:'JetBrains Mono',Menlo,monospace;font-size:12px}
+.page-meta{display:flex;flex-wrap:wrap;gap:6px 24px;font-size:12px}
+.page-meta .pm-k{color:var(--text-muted);font-weight:600;margin-right:6px}
+.page-meta .pm-v{color:var(--text-primary);font-weight:500}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text-primary)}
+.btn:hover{background:var(--bg-soft)}
+.btn-p{background:var(--link);color:#fff;border-color:var(--link)}
+.btn-p:hover{background:var(--link-hover)}
+.btn-sm{padding:5px 9px;font-size:11.5px}
+
+.stages{display:flex;align-items:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 22px;margin-bottom:14px}
+.stage{display:flex;align-items:center;gap:10px;flex:1}
+.stage:last-child{flex:0 0 auto}
+.stage-num{flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--bg-soft);color:var(--text-muted);font-weight:700;font-size:11px;border:1px solid var(--border)}
+.stage-name{font-size:13px;font-weight:600;color:var(--text-secondary)}
+.stage-line{flex:1;height:2px;background:var(--border-soft);margin:0 8px;border-radius:2px}
+.stage.done .stage-num{background:var(--green-bg);color:var(--green-text);border-color:var(--green)}
+.stage.done .stage-name{color:var(--green-text)}
+.stage.done .stage-line{background:var(--green)}
+.stage.active .stage-num{background:var(--link);color:#fff;border-color:var(--link)}
+.stage.active .stage-name{color:var(--link);font-weight:700}
+
+.subm-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:14px}
+.subm-sec{margin-bottom:22px}
+.subm-sec:last-child{margin-bottom:0}
+.subm-sec h4{font-size:11.5px;font-weight:700;color:var(--text-primary);margin-bottom:11px;letter-spacing:.3px;padding-bottom:8px;border-bottom:1px solid var(--border-soft);text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.subm-sec h4 .req{color:var(--red)}
+.subm-row{display:grid;grid-template-columns:140px 1fr;gap:10px 18px;margin-bottom:9px;font-size:12.5px;align-items:start}
+.subm-row .k{color:var(--text-muted);font-weight:600;padding-top:7px}
+.subm-row .v{color:var(--text-primary);font-weight:500;padding-top:7px}
+.subm-row .v.mono{font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px}
+.subm-row .v .chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;line-height:1.5}
+
+.rv-dd{position:relative;width:100%;max-width:480px}
+.rv-trigger{display:flex;align-items:center;gap:11px;padding:9px 12px;background:#fff;border:1px solid var(--border);border-radius:7px;cursor:pointer}
+.rv-trigger:hover{border-color:var(--link)}
+.rv-trigger.empty{color:var(--text-muted);font-weight:500;font-size:12.5px}
+.rv-trigger .rv-ava{flex:none;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A7C5FF,#3B5DDF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.rv-trigger .rv-c{flex:1;display:flex;flex-direction:column;min-width:0}
+.rv-trigger .rv-n{font-size:13px;font-weight:600;color:var(--text-primary)}
+.rv-trigger .rv-r{font-size:11px;color:var(--text-muted)}
+.rv-trigger .rv-caret{flex:none;color:var(--text-muted);font-size:11px;margin-left:4px}
+.rv-dd.open .rv-trigger{border-color:var(--link);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.rv-panel{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.12);padding:6px;z-index:15;max-height:320px;overflow-y:auto}
+.rv-dd.open .rv-panel{display:block}
+.rv-search{padding:6px 9px;background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;width:100%;font-size:12px;color:var(--text-primary);font-family:inherit;margin-bottom:5px}
+.rv-search:focus{outline:none;border-color:var(--link)}
+.rv-group-h{font-size:9.5px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;padding:8px 9px 4px}
+.rv-opt{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:5px;cursor:pointer}
+.rv-opt:hover{background:var(--bg-softer)}
+.rv-opt.on{background:#EFF6FF}
+.rv-opt .rv-ava{width:24px;height:24px;font-size:10px}
+.rv-opt .rv-c{flex:1;min-width:0}
+.rv-opt .rv-n{font-size:12.5px;font-weight:600;color:var(--text-primary)}
+.rv-opt .rv-r{font-size:11px;color:var(--text-muted)}
+.rv-opt .rv-tags{flex:none;display:flex;gap:4px}
+.rv-tag{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.3px;text-transform:uppercase}
+.rv-tag.rec{background:var(--green-bg);color:var(--green-text)}
+.rv-tag.lead{background:#F3E8FF;color:#6D28D9}
+.rv-tag.platform{background:var(--amber-bg);color:var(--amber-text)}
+.rv-opt .rv-check{flex:none;color:var(--link);font-weight:700;font-size:14px;visibility:hidden}
+.rv-opt.on .rv-check{visibility:visible}
+.rv-opt.disabled{opacity:.45;cursor:not-allowed}
+
+.subm-hint{font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.55}
+.subm-hint b{color:var(--text-secondary);font-weight:600}
+
+.subm-ta{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;font-family:inherit;resize:vertical;color:var(--text-primary)}
+.subm-ta:focus{outline:none;border-color:var(--link);box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+.subm-counter{display:flex;justify-content:flex-end;font-size:11px;color:var(--text-muted);margin-top:4px}
+
+.subm-foot{padding:14px 22px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;gap:8px;margin:18px -22px -22px;border-radius:0 0 12px 12px}
+.subm-foot .sf-l{font-size:11.5px;color:var(--text-muted)}
+.subm-foot .sf-r{display:flex;gap:8px}
+
+/* ============================================================
+   Active-Edit mode · ?mode=active-edit
+   Replaces "Change Summary" metadata with diff chip summary
+   ============================================================ */
+.ae-chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.ae-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:700;letter-spacing:.2px}
+.ae-chip .aec-n{font-family:'JetBrains Mono',Menlo,monospace;font-size:13px;font-weight:800}
+.ae-chip-add{background:#D1FAE5;color:#047857;border:1px solid #6EE7B7}
+.ae-chip-del{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+.ae-chip-mod{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+.ae-change-list{margin-top:10px;border:1px solid var(--border-soft);border-radius:7px;overflow:hidden}
+.ae-change-list table{width:100%;border-collapse:collapse;font-size:11.5px}
+.ae-change-list thead th{padding:7px 11px;background:var(--bg-softer);color:var(--text-secondary);font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--border-soft)}
+.ae-change-list tbody td{padding:7px 11px;border-bottom:1px solid var(--border-soft);vertical-align:top}
+.ae-change-list tbody tr:last-child td{border-bottom:none}
+.ae-cl-num{width:34px;font-family:'JetBrains Mono',Menlo,monospace;color:var(--text-muted)}
+.ae-cl-badge{display:inline-flex;align-items:center;font-size:9.5px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:3px;text-transform:uppercase}
+.ae-cl-badge-new{background:#047857;color:#fff}
+.ae-cl-badge-del{background:#991B1B;color:#fff}
+.ae-cl-badge-mod{background:#92400E;color:#fff}
+.ae-row-add td{background:#D1FAE5}
+.ae-row-del td{background:#FEE2E2}
+.ae-row-del .ae-src{text-decoration:line-through;text-decoration-color:#991B1B}
+.ae-row-mod td{background:#FEF3C7}
+.ae-old-new{display:flex;flex-direction:column;gap:2px}
+.ae-old-new .aon-old{color:#9CA3AF;text-decoration:line-through;font-size:11px}
+.ae-old-new .aon-new{color:var(--text-primary);font-weight:600}
+.ae-rules-banner{margin-top:10px;padding:9px 12px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:7px;font-size:12px;color:#1D4ED8;display:flex;align-items:center;gap:8px}
+.ae-rules-banner svg{flex:none}
+.ae-rules-banner b{font-weight:700}
+
+/* Submit confirmation modal */
+.cm-mask{display:none;position:fixed;inset:0;background:rgba(15,23,42,.42);z-index:80;align-items:center;justify-content:center;padding:18px}
+.cm-mask.show{display:flex}
+.cm-modal{background:#fff;width:100%;max-width:540px;border-radius:12px;box-shadow:0 18px 48px rgba(15,23,42,.22);overflow:hidden}
+.cm-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border-soft)}
+.cm-h .cm-title{font-size:14px;font-weight:700;color:var(--text-primary)}
+.cm-x{width:24px;height:24px;border-radius:5px;background:transparent;color:var(--text-muted);font-size:14px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.cm-x:hover{background:var(--bg-soft);color:var(--text-primary)}
+.cm-b{padding:16px 18px;font-size:13px;color:var(--text-primary);line-height:1.7}
+.cm-b b{font-weight:700}
+.cm-summary{margin-top:10px;padding:10px 12px;background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:7px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cm-foot{padding:12px 18px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:flex-end;gap:8px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+ <div class="brand">
+  <div class="brand-logo">a</div>
+  <div class="brand-name">arena<small>Global</small></div>
+ </div>
+ <div class="nav-section">Workspace</div>
+ <div class="nav-item">Discover</div>
+ <div class="nav-item">Host Center</div>
+ <div class="nav-item">Resource Hub</div>
+ <div class="nav-item">LIVE Hub</div>
+ <div class="nav-item active">Ecosystem</div>
+ <div class="nav-sub">
+  <div class="nav-item">Strategic Configuration</div>
+  <div class="nav-item">Strategic Monitor</div>
+  <div class="nav-item active">Feature Center</div>
+ </div>
+ <div class="nav-section">Guardrail</div>
+ <div class="nav-item active">List Management</div>
+ <div class="nav-item">Detection Item Config</div>
+ <div class="nav-item">Hit Analysis</div>
+ <div class="nav-section">Quick Access</div>
+ <div class="nav-item">Go LIVE</div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <div class="crumb">Ecosystem / TRIDENT (IDSP) / Feature Center / Guardrail / <a href="feature-platform-word-list-prototype-v0.3.html">List Management</a> / <b>Submit for Review</b><span class="role-tag">OWNER VIEW</span></div>
+  <div class="topbar-right">
+   <span>YG</span>
+   <div class="avatar">YG</div>
+  </div>
+ </header>
+
+ <div class="canvas">
+
+  <span class="frame-label"><span class="dot"></span>FRAME F3 · SUBMIT FOR REVIEW · OWNER VIEW</span>
+
+  <div class="page-head">
+   <div class="page-head-top">
+    <div class="page-head-l">
+     <a class="back-btn" href="feature-platform-word-list-prototype-v0.3.html">←</a>
+     <div>
+      <div class="page-title">Submit for Review <small>· LIVE_PCF_gift_solicitation_v2</small></div>
+     </div>
+    </div>
+   </div>
+   <div class="page-meta">
+    <span><span class="pm-k">Owner</span><span class="pm-v">@ymgao (you)</span></span>
+    <span><span class="pm-k">Change Type</span><span class="pm-v">Create New List</span></span>
+    <span><span class="pm-k">Current Status</span><span class="pm-v" style="color:var(--link);font-weight:700">Ready for Review</span></span>
+   </div>
+  </div>
+
+  <div class="stages">
+   <div class="stage active"><span class="stage-num">1</span><span class="stage-name">Submit Change</span></div>
+   <div class="stage-line-wrap" style="flex:1;display:flex"><span class="stage-line"></span></div>
+   <div class="stage"><span class="stage-num">2</span><span class="stage-name">Auto Check</span></div>
+   <div class="stage-line-wrap" style="flex:1;display:flex"><span class="stage-line"></span></div>
+   <div class="stage"><span class="stage-num">3</span><span class="stage-name">Reviewer Approval</span></div>
+   <div class="stage-line-wrap" style="flex:1;display:flex"><span class="stage-line"></span></div>
+   <div class="stage"><span class="stage-num">4</span><span class="stage-name">Live (Active)</span></div>
+  </div>
+
+  <div class="subm-card">
+
+   <section class="subm-sec">
+    <h4>Change Summary</h4>
+    <div class="subm-row"><span class="k">List Name</span><span class="v mono">LIVE_PCF_gift_solicitation_v2</span></div>
+    <div class="subm-row"><span class="k">List ID</span><span class="v mono">list_live_pcf_gift_v2</span></div>
+    <div class="subm-row"><span class="k">Match Mode</span><span class="v">Fuzzy Match</span></div>
+    <div class="subm-row"><span class="k">Source Terms</span><span class="v">7 raw terms · 6 input languages</span></div>
+    <div class="subm-row"><span class="k">Master Output</span><span class="v">3 unique English entries (after dedup)</span></div>
+    <div class="subm-row"><span class="k">Translation Agent</span><span class="v">Yes (AI v1.2.0)</span></div>
+    <div class="subm-row"><span class="k">Edit Permission</span><span class="v">Editing</span></div>
+   </section>
+
+   <section class="subm-sec">
+    <h4>Reviewer Assignment <span class="req">*</span></h4>
+    <div class="rv-dd" id="rv-dd">
+     <div class="rv-trigger empty" id="rv-trigger">
+      <span>Choose a reviewer...</span>
+      <span class="rv-caret" style="margin-left:auto">▾</span>
+     </div>
+     <div class="rv-panel" id="rv-panel">
+      <input class="rv-search" placeholder="Search reviewer by name or role..." />
+      <div class="rv-group-h">Recommended for this scenario</div>
+      <div class="rv-opt" data-name="@lzwang" data-role="Team Lead · Eco-governance" data-init="LZ">
+       <span class="rv-ava" style="background:linear-gradient(135deg,#C4B5FD,#8B5CF6)">LZ</span>
+       <div class="rv-c"><div class="rv-n">@lzwang</div><div class="rv-r">Team Lead · Eco-governance</div></div>
+       <div class="rv-tags"><span class="rv-tag rec">Recommended</span><span class="rv-tag lead">Team Lead</span></div>
+       <span class="rv-check">✓</span>
+      </div>
+      <div class="rv-opt" data-name="@rdyang" data-role="Senior PM · Live Content" data-init="RY">
+       <span class="rv-ava" style="background:linear-gradient(135deg,#FCD34D,#F59E0B)">RY</span>
+       <div class="rv-c"><div class="rv-n">@rdyang</div><div class="rv-r">Senior PM · Live Content</div></div>
+       <div class="rv-tags"><span class="rv-tag rec">Recommended</span></div>
+       <span class="rv-check">✓</span>
+      </div>
+      <div class="rv-group-h">Other Team Members</div>
+      <div class="rv-opt" data-name="@hxyzhao" data-role="PM · LIVE Trust & Safety" data-init="HZ">
+       <span class="rv-ava" style="background:linear-gradient(135deg,#86EFAC,#10B981)">HZ</span>
+       <div class="rv-c"><div class="rv-n">@hxyzhao</div><div class="rv-r">PM · LIVE Trust &amp; Safety</div></div>
+       <span class="rv-check">✓</span>
+      </div>
+      <div class="rv-opt" data-name="@platform-admin" data-role="Platform Admin · Policy Pack" data-init="PA">
+       <span class="rv-ava" style="background:linear-gradient(135deg,#FDA4AF,#F43F5E)">PA</span>
+       <div class="rv-c"><div class="rv-n">@platform-admin</div><div class="rv-r">Platform Admin · Policy Pack</div></div>
+       <div class="rv-tags"><span class="rv-tag platform">Platform</span></div>
+       <span class="rv-check">✓</span>
+      </div>
+      <div class="rv-group-h">Cannot Review (You)</div>
+      <div class="rv-opt disabled" title="Cannot self-review">
+       <span class="rv-ava">YG</span>
+       <div class="rv-c"><div class="rv-n">@ymgao</div><div class="rv-r">Owner · cannot self-review</div></div>
+      </div>
+     </div>
+    </div>
+   </section>
+
+   <section class="subm-sec">
+    <h4>Comment to Reviewer <span style="color:var(--text-muted);font-weight:500;font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></h4>
+    <textarea class="subm-ta" id="subm-comment" rows="4" maxlength="500" placeholder="Add context for the reviewer — what changed, why, any references (Meego / Lark links). Helps the reviewer respond faster."></textarea>
+    <div class="subm-counter"><span id="subm-counter">0</span> / 500</div>
+   </section>
+
+   <div class="subm-foot">
+    <span class="sf-l"></span>
+    <div class="sf-r">
+     <a class="btn btn-sm" href="feature-platform-word-list-prototype-v0.3.html" style="text-decoration:none">Cancel</a>
+     <button class="btn btn-p btn-sm" id="subm-go" disabled style="opacity:.5;cursor:not-allowed">Submit for Review</button>
+    </div>
+   </div>
+  </div>
+
+ </div>
+</main>
+</div>
+
+<!-- Submit confirmation modal · used in ?mode=active-edit -->
+<div class="cm-mask" id="cm-mask">
+ <div class="cm-modal">
+  <div class="cm-h">
+   <span class="cm-title">Submit changes for review</span>
+   <button class="cm-x" id="cm-x">✕</button>
+  </div>
+  <div class="cm-b">
+   You're about to submit <b id="cm-count">6 changes</b> to <b id="cm-list">NSA Sensitive Terms · LIVE_R3</b>.
+   <div class="cm-summary">
+    <span class="ae-chip ae-chip-add">＋ <span class="aec-n" id="cm-add">3</span>&nbsp;Added</span>
+    <span class="ae-chip ae-chip-del">− <span class="aec-n" id="cm-del">1</span>&nbsp;Removed</span>
+    <span class="ae-chip ae-chip-mod">~ <span class="aec-n" id="cm-mod">2</span>&nbsp;Modified</span>
+   </div>
+  </div>
+  <div class="cm-foot">
+   <button class="btn btn-sm" id="cm-cancel">Cancel</button>
+   <button class="btn btn-p btn-sm" id="cm-confirm">Confirm Submit</button>
+  </div>
+ </div>
+</div>
+
+<script>
+// ============================================================
+// Canonical change-request schema · matches v0.3 main + reviewer page
+// ============================================================
+const PENDING_REVISION_KEY = 'wordListPendingRevision';
+const CHANGE_REQUEST = {
+  list_id: "wl-active-r1",
+  list_name: "NSA Sensitive Terms · LIVE_R3",
+  owner: "@ymgao",
+  rules_affected_count: 3,
+  changes: [
+    {op:"add", source:"极端宣传内容", master_en:"extreme propaganda content"},
+    {op:"add", source:"煽动暴力", master_en:"incite violence"},
+    {op:"add", source:"恐怖主义图像", master_en:"terrorism imagery"},
+    {op:"delete", source:"暴恐", master_en:"violent terror"},
+    {op:"modify", source:"恶意炒作", old:"炒作", new:"恶意炒作", master_en_old:"speculation", master_en_new:"malicious speculation"},
+    {op:"modify", source:"恶意煽动", old:"煽动", new:"恶意煽动", master_en_old:"incitement", master_en_new:"malicious incitement"}
+  ]
+};
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Active-Edit mode: ?mode=active-edit rewrites this page to be the Active inline-edit submission flow
+  const params = new URLSearchParams(window.location.search);
+  const isActiveEdit = params.get('mode') === 'active-edit';
+
+  if (isActiveEdit) {
+    // 1. Frame label + title + meta
+    const frameLabel = document.querySelector('.frame-label');
+    if (frameLabel) frameLabel.innerHTML = '<span class="dot"></span>FRAME F3 · SUBMIT CHANGES FOR REVIEW · OWNER VIEW';
+    const pageTitle = document.querySelector('.page-title');
+    if (pageTitle) pageTitle.innerHTML = `Submit Changes for Review <small>· ${escapeHtml(CHANGE_REQUEST.list_name)}</small>`;
+    const pageMeta = document.querySelector('.page-meta');
+    if (pageMeta) {
+      pageMeta.innerHTML =
+        `<span><span class="pm-k">Owner</span><span class="pm-v">${escapeHtml(CHANGE_REQUEST.owner)} (you)</span></span>` +
+        `<span><span class="pm-k">Change Type</span><span class="pm-v">Edit Active List · ${CHANGE_REQUEST.changes.length} term changes</span></span>` +
+        `<span><span class="pm-k">Current Status</span><span class="pm-v" style="color:var(--green-text);font-weight:700">● Active (Online)</span></span>` +
+        `<span><span class="pm-k">Rules Affected</span><span class="pm-v">${CHANGE_REQUEST.rules_affected_count}</span></span>`;
+    }
+
+    // 2. Replace Change Summary metadata rows with diff chips + change-list table
+    const summarySec = document.querySelector('.subm-sec');
+    if (summarySec) {
+      const counts = CHANGE_REQUEST.changes.reduce((acc, c) => { acc[c.op] = (acc[c.op] || 0) + 1; return acc; }, {});
+      const cAdd = counts.add || 0, cDel = counts.delete || 0, cMod = counts.modify || 0;
+      const OP_BADGE = { add: 'ae-cl-badge-new', delete: 'ae-cl-badge-del', modify: 'ae-cl-badge-mod' };
+      const OP_LABEL = { add: 'NEW', delete: 'DELETE', modify: 'EDIT' };
+      const OP_ROW   = { add: 'ae-row-add', delete: 'ae-row-del', modify: 'ae-row-mod' };
+
+      const sourceCell = (c) => c.op === 'modify'
+        ? `<div class="ae-old-new"><span class="aon-old">${escapeHtml(c.old)}</span><span class="aon-new">${escapeHtml(c.new)}</span></div>`
+        : `<span class="ae-src">${escapeHtml(c.source)}</span>`;
+      const enCell = (c) => c.op === 'modify'
+        ? `<div class="ae-old-new"><span class="aon-old">${escapeHtml(c.master_en_old)}</span><span class="aon-new">${escapeHtml(c.master_en_new)}</span></div>`
+        : `<span style="font-style:italic;color:var(--text-secondary)">${escapeHtml(c.master_en)}</span>`;
+
+      const rows = CHANGE_REQUEST.changes.map((c, i) => `<tr class="${OP_ROW[c.op]}">`
+        + `<td class="ae-cl-num">${i + 1}</td>`
+        + `<td>${sourceCell(c)}</td>`
+        + `<td>${enCell(c)}</td>`
+        + `<td><span class="ae-cl-badge ${OP_BADGE[c.op]}">${OP_LABEL[c.op]}</span></td>`
+        + `</tr>`).join('');
+
+      summarySec.innerHTML =
+        `<h4>Change Summary <span style="color:var(--text-muted);font-weight:500;font-size:10px;text-transform:none;letter-spacing:0;margin-left:auto">${CHANGE_REQUEST.changes.length} term changes</span></h4>`
+        + `<div class="ae-chips">`
+        + `<span class="ae-chip ae-chip-add">＋ <span class="aec-n">${cAdd}</span>&nbsp;Added</span>`
+        + `<span class="ae-chip ae-chip-del">− <span class="aec-n">${cDel}</span>&nbsp;Removed</span>`
+        + `<span class="ae-chip ae-chip-mod">~ <span class="aec-n">${cMod}</span>&nbsp;Modified</span>`
+        + `</div>`
+        + `<div class="ae-change-list"><table><thead><tr><th class="ae-cl-num">#</th><th>Source</th><th>Master EN</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+
+    // 3. Update breadcrumb + footer hint
+    const crumb = document.querySelector('.crumb');
+    if (crumb) crumb.innerHTML = `Ecosystem / TRIDENT (IDSP) / Feature Center / Guardrail / <a href="feature-platform-word-list-prototype-v0.3.html">List Management</a> / <b>Submit Changes for Review</b><span class="role-tag">OWNER VIEW</span>`;
+    const sfL = document.querySelector('.subm-foot .sf-l');
+    if (sfL) sfL.textContent = '';
+
+    // 4. Hydrate confirmation modal with current data
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const cAdd2 = CHANGE_REQUEST.changes.filter(c => c.op === 'add').length;
+    const cDel2 = CHANGE_REQUEST.changes.filter(c => c.op === 'delete').length;
+    const cMod2 = CHANGE_REQUEST.changes.filter(c => c.op === 'modify').length;
+    setText('cm-count', `${CHANGE_REQUEST.changes.length} changes`);
+    setText('cm-list', CHANGE_REQUEST.list_name);
+    setText('cm-rules', `${CHANGE_REQUEST.rules_affected_count} rules`);
+    setText('cm-add', cAdd2); setText('cm-del', cDel2); setText('cm-mod', cMod2);
+  }
+
+  const rvDd = document.getElementById('rv-dd');
+  const rvTrigger = document.getElementById('rv-trigger');
+  const submGo = document.getElementById('subm-go');
+  let selectedReviewer = '';
+
+  if (rvDd && rvTrigger) {
+    rvTrigger.addEventListener('click', (e) => { e.stopPropagation(); rvDd.classList.toggle('open'); });
+    rvDd.querySelectorAll('.rv-opt:not(.disabled)').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        rvDd.querySelectorAll('.rv-opt').forEach(o => o.classList.remove('on'));
+        opt.classList.add('on');
+        const name = opt.dataset.name;
+        const role = opt.dataset.role;
+        const init = opt.dataset.init;
+        const avaStyle = opt.querySelector('.rv-ava').getAttribute('style') || '';
+        rvTrigger.classList.remove('empty');
+        rvTrigger.innerHTML = `<span class="rv-ava" style="${avaStyle}">${init}</span><div class="rv-c"><div class="rv-n">${name}</div><div class="rv-r">${role}</div></div><span class="rv-caret" style="margin-left:auto">▾</span>`;
+        selectedReviewer = name;
+        rvDd.classList.remove('open');
+        if (submGo) { submGo.disabled = false; submGo.style.opacity = '1'; submGo.style.cursor = 'pointer'; }
+      });
+    });
+    document.addEventListener('click', (e) => { if (!rvDd.contains(e.target)) rvDd.classList.remove('open'); });
+  }
+
+  const ta = document.getElementById('subm-comment');
+  const counter = document.getElementById('subm-counter');
+  if (ta && counter) ta.addEventListener('input', () => { counter.textContent = ta.value.length; });
+
+  // Confirmation modal wiring (active-edit only)
+  const cmMask = document.getElementById('cm-mask');
+  const closeCm = () => { if (cmMask) cmMask.classList.remove('show'); };
+  const cmX = document.getElementById('cm-x');
+  const cmCancel = document.getElementById('cm-cancel');
+  const cmConfirm = document.getElementById('cm-confirm');
+  if (cmX) cmX.addEventListener('click', closeCm);
+  if (cmCancel) cmCancel.addEventListener('click', closeCm);
+  if (cmMask) cmMask.addEventListener('click', (e) => { if (e.target === cmMask) closeCm(); });
+  if (cmConfirm) cmConfirm.addEventListener('click', () => {
+    closeCm();
+    alert(`Change request submitted · ${CHANGE_REQUEST.changes.length} changes pending review.`);
+    window.location.href = 'feature-platform-word-list-prototype-v0.3.html';
+  });
+
+  if (submGo) {
+    submGo.addEventListener('click', () => {
+      if (submGo.disabled) return;
+      if (isActiveEdit) {
+        // Active-edit: open double-confirm modal first
+        if (cmMask) cmMask.classList.add('show');
+        return;
+      }
+      // Create-New flow: submit the locked snapshot directly to review.
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const submittedAt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      const payload = {
+        change_type: 'create',
+        list_id: 'list_live_pcf_gift_v2',
+        list_name: 'LIVE_PCF_gift_solicitation_v2',
+        owner: '@ymgao',
+        reviewer: selectedReviewer,
+        submitted_at: submittedAt,
+        rules_affected_count: 0,
+        status: 'pending',
+        changes: [
+          {op:'add', id:'create-a1', source:'regalo falso', master_en:'fake giveaway'},
+          {op:'add', id:'create-a2', source:'ชักชวนให้ส่งของขวัญ', master_en:'gift solicitation'},
+          {op:'add', id:'create-a3', source:'hadiah berbayar', master_en:'paid gift request'}
+        ]
+      };
+      localStorage.setItem(PENDING_REVISION_KEY, JSON.stringify(payload));
+      alert('Submitted for review · status moved to Pending Review · Lark notification sent to ' + selectedReviewer + '.');
+      window.location.href = 'feature-platform-word-list-approval-reviewer-v0.1.html';
+    });
+  }
+});
+</script>
+</body>
+</html>

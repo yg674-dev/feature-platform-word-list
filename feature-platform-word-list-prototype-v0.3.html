@@ -1,0 +1,3128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Feature Platform · List Management · v0.3</title>
+<style>
+:root{
+ --bg-page:#F4F6FA; --bg-card:#FFFFFF; --bg-soft:#F8F9FC; --bg-softer:#FAFBFC;
+ --border:#E5E8EE; --border-soft:#EEF0F4;
+ --text-primary:#1F2937; --text-secondary:#5A6373; --text-muted:#6B7280;
+ --link:#2563EB; --link-hover:#1D4FCF;
+ --green:#10B981; --green-bg:#D1FAE5; --green-text:#047857;
+ --amber:#F59E0B; --amber-bg:#FEF3C7; --amber-text:#92400E;
+ --red:#EF4444; --red-bg:#FEE2E2; --red-text:#991B1B;
+ --sidebar:linear-gradient(180deg,#4F8DEC 0%,#1E3A8A 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-page);color:var(--text-primary);font-family:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,sans-serif;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--link-hover);text-decoration:underline}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+
+.sidebar{background:var(--sidebar);color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.brand-logo{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff 0%,#A7C5FF 60%,#3B5DDF 100%);display:flex;align-items:center;justify-content:center;color:#1E3A8A;font-weight:800;font-size:14px}
+.brand-name{font-weight:700;font-size:15px;letter-spacing:0.2px}
+.brand-name small{display:block;font-weight:500;font-size:10.5px;opacity:.75;margin-top:1px}
+.nav-section{font-size:10px;letter-spacing:.5px;text-transform:uppercase;opacity:.55;margin:14px 4px 6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:#dbe6ff;cursor:pointer;margin-bottom:1px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.nav-sub{padding-left:18px;font-size:11.5px;opacity:.85;margin-top:2px}
+.nav-sub .nav-item{padding:5px 9px}
+.nav-sub .nav-item.active{background:rgba(255,255,255,.22);color:#fff;font-weight:700}
+
+.main{padding:0;background:var(--bg-page);position:relative}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#fff;border-bottom:1px solid var(--border)}
+.crumb{font-size:12.5px;color:var(--text-muted)}
+.crumb b{color:var(--text-primary);font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:14px;color:var(--text-muted);font-size:12px}
+.search{padding:7px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;width:340px;font-size:12px;color:var(--text-muted)}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A7C5FF,#3B5DDF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+.canvas{padding:24px 28px 60px;position:relative}
+
+.frame-label{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:#1F2937;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.frame-label .dot{width:6px;height:6px;border-radius:50%;background:#34D399}
+.frame-title{font-size:18px;font-weight:700;margin-bottom:18px;letter-spacing:-.2px}
+
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 3px rgba(15,23,42,.05);overflow:visible}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text-primary)}
+.btn:hover{background:var(--bg-soft)}
+.btn-p{background:var(--link);color:#fff;border-color:var(--link)}
+.btn-p:hover{background:var(--link-hover)}
+.btn-sm{padding:5px 9px;font-size:11.5px}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border-soft);background:var(--bg-softer)}
+.tb-l{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tb-r{display:flex;align-items:center;gap:6px}
+.filter{padding:6px 10px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-secondary);display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.filter:hover{background:var(--bg-soft)}
+.filter b{color:var(--text-primary);font-weight:600}
+.search-sm{padding:6px 10px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:12px;width:170px;color:var(--text-muted)}
+.tb-action{min-width:96px;justify-content:center;white-space:nowrap}
+.filter-active{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 18px;border-bottom:1px solid var(--border-soft);background:#FBFCFE;font-size:11.5px}
+.fa-label{color:var(--text-muted);font-weight:600;margin-right:4px}
+.fa-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8;border-radius:999px;font-weight:600;font-size:11px}
+.fa-chip .x{color:#1D4ED8;font-size:13px;cursor:pointer;font-weight:400;line-height:1}
+.fa-and{font-size:9.5px;letter-spacing:.6px;color:var(--text-muted);font-weight:700;padding:0 2px}
+.fa-clear{margin-left:auto;color:var(--text-muted);font-size:11px;text-decoration:underline;cursor:pointer}
+
+.table-wrap{overflow:visible}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{text-align:left;padding:10px 14px;background:var(--bg-soft);color:var(--text-secondary);font-weight:600;font-size:11.5px;letter-spacing:.2px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:13px 14px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+tbody tr:hover{background:var(--bg-softer)}
+tbody tr.selected{background:#EEF4FF}
+tbody tr.selected:hover{background:#E4EDFF}
+.libname{font-weight:600;color:var(--text-primary)}
+.libname small{display:block;color:var(--text-muted);font-weight:500;font-size:10.5px;margin-top:2px;font-family:'JetBrains Mono',Menlo,monospace}
+.col-updated{color:var(--text-secondary);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:11.5px}
+
+.chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.5;margin:1px 2px 1px 0;letter-spacing:.1px;white-space:nowrap}
+.chip-blue{background:#DBE8FE;color:#1D4ED8}
+.chip-gray{background:var(--bg-soft);color:var(--text-secondary);border:1px solid var(--border)}
+
+.match-exact{background:#F3F4F6;color:#374151;border:1px solid var(--border)}
+.match-fuzzy{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+
+.status{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600}
+.status .ds{width:6px;height:6px;border-radius:50%}
+.status.ok .ds{background:#10B981}
+.status.draft .ds{background:transparent;border:1.5px solid #9CA3AF;width:7px;height:7px}
+.status.ok{color:#047857}
+.status.draft{color:#6B7280}
+
+/* lineage pill button (drawer icon) */
+.scenario-cell{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lineage-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:22px;border-radius:11px;background:#EEF4FF;border:1px solid #BFDBFE;color:#1D4ED8;cursor:pointer;transition:background .12s,color .12s,border-color .12s;margin-left:2px}
+.lineage-btn:hover{background:#DBE8FE}
+.lineage-btn.selected{background:var(--link);color:#fff;border-color:var(--link);box-shadow:0 1px 3px rgba(37,99,235,.32)}
+.lineage-btn.inactive{background:var(--bg-soft);border-color:var(--border);color:var(--text-muted);cursor:not-allowed;opacity:.65}
+.lineage-btn svg{width:13px;height:13px;display:block}
+
+/* language column hover popover */
+.lang-cell{position:relative;display:inline-flex;align-items:center;gap:5px;cursor:default;padding:2px 0}
+.lang-cell .lc-count{font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums}
+.lang-cell .lc-tag{color:var(--text-muted);font-size:11px}
+.lang-cell .lc-pop{display:none;position:absolute;left:0;top:calc(100% + 6px);background:#1F2937;color:#fff;padding:10px 12px;border-radius:8px;font-size:11px;z-index:5;width:230px;box-shadow:0 6px 22px rgba(0,0,0,.22)}
+.lang-cell:hover .lc-pop{display:block}
+.lang-cell .lc-pop .lp-title{font-size:10px;color:#94A3B8;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;font-weight:700}
+.lang-cell .lc-pop .lp-row{display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.lang-cell .lc-pop .lp-row:last-child{border:none}
+.lang-cell .lc-pop .lp-code{font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px;color:#A7C5FF;width:36px}
+.lang-cell .lc-pop .lp-name{color:#fff;font-size:11px}
+
+.cell-dash{color:var(--text-muted);font-size:13px;font-variant-numeric:tabular-nums}
+
+/* ===== Details Drawer (hidden by default) ===== */
+.lineage-drawer{position:absolute;right:0;top:0;height:100%;width:460px;background:#fff;border-left:1px solid var(--border);box-shadow:-12px 0 32px rgba(15,23,42,.08);z-index:30;display:none;flex-direction:column;overflow:hidden}
+.lineage-drawer.open{display:flex}
+/* from-details · 从 Details modal 触发时，抽屉 fixed 全屏右侧 · z-index 312 叠在 Details modal（305）上 */
+.lineage-drawer.from-details{position:fixed;right:0;top:0;height:100vh;z-index:312;box-shadow:-20px 0 48px rgba(15,23,42,.22)}
+#lineage-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.18);z-index:311;cursor:pointer}
+#lineage-backdrop.show{display:block}
+
+.ld-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border-soft);background:#fff}
+.ld-head-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text-primary)}
+.ld-head-l .ld-ico{display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+.ld-head-r{display:flex;align-items:center;gap:14px}
+.ld-toggle{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--text-primary);cursor:pointer;user-select:none}
+.ld-switch{position:relative;width:30px;height:16px;border-radius:8px;background:var(--green);transition:.18s background}
+.ld-switch::after{content:"";position:absolute;left:16px;top:1.5px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.18);transition:.18s left}
+.ld-switch.off{background:#9CA3AF}
+.ld-switch.off::after{left:1.5px}
+.ld-x{color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1;padding:2px 6px}
+.ld-x:hover{color:var(--text-primary)}
+
+.ld-entity{padding:14px 18px;border-bottom:1px solid var(--border-soft);display:flex;align-items:flex-start;gap:10px;background:var(--bg-softer)}
+.ld-entity-ico{flex:none;width:28px;height:28px;border-radius:6px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--link)}
+.ld-entity-c{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ld-entity-name{font-size:14px;font-weight:700;color:var(--link)}
+.ld-entity-meta{font-size:10.5px;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;line-height:1.6}
+
+.ld-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border-soft)}
+.ld-stat{display:flex;flex-direction:column;align-items:center;padding:14px 8px;border-right:1px solid var(--border-soft);text-align:center}
+.ld-stat:last-child{border-right:none}
+.ld-stat-v{font-size:22px;font-weight:700;color:var(--text-primary);line-height:1.1}
+.ld-stat-k{font-size:10.5px;color:var(--text-muted);font-weight:600;margin-top:3px;line-height:1.3}
+
+.ld-body{flex:1;overflow:auto;padding:12px 18px 24px}
+
+.ld-section{margin-bottom:12px}
+.ld-section:last-child{margin-bottom:0}
+
+.bs-header{display:flex;align-items:center;gap:6px;padding:6px 0;font-size:10px;font-weight:600;letter-spacing:.3px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;border-bottom:1px solid var(--border-soft);cursor:pointer;user-select:none}
+.bs-header:hover{color:var(--text-secondary)}
+.bs-header .bs-label{color:var(--text-muted)}
+.bs-header .bs-name{color:var(--text-primary);font-weight:700;letter-spacing:.1px;text-transform:none}
+.bs-header .arr{margin-left:auto;color:var(--text-muted);font-size:11px;transition:transform .18s}
+
+.ld-card{background:#fff;border:1px solid var(--border-soft);border-radius:6px;margin-bottom:6px;overflow:hidden}
+
+.ld-version{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;cursor:pointer;user-select:none}
+.ld-version:hover{background:var(--bg-softer)}
+.ld-version-ico{flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);margin-top:1px}
+.ld-version-c{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ld-version-title{display:flex;align-items:flex-start;gap:6px;font-size:12px;font-weight:500;color:var(--text-primary);line-height:1.4}
+.ld-version-title .label-chip{flex:none;margin-top:1px}
+.ld-version-meta{font-size:10.5px;color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;line-height:1.5}
+.arr{flex:none;color:var(--text-muted);font-size:11px;align-self:center;transition:transform .18s}
+
+.label-chip{display:inline-flex;align-items:center;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;background:transparent;color:var(--text-muted);border:1px solid var(--border)}
+
+.ld-canvas-row,.ld-node-row,.ld-rg-row{display:flex;align-items:center;gap:7px;padding:8px 12px;font-size:12px;border-top:1px dashed var(--border-soft);cursor:pointer;user-select:none}
+.ld-canvas-row{padding-left:22px}
+.ld-node-row{padding-left:38px}
+.ld-rg-row{padding-left:54px;cursor:default}
+.ld-canvas-row:hover,.ld-node-row:hover{background:var(--bg-softer)}
+.ld-bullet{flex:none;width:5px;height:5px;border-radius:50%;background:var(--text-muted)}
+.ld-rg-row .ld-bullet{background:#D1D5DB}
+.ld-row-l{flex:1;display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}
+.ld-row-name{font-weight:600;color:var(--text-primary)}
+.ld-row-meta{font-size:10.5px;color:var(--text-muted);display:inline-flex;align-items:center;gap:5px;margin-left:auto}
+.ld-row-meta .ord{color:var(--text-secondary);font-weight:600}
+.ld-row-meta .live{color:var(--green-text);font-weight:700}
+
+/* cascading expand/collapse */
+.collapsible{display:none}
+.collapsible.show{display:block}
+.expanded .arr{transform:rotate(180deg)}
+
+.status.review .ds{background:var(--amber);width:7px;height:7px;animation:pulse 1.4s ease-in-out infinite}
+.status.review{color:var(--amber-text)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+.ver-chip{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px;color:var(--text-secondary);font-weight:600}
+.ver-chip .vc-cur{background:var(--bg-soft);color:var(--text-primary);padding:1px 7px;border-radius:4px;border:1px solid var(--border)}
+.ver-chip .vc-next{background:var(--amber-bg);color:var(--amber-text);padding:1px 7px;border-radius:4px;border:1px solid #F59E0B;font-size:10.5px}
+.ver-chip .vc-arrow{color:var(--text-muted);font-size:11px}
+
+.btn-action-warn{background:#FEF3C7;color:#92400E;border-color:#F59E0B}
+.btn-action-warn:hover{background:#FDE68A}
+
+/* CSV preview popup */
+.popup-mask{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;align-items:center;justify-content:center}
+.popup-mask.show{display:flex}
+.popup{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.30);width:620px;overflow:hidden;animation:popIn .2s ease-out}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.popup-h{padding:14px 20px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}
+.popup-h h4{font-size:14px;font-weight:700}
+.popup-h .x{color:var(--text-muted);font-size:18px;cursor:pointer}
+.popup-b{padding:16px 20px;max-height:60vh;overflow:auto}
+.popup-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;font-size:11.5px}
+.popup-stat{background:var(--bg-softer);padding:8px 12px;border-radius:6px;border:1px solid var(--border-soft)}
+.popup-stat .ps-k{color:var(--text-muted);font-weight:600;font-size:10px;letter-spacing:.3px;text-transform:uppercase;margin-bottom:2px}
+.popup-stat .ps-v{color:var(--text-primary);font-weight:700;font-size:14px}
+.preview-table{width:100%;border:1px solid var(--border);border-radius:6px;font-size:12px}
+.preview-table thead th{background:var(--bg-soft);padding:8px 12px;text-align:left;font-size:11px;color:var(--text-muted);font-weight:700;border-bottom:1px solid var(--border)}
+.preview-table tbody td{padding:7px 12px;border-bottom:1px solid var(--border-soft);font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px}
+.preview-table tbody tr:last-child td{border-bottom:none}
+.popup-f{padding:14px 20px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.popup-f .pf-l{font-size:11.5px;color:var(--text-muted)}
+.popup-f .pf-r{display:flex;gap:8px}
+
+/* Interactive filter dropdown */
+.filter-dd{position:relative}
+.filter-dd-panel{display:none;position:absolute;left:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--border);border-radius:7px;box-shadow:0 8px 24px rgba(15,23,42,.10);padding:5px;min-width:200px;z-index:15}
+.filter-dd.open .filter-dd-panel{display:block}
+.filter-dd-opt{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:5px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text-secondary)}
+.filter-dd-opt:hover{background:var(--bg-soft);color:var(--text-primary)}
+.filter-dd-opt.on{background:#EFF6FF;color:var(--link)}
+.filter-dd-opt .dd-check{margin-left:auto;color:var(--link);font-weight:700;font-size:13px;visibility:hidden}
+.filter-dd-opt.on .dd-check{visibility:visible}
+
+/* Action column: Primary CTA + ⋮ kebab menu */
+.actions-cell{display:inline-flex;align-items:center;gap:5px;justify-content:flex-end;position:relative}
+.kebab-wrap{position:relative;display:inline-flex}
+.kebab-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text-secondary);cursor:pointer;padding:0;font-size:16px;line-height:1;letter-spacing:1px;font-weight:700}
+.kebab-btn:hover{background:var(--bg-soft);color:var(--text-primary)}
+.kebab-wrap.open .kebab-btn{background:var(--bg-soft);color:var(--text-primary);border-color:var(--text-muted)}
+.kebab-menu{display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--border);border-radius:7px;box-shadow:0 8px 24px rgba(15,23,42,.12);padding:5px;min-width:180px;z-index:50;text-align:left}
+.kebab-wrap.open .kebab-menu{display:block}
+.kebab-item{display:block;padding:7px 11px;font-size:12px;color:var(--text-secondary);border-radius:5px;cursor:pointer;white-space:nowrap;font-weight:500}
+.kebab-item:hover{background:var(--bg-soft);color:var(--text-primary)}
+.kebab-item.destructive{color:var(--red)}
+.kebab-item.destructive:hover{background:#FEE2E2}
+.kebab-sep{height:1px;background:var(--border-soft);margin:4px 0}
+
+/* Row number */
+.row-num{font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px;color:var(--text-muted);font-weight:600}
+
+/* Clickable List ID */
+.list-id{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px;color:#1D4ED8;background:#F1F5F9;padding:3px 8px;border-radius:4px;cursor:pointer;transition:background .12s, color .12s;user-select:none}
+.list-id:hover{background:#DBE8FE}
+.list-id.copied{background:var(--green-bg);color:var(--green-text)}
+.list-id .copy-icon{opacity:.5;font-size:11px;line-height:1}
+.list-id:hover .copy-icon{opacity:1}
+
+/* Archive status */
+.status.archive .ds{background:#94A3B8}
+.status.archive{color:#64748B}
+.status.reviewed .ds{background:#2563EB}
+.status.reviewed{color:#1D4ED8}
+.pending-change-tag{display:inline-flex;align-items:center;gap:5px;margin-top:5px;padding:2px 7px;border-radius:4px;background:#FFF7E8;border:1px solid #FFCB76;color:#8A4B08;font-size:10px;font-weight:700}
+.pending-change-tag .pc-dot{width:6px;height:6px;border-radius:50%;background:#F59E0B}
+.btn[aria-disabled="true"]{cursor:not-allowed;opacity:.46;pointer-events:none}
+.status-cell{display:flex;flex-direction:column;gap:3px;line-height:1.35}
+.status-cell .node-lines{display:flex;flex-direction:column;gap:1px;font-size:10px;color:#6B7280;font-weight:500}
+.status-cell .node-lines .nl{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
+.status-cell .node-lines .nl-k{color:#9CA3AF;font-weight:600;letter-spacing:.2px;font-size:9.5px;text-transform:uppercase;flex:none}
+.status-cell .node-lines .nl-v{color:#374151;font-weight:600}
+.status-cell.s-pending .nl-v{color:#92400E}
+.status-cell.s-reviewed .nl-v{color:#1D4ED8}
+.status-cell.s-online .nl-v{color:#047857}
+.status-cell .orphan-tag{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:2px 6px;background:#FEF3C7;border:1px dashed #FCD34D;color:#92400E;border-radius:4px;font-size:9.5px;font-weight:700;letter-spacing:.2px;cursor:default;position:relative;align-self:flex-start;white-space:nowrap}
+.status-cell .orphan-tag::before{content:"⚠";font-size:10px}
+.status-cell .orphan-tag .ot-tip{display:none;position:absolute;left:0;top:calc(100% + 5px);background:#1F2937;color:#fff;padding:8px 10px;border-radius:6px;font-size:10.5px;line-height:1.5;letter-spacing:0;font-weight:500;width:240px;z-index:25;box-shadow:0 6px 18px rgba(0,0,0,.25);text-transform:none}
+.status-cell .orphan-tag:hover .ot-tip,.status-cell .orphan-tag:focus .ot-tip{display:block}
+.status-cell .orphan-tag .ot-tip b{color:#FCD34D;font-weight:700}
+.status-cell .orphan-tag .ot-tip .ot-meta{margin-top:5px;padding-top:5px;border-top:1px solid #374151;font-size:10px;color:#9CA3AF;font-family:'JetBrains Mono',Menlo,monospace;font-weight:500}
+.btn-row-archive{background:#F8F9FC;color:#94A3B8;border:1px dashed #CBD5E1}
+.btn-row-archive:hover{background:#F1F5F9;color:#64748B;border-color:#94A3B8}
+tr[data-orphan="true"] .btn-row-archive{background:var(--amber-bg);color:var(--amber-text);border:1px solid #FCD34D}
+tr[data-orphan="true"] .btn-row-archive:hover{background:#FDE68A;border-color:var(--amber)}
+.status-cell.s-archive .nl-v{color:#475569}
+.status-cell.s-draft-rej .nl-v{color:#92400E}
+
+/* Rejection reason badge on Draft row (after a Reject cycle) */
+.rej-badge{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:2px 7px;background:var(--amber-bg);border:1px solid #FCD34D;color:var(--amber-text);border-radius:4px;font-size:10px;font-weight:600;cursor:default;position:relative;letter-spacing:.1px}
+.rej-badge:hover{background:#FDE68A}
+.rej-badge .rb-tooltip{display:none;position:absolute;left:0;top:calc(100% + 6px);background:#1F2937;color:#fff;padding:9px 11px;border-radius:7px;font-size:11px;z-index:20;width:280px;box-shadow:0 6px 22px rgba(0,0,0,.25);font-weight:500;letter-spacing:0;cursor:default}
+.rej-badge:hover .rb-tooltip{display:block}
+.rej-badge .rb-tooltip .rt-h{font-size:10px;color:#FCA5A5;letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px;font-weight:700}
+.rej-badge .rb-tooltip .rt-body{font-style:italic;line-height:1.55;color:#fff;margin-bottom:6px}
+.rej-badge .rb-tooltip .rt-meta{font-size:10px;color:#94A3B8;font-family:'JetBrains Mono',Menlo,monospace}
+
+/* Comment badge (Non-Owner 留 Comment 后挂在 libname 上) */
+
+/* Comment timeline modal · z-index 310 stacks ABOVE details-mask (305) so it layers correctly · backdrop 也调淡让 Details modal 在底层可见 */
+.cmt-f{padding:13px 22px;background:var(--bg-soft);border-top:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--text-muted)}
+.cmt-f b{color:var(--text-primary)}
+.cmt-f .cmt-close{background:#fff;border:1px solid var(--border);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer}
+.cmt-f .cmt-close:hover{background:var(--bg-softer)}
+
+/* Destructive Delete button (archive row) */
+.btn-delete{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5}
+.btn-delete:hover{background:#FCA5A5}
+
+/* Confirm modal */
+.confirm-mask{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:300;align-items:center;justify-content:center}
+.confirm-mask.show{display:flex}
+.confirm-box{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.30);width:420px;overflow:hidden;animation:popIn .2s ease-out}
+.confirm-h{padding:18px 22px 8px;display:flex;align-items:center;gap:10px}
+.confirm-h .ci{flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff}
+.confirm-h .ci.info{background:var(--link)}
+.confirm-h .ci.warn{background:var(--amber)}
+.confirm-h .ci.danger{background:var(--red)}
+.confirm-h h4{font-size:14.5px;font-weight:700;color:var(--text-primary)}
+.confirm-b{padding:4px 22px 18px;font-size:12.5px;color:var(--text-secondary);line-height:1.6}
+.confirm-b b{color:var(--text-primary);font-weight:700}
+.confirm-b code{font-family:'JetBrains Mono',Menlo,monospace;background:#F1F5F9;color:#1D4ED8;padding:1px 5px;border-radius:3px;font-size:11px}
+.confirm-f{padding:12px 22px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:flex-end;gap:8px}
+
+/* Lark notification toast */
+.lark-toast{position:fixed;top:24px;right:28px;background:#1F2937;color:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 10px 32px rgba(0,0,0,.30);font-size:12px;display:flex;align-items:flex-start;gap:11px;z-index:310;width:340px;opacity:0;transform:translateY(-12px);pointer-events:none;transition:opacity .25s, transform .25s;border-left:3px solid #00D6B9}
+.lark-toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.lark-toast .lt-ico{flex:none;width:24px;height:24px;border-radius:5px;background:#00D6B9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.lark-toast .lt-c{flex:1}
+.lark-toast .lt-h{font-weight:700;font-size:11.5px;color:#00D6B9;letter-spacing:.3px;text-transform:uppercase;margin-bottom:3px}
+.lark-toast .lt-msg{font-size:12px;line-height:1.55;color:#fff}
+.lark-toast .lt-msg b{color:#A7C5FF;font-weight:700}
+
+/* Mock reviewer decision dropdown */
+.mock-dd{position:relative;display:inline-block;margin-left:5px}
+.mock-trigger{display:inline-flex;align-items:center;justify-content:center;width:24px;height:22px;border-radius:6px;background:#F3F4F6;color:var(--text-secondary);border:1px dashed var(--border);font-size:10px;cursor:pointer;font-weight:700;letter-spacing:.3px}
+.mock-trigger:hover{background:var(--bg-soft);color:var(--text-primary)}
+.mock-menu{display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--border);border-radius:7px;box-shadow:0 8px 24px rgba(15,23,42,.12);padding:5px;min-width:180px;z-index:60;text-align:left}
+.mock-dd.open .mock-menu{display:block}
+.mock-menu-h{padding:5px 10px;font-size:9.5px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;border-bottom:1px solid var(--border-soft);margin-bottom:3px}
+.mock-item{display:block;padding:7px 11px;font-size:12px;color:var(--text-secondary);border-radius:5px;cursor:pointer;font-weight:600}
+.mock-item:hover{background:var(--bg-soft);color:var(--text-primary)}
+.mock-item.approve{color:var(--green-text)}
+.mock-item.approve:hover{background:var(--green-bg)}
+.mock-item.reject{color:var(--red)}
+.mock-item.reject:hover{background:var(--red-bg)}
+
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+
+/* ===== v0.4 改版：View Toggle + Tab Bar（按 Jennifer 反馈）===== */
+
+.tab-bar{display:flex;align-items:center;gap:0;padding:0 18px;border-bottom:1px solid var(--border);background:#fff;position:relative}
+.tab-bar .tb-item{position:relative;padding:13px 18px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:7px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;user-select:none}
+.tab-bar .tb-item:hover{color:var(--text-primary)}
+.tab-bar .tb-item.on{color:var(--link);border-bottom-color:var(--link)}
+.tab-bar .tb-item .tb-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 6px;background:var(--bg-soft);color:var(--text-secondary);border-radius:10px;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.tab-bar .tb-item.on .tb-count{background:#DBE8FE;color:var(--link)}
+.tab-bar .tb-item.disabled{opacity:.55;cursor:not-allowed}
+.tab-bar .tb-spacer{flex:1}
+.tab-bar .tb-hint{margin-right:0;padding:8px 12px;font-size:11px;color:var(--text-muted);background:var(--bg-softer);border-radius:6px;border:1px solid var(--border-soft);display:none}
+.tab-bar.show-hint .tb-hint{display:inline-flex;align-items:center;gap:6px}
+
+/* Row & column visibility per tab/view */
+tbody tr.row-hidden{display:none}
+.col-hidden{display:none !important}
+
+/* Common view 下高亮"被我引用"列 */
+.col-used-by-me{background:#FFFBEB}
+thead th.col-used-by-me{background:#FEF3C7;color:#92400E;border-bottom-color:#FCD34D}
+.umt{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.umt.has{color:#92400E}
+.umt.zero{color:var(--text-muted);font-weight:500}
+.umt .umt-mine{color:#B45309}
+
+/* Primary Key cell */
+.pk-cell{font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--text-secondary);background:var(--bg-softer);padding:2px 7px;border-radius:4px;border:1px solid var(--border-soft);display:inline-block;letter-spacing:.2px;white-space:nowrap}
+.pk-cell.combined{background:#EFF6FF;color:#1D4ED8;border-color:#BFDBFE}
+
+/* Common-view notice banner */
+
+/* Search-disabled state when on Archive tab */
+.toolbar.search-disabled .filter,
+.toolbar.search-disabled .search-sm{opacity:.55;pointer-events:none}
+.toolbar.search-disabled .filter[data-keep="1"],
+.toolbar.search-disabled .search-sm[data-keep="1"]{opacity:1;pointer-events:auto}
+
+/* Search bar 重排：核心字段排前 */
+.search-sm-wide{width:230px}
+
+/* Legacy F1 v0.5 column-hiders removed 2026-07-16 — new outline layout uses column 2 as main content */
+#d-status .status-cell{align-items:flex-start}
+
+/* ===== F1 v2 · outline catalog view (2026-07-16) =====
+   Groups list rows by list-name family. Main row = one line:
+     ▸  ● List Name : list_id_of_active ⎘   Nversions  · owner · actions
+   Click ▸ to expand → each historical version becomes a 2-line sub-row:
+     ○ Status label
+        list_id_of_that_version (mono grey, not copyable — only Active can be copied) */
+.f1-family .f1-sub{display:none}
+.f1-family.expanded .f1-sub{display:table-row}
+.f1-family .f1-main td{padding:12px 16px;vertical-align:middle}
+.f1-family .f1-sub td{background:var(--bg-softer);padding:10px 16px;border-top:1px dashed var(--border-soft);vertical-align:middle}
+.f1-family + .f1-family .f1-main td{border-top:1px solid var(--border-soft)}
+.f1-chevron{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:2px 4px;font-size:13px;line-height:1;transition:transform .18s ease;font-family:inherit}
+.f1-chevron:hover{color:var(--text-primary)}
+.f1-family.expanded .f1-chevron{transform:rotate(90deg);color:var(--link)}
+/* Chevron visible for all families (including single-version) since even singles have a list_id sub-row worth revealing */
+.f1-status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:middle;flex:none}
+.f1-status-dot.green{background:var(--green,#22C55E);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.f1-status-dot.gray{background:#CBD5E1}
+.f1-status-dot.small{width:7px;height:7px;box-shadow:none}
+/* Main row · single-line inline layout · name : list_id */
+.f1-main-line{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.f1-name{font-weight:600;color:var(--text-primary);font-size:13px}
+.f1-sep{color:var(--text-muted);margin:0 8px;font-weight:400}
+.f1-code-chip{font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px;background:var(--bg-soft);color:var(--text-primary);padding:3px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:5px;font-weight:500}
+.f1-code-chip.copyable{cursor:pointer;transition:background .12s}
+.f1-code-chip.copyable:hover{background:#E2E8F0}
+.f1-code-chip.copyable.copied{background:#DCFCE7;color:var(--green-text)}
+.f1-code-chip.dim{background:transparent;color:var(--text-muted);cursor:default;padding-left:0;padding-right:0}
+.f1-code-chip.dim .copy-icon{display:none}
+.f1-code-chip .copy-icon{color:var(--text-muted);font-size:11px;opacity:.7}
+.f1-inline-pill{margin-left:12px;font-size:9.5px;font-weight:700;letter-spacing:.35px;padding:2px 7px;border-radius:3px;vertical-align:middle;text-transform:uppercase}
+.f1-inline-pill.pending{background:#FEF3C7;color:#B45309}
+.f1-inline-pill.draft{background:#E0E7FF;color:#3730A3}
+.f1-inline-pill.archived{background:#F1F5F9;color:var(--text-muted)}
+/* Sub-row · 2 lines (status label + indented list_id) */
+.f1-sub-status{display:flex;align-items:center;gap:6px;padding-left:24px;font-size:12px;color:var(--text-secondary);font-weight:600}
+.f1-sub-code{padding-left:44px;margin-top:4px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--text-muted);letter-spacing:.2px}
+/* When sub-row is Active, the list_id shown inside .f1-sub-code becomes a copyable chip (green-tinted) */
+.f1-sub[data-state="active"] .f1-sub-code{padding-left:44px}
+.f1-sub[data-state="active"] .f1-sub-code .f1-code-chip{font-size:11.5px;background:#DCFCE7;color:var(--green-text,#166534);font-weight:600}
+.f1-sub[data-state="active"] .f1-sub-code .f1-code-chip:hover{background:#BBF7D0}
+.f1-sub[data-state="active"] .f1-sub-code .f1-code-chip .copy-icon{color:var(--green-text,#166534);opacity:.8}
+.f1-substate-pill{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.35px;padding:2px 7px;border-radius:3px;text-transform:uppercase}
+.f1-substate-pill.pending{background:#FEF3C7;color:#B45309}
+.f1-substate-pill.draft{background:#E0E7FF;color:#3730A3}
+.f1-substate-pill.archived{background:#F1F5F9;color:var(--text-muted)}
+.f1-owner{color:var(--text-secondary);font-size:12px;vertical-align:middle;line-height:1.55}
+.f1-owner .owner-more{color:var(--text-muted);font-size:11px;font-weight:500;display:block}
+.f1-actions{text-align:right}
+.f1-actions .btn{margin-left:4px}
+/* List ID column · same list_id shown across family + sub-rows for vertical alignment */
+.f1-listid{vertical-align:middle}
+.f1-listid .f1-code-chip{font-family:'JetBrains Mono',Menlo,monospace;font-size:11px}
+/* Word count column · center-aligned integer */
+.f1-terms{text-align:center;font-family:'JetBrains Mono',Menlo,monospace;font-size:12px;color:var(--text-primary);font-weight:500;vertical-align:middle}
+.f1-family .f1-sub .f1-terms{color:var(--text-muted)}
+/* Language column */
+.f1-lang{vertical-align:middle;line-height:1.5}
+.f1-lang .lang-count{display:block;font-size:11px;font-weight:600;color:var(--text-primary);margin-bottom:3px}
+.f1-lang .lang-count small{color:var(--text-muted);font-weight:500;margin-left:3px}
+.f1-lang .lang-chips{display:flex;flex-wrap:wrap;gap:3px}
+.f1-lang .lang-code{display:inline-block;font-family:'JetBrains Mono',Menlo,monospace;font-size:9.5px;padding:1px 5px;border-radius:3px;background:var(--bg-soft);color:var(--text-secondary);font-weight:500;letter-spacing:.15px}
+.f1-lang .lang-more{color:var(--text-muted);font-size:10px;font-style:italic}
+/* Reject badge inline in sub-row status */
+.rej-inline{margin-left:8px;font-size:9.5px;font-weight:700;color:#B45309;background:#FEF3C7;padding:2px 7px;border-radius:3px;letter-spacing:.3px}
+
+/* Details modal · List ID 可点击复制（保留下划线 + 复制 icon） */
+.d-list-id-copy{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',Menlo,monospace;font-size:11.5px;color:var(--link);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer;padding:1px 0;transition:color .12s}
+.d-list-id-copy:hover{color:var(--link-hover,#1D4ED8);text-decoration-style:solid}
+.d-list-id-copy .copy-icon{font-size:10.5px;opacity:.7}
+.d-list-id-copy.copied{color:var(--green-text);text-decoration:none}
+.d-list-id-copy.copied::after{content:" · Copied";font-size:10.5px;color:var(--green-text);font-weight:600}
+
+/* Details modal · Active Refs 可点击跳血缘抽屉 */
+.d-refs-link{cursor:pointer;color:var(--link);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;font-weight:700;transition:color .12s}
+.d-refs-link:hover{color:var(--link-hover,#1D4ED8);text-decoration-style:solid}
+.d-refs-link::after{content:" · View Word List Rule Lineage →";font-family:'Inter',sans-serif;font-size:10.5px;color:var(--text-muted);font-weight:500;margin-left:4px;text-decoration:none}
+
+/* Details modal · Data Sources 展示 · chip 列表，每 chip 带 rule 计数 */
+.d-ds-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-weight:400}
+.d-ds-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;background:#F1F5F9;border:1px solid #E2E8F0;color:#334155;border-radius:4px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;line-height:1.4}
+.d-ds-chip .d-ds-n{color:#64748B;font-weight:500;font-size:10.5px}
+.d-ds-chip .d-ds-n::before{content:"×"}
+.d-ds-empty{color:var(--text-muted);font-weight:500;font-style:italic}
+.d-ds-count{display:inline-block;margin-left:6px;padding:1px 7px;background:#EEF2FF;color:#3730A3;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.2px;vertical-align:1px}
+
+/* Details modal · Comment 段 · summary + Details 按钮 */
+
+/* ===== v0.3.1 · Active Inline Edit Modal (ae-*) ===== */
+.ae-mask{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:320;align-items:center;justify-content:center}
+.ae-mask.show{display:flex}
+.ae-modal{background:#fff;border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.30);width:80vw;max-width:1200px;height:88vh;display:flex;flex-direction:column;overflow:hidden;animation:popIn .22s ease-out}
+.ae-head{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:#fff}
+.ae-head .ae-title{font-size:14.5px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px}
+.ae-head .ae-title .ae-title-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;background:#FFF7E8;border:1px solid #FFCB76;color:#8A4B08;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.ae-head .ae-title b{color:var(--link);font-weight:700}
+.ae-head .ae-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.ae-head .ae-x{color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;margin-left:4px}
+.ae-head .ae-x:hover{color:var(--text-primary)}
+
+.ae-meta-strip{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;padding:10px 22px;background:var(--bg-soft);border-bottom:1px solid var(--border-soft);font-size:11.5px}
+.ae-meta-item{display:flex;flex-direction:column;gap:2px;padding:0 18px;border-right:1px solid var(--border-soft)}
+.ae-meta-item:last-child{border-right:none}
+.ae-meta-item:first-child{padding-left:0}
+.ae-meta-k{font-size:9.5px;color:var(--text-muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.ae-meta-v{font-size:12px;color:var(--text-primary);font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.ae-meta-v .chip{margin:0}
+.ae-meta-v code{font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;background:#fff;border:1px solid var(--border);color:#1D4ED8;padding:1px 6px;border-radius:3px}
+.ae-meta-v .ae-tg{display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:10px;font-size:10.5px;font-weight:700}
+.ae-meta-v .ae-tg.on{background:var(--green-bg);color:var(--green-text)}
+.ae-meta-v .ae-tg.off{background:var(--bg-soft);color:var(--text-muted);border:1px solid var(--border)}
+.ae-meta-readonly{margin-left:auto;font-size:10.5px;color:var(--text-muted);align-self:center;font-style:italic}
+
+.ae-toolbar{display:flex;align-items:center;gap:8px;padding:11px 22px;border-bottom:1px solid var(--border-soft);background:#fff;flex-wrap:wrap}
+.ae-toolbar .ae-tb-l{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ae-toolbar .ae-tb-r{display:flex;align-items:center;gap:10px;margin-left:auto}
+.ae-toolbar .ae-search{padding:6px 10px;background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;font-size:12px;width:200px;color:var(--text-primary)}
+.ae-toolbar .ae-search::placeholder{color:var(--text-muted)}
+.ae-dirty-summary{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--text-secondary)}
+.ae-dirty-summary .ae-chip-add{background:var(--green-bg);color:var(--green-text);padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700}
+.ae-dirty-summary .ae-chip-del{background:var(--red-bg);color:var(--red-text);padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700}
+.ae-dirty-summary .ae-chip-mod{background:var(--amber-bg);color:var(--amber-text);padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700}
+
+.ae-body{flex:1;overflow:auto;padding:0 22px}
+.ae-table-wrap{padding:8px 0 12px}
+.ae-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
+.ae-table thead th{position:sticky;top:0;background:var(--bg-soft);text-align:left;padding:9px 12px;font-weight:700;font-size:11px;color:var(--text-secondary);letter-spacing:.2px;border-bottom:1px solid var(--border);text-transform:uppercase;z-index:2}
+.ae-table thead th.ae-th-num{width:36px;text-align:center}
+.ae-table thead th.ae-th-status{width:110px}
+.ae-table thead th.ae-th-x{width:34px}
+.ae-table tbody td{padding:8px 12px;border-bottom:1px solid var(--border-soft);vertical-align:middle;color:var(--text-primary)}
+.ae-table tbody td.ae-cell-num{text-align:center;font-family:'JetBrains Mono',Menlo,monospace;color:var(--text-muted);font-size:11px;font-weight:600}
+.ae-table .ae-src{font-weight:600;outline:none;border-radius:4px;padding:2px 4px;min-width:60px;display:inline-block}
+.ae-table .ae-src[contenteditable="true"]{background:#FFF;box-shadow:inset 0 0 0 1.5px var(--link);cursor:text}
+.ae-table .ae-loc{color:var(--text-secondary);font-size:12px;outline:none;border-radius:4px;padding:2px 4px;min-width:50px;display:inline-block}
+.ae-table .ae-loc[contenteditable="true"]{background:#FFF;box-shadow:inset 0 0 0 1.5px var(--link);cursor:text}
+.ae-table tbody tr.ae-row-add{background:#D1FAE5;color:#047857}
+.ae-table tbody tr.ae-row-add td{color:#047857}
+.ae-table tbody tr.ae-row-del{background:#FEE2E2;color:#991B1B}
+.ae-table tbody tr.ae-row-del td{color:#991B1B;text-decoration:line-through}
+.ae-table tbody tr.ae-row-del td.ae-cell-num,
+.ae-table tbody tr.ae-row-del td.ae-cell-status,
+.ae-table tbody tr.ae-row-del td.ae-cell-x{text-decoration:none}
+.ae-table tbody tr.ae-row-mod{background:#FEF3C7}
+.ae-table tbody tr.ae-row-mod td{color:#92400E}
+.ae-table tbody tr.ae-row-mod td.ae-cell-edited{box-shadow:inset 0 0 0 1.5px #F59E0B;border-radius:3px}
+.ae-badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:3px;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.ae-badge-new{background:#10B981;color:#fff}
+.ae-badge-del{background:#EF4444;color:#fff}
+.ae-badge-mod{background:#F59E0B;color:#fff}
+.ae-cell-status{width:110px;font-size:10.5px;color:var(--text-muted);font-weight:600}
+.ae-cell-x{width:34px;text-align:center}
+.ae-x-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;background:#fff;border:1px solid var(--border);color:var(--red);cursor:pointer;font-size:13px;line-height:1;font-weight:700;transition:background .12s}
+.ae-x-btn:hover{background:#FEE2E2;border-color:#FCA5A5}
+.ae-row-del .ae-x-btn{background:#fff;color:var(--green-text);border-color:#BBF7D0}
+.ae-row-del .ae-x-btn:hover{background:var(--green-bg)}
+.ae-old-new{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--text-muted);margin-top:2px}
+.ae-old-new del{color:var(--red-text);font-size:10.5px}
+.ae-old-new ins{color:var(--green-text);text-decoration:none;font-size:10.5px;font-weight:600}
+
+.ae-footer{padding:11px 22px;background:var(--bg-soft);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:11.5px;color:var(--text-secondary)}
+.ae-footer .ae-count{font-weight:700;color:var(--text-primary)}
+.ae-footer .ae-hint{margin-left:auto;color:var(--text-muted);font-size:10.5px;font-style:italic}
+
+.ae-add-pop{position:absolute;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.14);padding:6px;z-index:330;min-width:200px;display:none}
+.ae-add-pop.show{display:block}
+.ae-add-pop .ae-add-opt{padding:8px 11px;font-size:12.5px;font-weight:600;color:var(--text-secondary);border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.ae-add-pop .ae-add-opt:hover{background:var(--bg-soft);color:var(--text-primary)}
+
+/* Manual paste / Import modal · reuse confirm-mask shell but wider */
+.ae-import-modal{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.30);width:560px;max-width:90vw;overflow:hidden;animation:popIn .2s ease-out}
+.ae-import-modal .ae-im-h{padding:14px 20px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}
+.ae-import-modal .ae-im-h h4{font-size:14px;font-weight:700;color:var(--text-primary)}
+.ae-import-modal .ae-im-h .x{color:var(--text-muted);font-size:18px;cursor:pointer}
+.ae-import-modal .ae-im-b{padding:14px 20px;font-size:12.5px;color:var(--text-secondary)}
+.ae-import-modal textarea.ae-paste{width:100%;min-height:160px;padding:9px 11px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'JetBrains Mono',Menlo,monospace;resize:vertical;color:var(--text-primary)}
+.ae-import-modal textarea.ae-paste:focus{outline:none;border-color:var(--link)}
+.ae-import-modal .ae-paste-hint{margin-top:7px;font-size:10.5px;color:var(--text-muted);line-height:1.5}
+.ae-import-modal .ae-paste-err{display:none;margin-top:7px;padding:7px 10px;background:var(--red-bg);border:1px solid #FCA5A5;color:var(--red-text);border-radius:5px;font-size:11px;font-weight:600}
+.ae-import-modal .ae-paste-err.show{display:block}
+.ae-import-modal .ae-im-f{padding:12px 20px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:flex-end;gap:8px}
+
+/* Import dashboard chips */
+.ae-im-dash{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0 10px}
+.ae-im-dash .ae-im-stat{padding:9px 11px;border-radius:6px;border:1px solid var(--border-soft)}
+.ae-im-dash .ae-im-stat .ae-im-k{font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-bottom:3px}
+.ae-im-dash .ae-im-stat .ae-im-v{font-size:18px;font-weight:700;color:var(--text-primary)}
+.ae-im-dash .ae-im-stat.ok{background:#F0FDF4;border-color:#BBF7D0}
+.ae-im-dash .ae-im-stat.ok .ae-im-v{color:var(--green-text)}
+.ae-im-dash .ae-im-stat.skip{background:#FFFBEB;border-color:#FDE68A}
+.ae-im-dash .ae-im-stat.skip .ae-im-v{color:var(--amber-text)}
+.ae-im-dash .ae-im-stat.fail{background:#FEF2F2;border-color:#FCA5A5}
+.ae-im-dash .ae-im-stat.fail .ae-im-v{color:var(--red-text)}
+.ae-im-fail-row{margin-top:6px;padding:8px 10px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:5px;font-size:11px;color:var(--red-text);font-family:'JetBrains Mono',Menlo,monospace;cursor:pointer}
+.ae-im-fail-row .ae-im-fail-rsn{display:none;margin-top:5px;padding-top:5px;border-top:1px dashed #FCA5A5;font-family:inherit;color:var(--text-secondary)}
+.ae-im-fail-row.open .ae-im-fail-rsn{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+ <div class="brand">
+  <div class="brand-logo">a</div>
+  <div class="brand-name">arena<small>Global</small></div>
+ </div>
+ <div class="nav-section">Workspace</div>
+ <div class="nav-item">Discover</div>
+ <div class="nav-item">Host Center</div>
+ <div class="nav-item">Resource Hub</div>
+ <div class="nav-item">LIVE Hub</div>
+ <div class="nav-item active">Ecosystem</div>
+ <div class="nav-sub">
+  <div class="nav-item">Strategic Configuration</div>
+  <div class="nav-item">Strategic Monitor</div>
+  <div class="nav-item active">Feature Center</div>
+ </div>
+ <div class="nav-section">Guardrail</div>
+ <div class="nav-item active">List Management</div>
+ <div class="nav-item">Detection Item Config</div>
+ <div class="nav-item">Hit Analysis</div>
+ <div class="nav-section">Quick Access</div>
+ <div class="nav-item">Go LIVE</div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <div class="crumb">Ecosystem / TRIDENT (IDSP) / Feature Center / Guardrail / <b>List Management</b></div>
+  <div class="topbar-right">
+   <input class="search" placeholder="Please input UID / User Handle / Room ID / List ID / ..." />
+   <span>MY</span>
+   <span>35</span>
+   <div class="avatar">YG</div>
+  </div>
+ </header>
+
+ <div class="canvas">
+
+  <span class="frame-label"><span class="dot"></span>FRAME F1 · LIST INDEX · v0.3</span>
+  <h1 class="frame-title">List Management</h1>
+
+  <div class="card">
+
+   <!-- v0.4 改版：4 个状态 Tab（替换原 Status filter）-->
+   <div class="toolbar" id="toolbar">
+    <div class="tb-l">
+     <div class="filter filter-dd" id="status-filter" data-keep="1">
+      <span>Status<b style="margin-left:5px">· All</b><span style="margin-left:5px">▾</span></span>
+      <div class="filter-dd-panel">
+       <div class="filter-dd-opt on" data-val="All" data-state="all"><span>All</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="Active" data-state="online"><span>Active</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="Draft" data-state="draft"><span>Draft</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="Pending Review" data-state="pending"><span>Pending Review</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="Archive" data-state="archive"><span>Archive</span><span class="dd-check">✓</span></div>
+      </div>
+     </div>
+     <div class="filter filter-dd" id="owner-filter" data-keep="1">
+      <span>Ownership<b style="margin-left:5px">· All</b><span style="margin-left:5px">▾</span></span>
+      <div class="filter-dd-panel">
+       <div class="filter-dd-opt on" data-val="All"><span>All</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="@ymgao"><span>@ymgao (Me)</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="@lzwang"><span>@lzwang</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="@rdyang"><span>@rdyang</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="@hxyzhao"><span>@hxyzhao</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="@platform"><span>@platform</span><span class="dd-check">✓</span></div>
+      </div>
+     </div>
+     <div class="filter filter-dd" id="lang-filter" data-keep="1">
+      <span>Language<b style="margin-left:5px">· All</b><span style="margin-left:5px">▾</span></span>
+      <div class="filter-dd-panel" style="min-width:200px;max-height:340px;overflow:auto">
+       <div class="filter-dd-opt on" data-val="All"><span>All</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="en"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">en</code>English</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="es"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">es</code>Spanish</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="id"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">id</code>Indonesian</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="ar"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">ar</code>Arabic</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="vi"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">vi</code>Vietnamese</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="th"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">th</code>Thai</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="ms"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">ms</code>Malay</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="tr"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">tr</code>Turkish</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="fil"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">fil</code>Filipino</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="ja"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">ja</code>Japanese</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="fr"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">fr</code>French</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="de"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">de</code>German</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="ro"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">ro</code>Romanian</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="it"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">it</code>Italian</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="pt"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">pt</code>Portuguese</span><span class="dd-check">✓</span></div>
+       <div class="filter-dd-opt" data-val="ko"><span><code style="font-family:monospace;color:var(--text-muted);margin-right:6px">ko</code>Korean</span><span class="dd-check">✓</span></div>
+      </div>
+     </div>
+     <button class="btn btn-p btn-sm" id="filter-search" style="padding:6px 16px;display:inline-flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>Search</button>
+     <button class="btn btn-sm" id="filter-reset" style="color:var(--text-muted);border:none;background:transparent;text-decoration:underline;padding:5px 4px">Reset</button>
+    </div>
+    <div class="tb-r">
+     <a class="btn btn-p btn-sm tb-action" href="feature-platform-word-list-prototype-v0.3-E2.html" style="text-decoration:none">＋ Create List</a>
+    </div>
+   </div>
+
+   <div class="table-wrap">
+   <table>
+    <thead>
+     <tr>
+      <th style="width:34px"></th>
+      <th style="width:23%">List Name</th>
+      <th style="width:20%">List ID</th>
+      <th style="width:8%;text-align:center">Word Count</th>
+      <th style="width:12%">Ownership</th>
+      <th style="width:14%">Language</th>
+      <th style="width:19%;text-align:right">Actions</th>
+     </tr>
+    </thead>
+    <tbody class="f1-family" data-family="nsa" data-owner-mine="true">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="nsa" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot green" title="Has Active version"></span>
+        <span class="f1-name">LIVE_NSA_lexicon</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip copyable" data-copy="list_live_nsa_lex" title="Click to copy">list_live_nsa_lex<span class="copy-icon">⎘</span></span></td>
+      <td class="f1-terms">17</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">6 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">ar</span><span class="lang-code">vi</span><span class="lang-more">…</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="active">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot green small"></span><span>Active</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_nsa_lex</span></td>
+      <td class="f1-terms">17</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">6 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">ar</span><span class="lang-code">vi</span><span class="lang-more">…</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button><button class="btn btn-sm" onclick="window.openActiveEdit(this)">Edit</button></td>
+     </tr>
+     <tr class="f1-sub" data-state="pending">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Pending Review</span><span class="f1-substate-pill pending">Pending</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_nsa_lex</span></td>
+      <td class="f1-terms">19</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">6 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">ar</span><span class="lang-code">vi</span><span class="lang-more">…</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm">Details</button></td>
+     </tr>
+     <tr class="f1-sub" data-state="draft">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Draft</span><span class="f1-substate-pill draft">Draft</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_nsa_lex</span></td>
+      <td class="f1-terms">22</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">6 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">ar</span><span class="lang-code">vi</span><span class="lang-more">…</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button><a class="btn btn-sm" href="feature-platform-word-list-prototype-v0.3-E2.html?mode=edit">Edit</a></td>
+     </tr>
+     <tr class="f1-sub" data-state="archived">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Archived</span><span class="f1-substate-pill archived">Archived</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_nsa_lex</span></td>
+      <td class="f1-terms">15</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">6 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">ar</span><span class="lang-code">vi</span><span class="lang-more">…</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm">Details</button><button class="btn btn-sm btn-delete" onclick="window.handleDelete(this)">Delete</button></td>
+     </tr>
+    </tbody>
+
+    <tbody class="f1-family" data-family="edu-safe" data-owner-mine="true">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="edu-safe" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot green" title="Has Active version"></span>
+        <span class="f1-name">LIVE_edu_safe_v1</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip copyable" data-copy="list_live_edu_white" title="Click to copy">list_live_edu_white<span class="copy-icon">⎘</span></span></td>
+      <td class="f1-terms">35</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">5 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">vi</span><span class="lang-code">th</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="active">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot green small"></span><span>Active</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_edu_white</span></td>
+      <td class="f1-terms">35</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">5 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">vi</span><span class="lang-code">th</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button><button class="btn btn-sm" onclick="window.openActiveEdit(this)">Edit</button></td>
+     </tr>
+    </tbody>
+
+    <tbody class="f1-family" data-family="pcf-gift" data-owner-mine="true">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="pcf-gift" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot green" title="Has Active version"></span>
+        <span class="f1-name">LIVE_PCF_gift_solicitation</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip copyable" data-copy="list_live_pcf_gift" title="Click to copy">list_live_pcf_gift<span class="copy-icon">⎘</span></span></td>
+      <td class="f1-terms">22</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">3 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="active">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot green small"></span><span>Active</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_pcf_gift</span></td>
+      <td class="f1-terms">22</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">3 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button><button class="btn btn-sm" onclick="window.openActiveEdit(this)">Edit</button></td>
+     </tr>
+     <tr class="f1-sub" data-state="draft">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Draft</span><span class="f1-substate-pill draft">Draft</span><span class="rej-inline" title="Last review rejected">↩ REJECTED</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_pcf_gift</span></td>
+      <td class="f1-terms">25</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">3 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button><a class="btn btn-sm" href="feature-platform-word-list-prototype-v0.3-E2.html?mode=edit">Edit</a></td>
+     </tr>
+    </tbody>
+
+    <tbody class="f1-family" data-family="hshi" data-owner-mine="false">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="hshi" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot green" title="Has Active version"></span>
+        <span class="f1-name">LIVE_HSHI_lexicon</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip copyable" data-copy="list_live_hshi_lex" title="Click to copy">list_live_hshi_lex<span class="copy-icon">⎘</span></span></td>
+      <td class="f1-terms">42</td>
+      <td class="f1-owner">@lzwang<span class="owner-more">@ymgao</span></td>
+      <td class="f1-lang"><span class="lang-count">4 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">ar</span><span class="lang-code">vi</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="active">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot green small"></span><span>Active</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_hshi_lex</span></td>
+      <td class="f1-terms">42</td>
+      <td class="f1-owner">@lzwang</td>
+      <td class="f1-lang"><span class="lang-count">4 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">ar</span><span class="lang-code">vi</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button><button class="btn btn-sm" onclick="window.openActiveEdit(this)">Edit</button></td>
+     </tr>
+     <tr class="f1-sub" data-state="archived">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Archived</span><span class="f1-substate-pill archived">Archived</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_hshi_lex</span></td>
+      <td class="f1-terms">38</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">4 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">ar</span><span class="lang-code">vi</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm">Details</button><button class="btn btn-sm btn-delete" onclick="window.handleDelete(this)">Delete</button></td>
+     </tr>
+    </tbody>
+
+    <tbody class="f1-family" data-family="platform-globalsafe" data-owner-mine="false">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="platform-globalsafe" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot green" title="Has Active version"></span>
+        <span class="f1-name">PLATFORM_preset_globalsafe</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip copyable" data-copy="list_preset_globalsafe" title="Click to copy">list_preset_globalsafe<span class="copy-icon">⎘</span></span></td>
+      <td class="f1-terms">168</td>
+      <td class="f1-owner">@platform</td>
+      <td class="f1-lang"><span class="lang-count">16 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">ar</span><span class="lang-code">vi</span><span class="lang-more">…</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="active">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot green small"></span><span>Active</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_preset_globalsafe</span></td>
+      <td class="f1-terms">168</td>
+      <td class="f1-owner">@platform</td>
+      <td class="f1-lang"><span class="lang-count">16 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span><span class="lang-code">ar</span><span class="lang-code">vi</span><span class="lang-more">…</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button><button class="btn btn-sm" onclick="window.openActiveEdit(this)">Edit</button></td>
+     </tr>
+    </tbody>
+
+    <tbody class="f1-family" data-family="dac" data-owner-mine="false" data-no-active="true">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="dac" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot gray" title="No Active version yet"></span>
+        <span class="f1-name">LIVE_DAC_keywords</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_dac_kw</span></td>
+      <td class="f1-terms">8</td>
+      <td class="f1-owner">@rdyang</td>
+      <td class="f1-lang"><span class="lang-count">4 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">id</span><span class="lang-code">vi</span><span class="lang-code">th</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="pending">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Pending Review</span><span class="f1-substate-pill pending">Pending</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_dac_kw</span></td>
+      <td class="f1-terms">8</td>
+      <td class="f1-owner">@rdyang</td>
+      <td class="f1-lang"><span class="lang-count">4 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">id</span><span class="lang-code">vi</span><span class="lang-code">th</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handlePendingDetails(this)">Details</button></td>
+     </tr>
+    </tbody>
+
+    <tbody class="f1-family" data-family="mi" data-owner-mine="false" data-no-active="true">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="mi" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot gray" title="No Active version yet"></span>
+        <span class="f1-name">LIVE_MI_incentive_v1</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_mi_inc</span></td>
+      <td class="f1-terms">24</td>
+      <td class="f1-owner">@hxyzhao</td>
+      <td class="f1-lang"><span class="lang-count">3 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="pending">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Pending Review</span><span class="f1-substate-pill pending">Pending</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_mi_inc</span></td>
+      <td class="f1-terms">24</td>
+      <td class="f1-owner">@hxyzhao</td>
+      <td class="f1-lang"><span class="lang-count">3 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span><span class="lang-code">id</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handlePendingDetails(this)">Details</button></td>
+     </tr>
+    </tbody>
+
+    <tbody class="f1-family" data-family="nsg" data-owner-mine="true" data-no-active="true">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="nsg" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot gray" title="No Active version yet"></span>
+        <span class="f1-name">LIVE_NSG_stereotype</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_nsg_draft</span></td>
+      <td class="f1-terms">12</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">2 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="draft">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Draft</span><span class="f1-substate-pill draft">Draft</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_nsg_draft</span></td>
+      <td class="f1-terms">12</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">2 langs</span><div class="lang-chips"><span class="lang-code">en</span><span class="lang-code">es</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button><a class="btn btn-sm" href="feature-platform-word-list-prototype-v0.3-E2.html?mode=edit">Edit</a></td>
+     </tr>
+    </tbody>
+
+    <tbody class="f1-family" data-family="deprecated-old" data-owner-mine="true" data-no-active="true">
+     <tr class="f1-main">
+      <td><button class="f1-chevron" data-family="deprecated-old" title="Show all versions">▸</button></td>
+      <td>
+       <div class="f1-main-line">
+        <span class="f1-status-dot gray" title="Archived only"></span>
+        <span class="f1-name">LIVE_deprecated_old_terms</span>
+       </div>
+      </td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_deprecated_old</span></td>
+      <td class="f1-terms">6</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">1 lang</span><div class="lang-chips"><span class="lang-code">en</span></div></td>
+      <td></td>
+     </tr>
+     <tr class="f1-sub" data-state="archived">
+      <td></td>
+      <td><div class="f1-sub-status"><span class="f1-status-dot gray small"></span><span>Archived</span><span class="f1-substate-pill archived">Archived</span></div></td>
+      <td class="f1-listid"><span class="f1-code-chip dim">list_live_deprecated_old</span></td>
+      <td class="f1-terms">6</td>
+      <td class="f1-owner">@ymgao</td>
+      <td class="f1-lang"><span class="lang-count">1 lang</span><div class="lang-chips"><span class="lang-code">en</span></div></td>
+      <td class="f1-actions"><button class="btn btn-sm">Details</button><button class="btn btn-sm btn-delete" onclick="window.handleDelete(this)">Delete</button></td>
+     </tr>
+    </tbody>
+   </table>
+   </div>
+
+   <div style="padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-soft);font-size:12px;color:var(--text-muted)">
+    <span>Showing 1-10 / 10 · per page <span class="filter" style="padding:3px 8px;margin-left:2px;cursor:pointer">10 ▾</span></span>
+    <span>‹ 1 ›</span>
+   </div>
+  </div>
+
+  <!-- ===================== Details Drawer (hidden by default) ===================== -->
+  <aside class="lineage-drawer" id="drawer">
+
+   <div class="ld-head">
+    <div class="ld-head-l">
+     <span class="ld-ico">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A.75.75 0 0 1 11 9.25v.878a2.25 2.25 0 1 0 1.5 0V9.25A2.25 2.25 0 0 0 10.25 7h-4.5a.75.75 0 0 1-.75-.75v-.878ZM8 12.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"/></svg>
+     </span>
+     Details
+    </div>
+    <div class="ld-head-r">
+     <div class="ld-toggle" id="active-toggle"><span class="ld-switch" id="active-switch"></span>Active only</div>
+     <span class="ld-x" id="drawer-close">×</span>
+    </div>
+   </div>
+
+   <div class="ld-entity">
+    <div class="ld-entity-ico">
+     <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2 1.75C2 .784 2.784 0 3.75 0h5.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 12.25 16h-8.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-9h-2.75A1.75 1.75 0 0 1 8 3.5V1.5Zm6.75.062V3.5c0 .138.112.25.25.25h1.938a.249.249 0 0 0-.057-.094L9.625 1.557A.25.25 0 0 0 9.5 1.5Z"/></svg>
+    </div>
+    <div class="ld-entity-c">
+     <div class="ld-entity-name">LIVE_NSA_lexicon_v3</div>
+     <div class="ld-entity-meta">List ID: list_live_nsa_lex_v3<br/>List Key: 7426674482939953722</div>
+    </div>
+   </div>
+
+   <div class="ld-stats">
+    <div class="ld-stat"><div class="ld-stat-v">2</div><div class="ld-stat-k">Business Scenarios</div></div>
+    <div class="ld-stat"><div class="ld-stat-v">2</div><div class="ld-stat-k">Active Strategies</div></div>
+    <div class="ld-stat"><div class="ld-stat-v">3</div><div class="ld-stat-k">Active Rule Groups</div></div>
+   </div>
+
+   <div class="ld-body">
+
+    <!-- Business Scenario 1 -->
+    <div class="ld-section">
+     <div class="bs-header cascade" data-target="bs1">
+      <span class="bs-label">Business Scenario</span>
+      <span class="bs-name">· Eco-governance</span>
+      <span class="arr">▾</span>
+     </div>
+     <div class="collapsible" id="bs1">
+      <div class="ld-card">
+       <div class="ld-version cascade" data-target="ver1">
+        <div class="ld-version-ico">
+         <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A.75.75 0 0 1 11 9.25v.878a2.25 2.25 0 1 0 1.5 0V9.25A2.25 2.25 0 0 0 10.25 7h-4.5a.75.75 0 0 1-.75-.75v-.878ZM8 12.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"/></svg>
+        </div>
+        <div class="ld-version-c">
+         <div class="ld-version-title"><span class="label-chip">Version</span>NSA detection threshold update for live audit</div>
+         <div class="ld-version-meta">Ver: 3.2 · ID: 7638780796774681352</div>
+        </div>
+        <span class="arr">▾</span>
+       </div>
+       <div class="collapsible" id="ver1">
+        <div class="ld-canvas-row cascade" data-target="cv1">
+         <div class="ld-bullet"></div>
+         <div class="ld-row-l"><span class="label-chip">Canvas</span><span class="ld-row-name">NSA Live Detection Canvas</span></div>
+         <span class="arr">▾</span>
+        </div>
+        <div class="collapsible" id="cv1">
+         <div class="ld-node-row cascade" data-target="nd1">
+          <div class="ld-bullet"></div>
+          <div class="ld-row-l"><span class="label-chip">Node</span><span class="ld-row-name">Real-time Detection Recall</span></div>
+          <span class="arr">▾</span>
+         </div>
+         <div class="collapsible" id="nd1">
+          <div class="ld-rg-row">
+           <div class="ld-bullet"></div>
+           <div class="ld-row-l"><span class="label-chip">Rule Group</span><span class="ld-row-name">NSA Keyword Hit Group</span><span class="ld-row-meta"><span class="ord">Exec. Order 1</span> · <span class="live">Active</span></span></div>
+          </div>
+          <div class="ld-rg-row">
+           <div class="ld-bullet"></div>
+           <div class="ld-row-l"><span class="label-chip">Rule Group</span><span class="ld-row-name">NSA Safe-Term Filter Group</span><span class="ld-row-meta"><span class="ord">Exec. Order 2</span> · <span class="live">Active</span></span></div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <!-- Business Scenario 2 -->
+    <div class="ld-section">
+     <div class="bs-header cascade" data-target="bs2">
+      <span class="bs-label">Business Scenario</span>
+      <span class="bs-name">· Just for Recall</span>
+      <span class="arr">▾</span>
+     </div>
+     <div class="collapsible" id="bs2">
+      <div class="ld-card">
+       <div class="ld-version cascade" data-target="ver2">
+        <div class="ld-version-ico">
+         <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A.75.75 0 0 1 11 9.25v.878a2.25 2.25 0 1 0 1.5 0V9.25A2.25 2.25 0 0 0 10.25 7h-4.5a.75.75 0 0 1-.75-.75v-.878ZM8 12.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"/></svg>
+        </div>
+        <div class="ld-version-c">
+         <div class="ld-version-title"><span class="label-chip">Version</span>NSA recall pool extension</div>
+         <div class="ld-version-meta">Ver: 1.4 · ID: 7638780796774681356</div>
+        </div>
+        <span class="arr">▾</span>
+       </div>
+       <div class="collapsible" id="ver2">
+        <div class="ld-canvas-row cascade" data-target="cv2">
+         <div class="ld-bullet"></div>
+         <div class="ld-row-l"><span class="label-chip">Canvas</span><span class="ld-row-name">NSA Recall Canvas</span></div>
+         <span class="arr">▾</span>
+        </div>
+        <div class="collapsible" id="cv2">
+         <div class="ld-node-row cascade" data-target="nd2">
+          <div class="ld-bullet"></div>
+          <div class="ld-row-l"><span class="label-chip">Node</span><span class="ld-row-name">Recall Aggregation</span></div>
+          <span class="arr">▾</span>
+         </div>
+         <div class="collapsible" id="nd2">
+          <div class="ld-rg-row">
+           <div class="ld-bullet"></div>
+           <div class="ld-row-l"><span class="label-chip">Rule Group</span><span class="ld-row-name">NSA Recall Pool Group</span><span class="ld-row-meta"><span class="ord">Exec. Order 1</span> · <span class="live">Active</span></span></div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+
+   </div>
+
+  </aside>
+
+ </div>
+
+ <!-- CSV Import Preview Popup -->
+ <div class="popup-mask" id="csv-popup-mask">
+  <div class="popup">
+   <div class="popup-h">
+    <h4>Preview CSV Import</h4>
+    <span class="x" id="csv-popup-close">×</span>
+   </div>
+   <div class="popup-b">
+    <div class="popup-stats">
+     <div class="popup-stat"><div class="ps-k">Total Rows</div><div class="ps-v">147</div></div>
+     <div class="popup-stat"><div class="ps-k">Valid</div><div class="ps-v" style="color:var(--green-text)">142</div></div>
+     <div class="popup-stat"><div class="ps-k">Errors</div><div class="ps-v" style="color:var(--red)">5</div></div>
+    </div>
+    <table class="preview-table">
+     <thead><tr><th>List ID</th><th>List Name</th><th>Match Mode</th><th>Status</th></tr></thead>
+     <tbody>
+      <tr><td>list_new_pcf_v1</td><td>LIVE_PCF_new_v1</td><td>Fuzzy</td><td style="color:var(--green-text);font-weight:700;font-family:inherit">✓ Valid</td></tr>
+      <tr><td>list_new_dac_v2</td><td>LIVE_DAC_new_v2</td><td>Exact</td><td style="color:var(--green-text);font-weight:700;font-family:inherit">✓ Valid</td></tr>
+      <tr><td>list_new_mi_v1</td><td>LIVE_MI_new_v1</td><td>Fuzzy</td><td style="color:var(--green-text);font-weight:700;font-family:inherit">✓ Valid</td></tr>
+      <tr><td>list_dup_v1</td><td>LIVE_dup_v1</td><td>Fuzzy</td><td style="color:var(--red);font-weight:700;font-family:inherit">✕ Duplicate List ID</td></tr>
+      <tr><td>list_new_hshi_v3</td><td>LIVE_HSHI_new_v3</td><td>Exact</td><td style="color:var(--green-text);font-weight:700;font-family:inherit">✓ Valid</td></tr>
+ 
+     <!-- Row 9 · Archive demo -->
+     <tr>
+      <td><span class="row-num">9</span></td>
+      <td><span class="list-id" data-copy="list_live_deprecated_old">list_live_deprecated_old<span class="copy-icon">⎘</span></span></td>
+      <td><div class="libname">LIVE_deprecated_old_terms</div></td>
+      <td><span class="chip match-fuzzy">Fuzzy Match</span></td>
+      <td>
+       <div class="scenario-cell">
+        <button class="lineage-btn" data-row="r9" title="Details">
+         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A.75.75 0 0 1 11 9.25v.878a2.25 2.25 0 1 0 1.5 0V9.25A2.25 2.25 0 0 0 10.25 7h-4.5a.75.75 0 0 1-.75-.75v-.878ZM8 12.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"/></svg>
+        </button>
+       </div>
+      </td>
+      <td>
+       <div class="lang-cell"><span class="lc-count">1</span><span class="lc-tag">lang ▾</span>
+        <div class="lc-pop"><div class="lp-title">Supported Languages (review order)</div><div class="lp-row"><span class="lp-code">en</span><span class="lp-name">English</span></div></div></div>
+      </td>
+      <td>@ymgao</td>
+      <td class="col-updated">2024-12-15</td>
+      <td class="row-status"><div class="status-cell s-archive"><span class="status archive"><span class="ds"></span>Archive</span><div class="node-lines"><span class="nl"><span class="nl-k">Ticket Node</span><span class="nl-v">Archived</span></span><span class="nl"><span class="nl-k">Node Status</span><span class="nl-v">Inactive · Reusable</span></span></div></div></td>
+      <td class="row-actions" style="text-align:right"><button class="btn btn-sm" onclick="window.handleArchiveEdit(this)">Edit</button> <button class="btn btn-delete btn-sm" onclick="window.handleDelete(this)">Delete</button></td>
+     </tr>
+    </tbody>
+    </table>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Showing first 5 of 147 rows · 5 rows have errors (will be skipped)</div>
+   </div>
+   <div class="popup-f">
+    <span class="pf-l"></span>
+    <div class="pf-r">
+     <button class="btn btn-sm" id="csv-popup-cancel">Cancel</button>
+     <button class="btn btn-p btn-sm" id="csv-import-confirm">Import 142 Rows →</button>
+    </div>
+   </div>
+  </div>
+ </div>
+
+
+</main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ===== F1 v2 · family-grouped catalog view =====
+  // Chevron toggles .expanded on parent tbody.f1-family (single-version families ignore clicks).
+  document.querySelectorAll('.f1-chevron').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const family = btn.closest('.f1-family');
+      if (!family || family.classList.contains('single')) return;
+      family.classList.toggle('expanded');
+    });
+  });
+  // Copy-to-clipboard for Active code chips only. Non-copyable (dim) chips do nothing.
+  document.querySelectorAll('.f1-code-chip.copyable').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const code = chip.dataset.copy;
+      if (!code) return;
+      if (navigator.clipboard) navigator.clipboard.writeText(code).catch(()=>{});
+      chip.classList.add('copied');
+      const icon = chip.querySelector('.copy-icon');
+      const orig = icon ? icon.textContent : '';
+      if (icon) icon.textContent = '✓';
+      setTimeout(() => { chip.classList.remove('copied'); if (icon) icon.textContent = orig; }, 950);
+    });
+  });
+
+  const drawer = document.getElementById('drawer');
+  const closeBtn = document.getElementById('drawer-close');
+
+  document.querySelectorAll('.lineage-btn:not(.inactive)').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      drawer.classList.add('open');
+      document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('selected'));
+      document.querySelectorAll('.lineage-btn').forEach(b => b.classList.remove('selected'));
+      btn.closest('tr').classList.add('selected');
+      btn.classList.add('selected');
+    });
+  });
+
+  closeBtn.addEventListener('click', () => {
+    drawer.classList.remove('open');
+    document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('selected'));
+    document.querySelectorAll('.lineage-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.collapsible').forEach(c => c.classList.remove('show'));
+    document.querySelectorAll('.cascade').forEach(c => c.classList.remove('expanded'));
+  });
+
+  // Cascading expand/collapse
+  document.querySelectorAll('.cascade').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.target;
+      const target = document.getElementById(id);
+      if (!target) return;
+      target.classList.toggle('show');
+      el.classList.toggle('expanded');
+    });
+  });
+
+  // All interactive filter dropdowns (.filter-dd)
+  document.querySelectorAll('.filter-dd').forEach(filter => {
+    filter.addEventListener('click', (e) => {
+      if (e.target.closest('.filter-dd-opt')) return;
+      e.stopPropagation();
+      // Close other open filters
+      document.querySelectorAll('.filter-dd.open').forEach(f => { if (f !== filter) f.classList.remove('open'); });
+      filter.classList.toggle('open');
+    });
+    filter.querySelectorAll('.filter-dd-opt').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filter.querySelectorAll('.filter-dd-opt').forEach(o => o.classList.remove('on'));
+        opt.classList.add('on');
+        const val = opt.dataset.val;
+        filter.querySelector('span > b').textContent = '· ' + val;
+        filter.classList.remove('open');
+      });
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.filter-dd')) {
+      document.querySelectorAll('.filter-dd.open').forEach(f => f.classList.remove('open'));
+    }
+  });
+
+  // List ID click-to-copy
+  document.querySelectorAll('.list-id').forEach(el => {
+    el.addEventListener('click', () => {
+      const text = el.dataset.copy;
+      const fallback = () => {
+        // Fallback for non-clipboard environments
+        el.classList.add('copied');
+        const origHTML = el.innerHTML;
+        el.innerHTML = '✓ Copied!';
+        setTimeout(() => { el.classList.remove('copied'); el.innerHTML = origHTML; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(fallback).catch(fallback);
+      } else {
+        fallback();
+      }
+    });
+  });
+
+  // Kebab menu toggle
+  document.querySelectorAll('.kebab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wrap = btn.closest('.kebab-wrap');
+      document.querySelectorAll('.kebab-wrap.open').forEach(w => { if (w !== wrap) w.classList.remove('open'); });
+      wrap.classList.toggle('open');
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.kebab-wrap')) {
+      document.querySelectorAll('.kebab-wrap.open').forEach(w => w.classList.remove('open'));
+    }
+  });
+
+  // CSV Import Preview popup
+  const csvTrigger = document.getElementById('import-csv-trigger');
+  const csvMask = document.getElementById('csv-popup-mask');
+  const csvClose = document.getElementById('csv-popup-close');
+  const csvCancel = document.getElementById('csv-popup-cancel');
+  const csvConfirm = document.getElementById('csv-import-confirm');
+  if (csvTrigger && csvMask) {
+    csvTrigger.addEventListener('click', () => csvMask.classList.add('show'));
+    [csvClose, csvCancel].forEach(b => b && b.addEventListener('click', () => csvMask.classList.remove('show')));
+    csvMask.addEventListener('click', (e) => { if (e.target === csvMask) csvMask.classList.remove('show'); });
+  }
+  if (csvConfirm && csvMask) {
+    csvConfirm.addEventListener('click', () => {
+      csvMask.classList.remove('show');
+      showLark('Lark · Bulk Import', '<b>142 lists</b> imported into Ready for Review staging (5 rows skipped due to errors). Open each, complete validation, select a reviewer and submit. Draft is created only after rejection.', 4800);
+    });
+  }
+
+  // Export · feedback toast (no actual file download in prototype)
+  const exportBtn = document.getElementById('export-trigger');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      const visibleRows = document.querySelectorAll('tbody tr:not([style*="display: none"])').length;
+      showLark('Lark · Export Started', `Exporting <b>${visibleRows} lists</b> (current filter view) to CSV. Download will start shortly.`, 3200);
+    });
+  }
+
+  // Search · explicitly trigger filter application with current filter values
+  const searchBtn = document.getElementById('filter-search');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', () => {
+      const kw = (document.querySelector('.search-sm')?.value || '').trim();
+      const readFilter = id => {
+        const el = document.getElementById(id);
+        if (!el) return 'All';
+        const on = el.querySelector('.filter-dd-opt.on');
+        return on ? on.dataset.val : 'All';
+      };
+      const statusOpt = document.querySelector('#status-filter .filter-dd-opt.on');
+      const statusKey = statusOpt ? statusOpt.dataset.state : 'all';
+      const statusLabel = statusOpt ? statusOpt.dataset.val : 'All';
+      const owner = readFilter('owner-filter');
+      const mm = readFilter('mm-filter');
+      const parts = [];
+      parts.push(`Status <b>${statusLabel}</b>`);
+      if (owner !== 'All') parts.push(`Ownership <b>${owner}</b>`);
+      if (kw) parts.push(`keyword "<b>${kw}</b>"`);
+      if (mm !== 'All') parts.push(`Match Mode <b>${mm}</b>`);
+      if (window.applyListFilters) window.applyListFilters(statusKey, owner);
+      showLark('Search Applied', `Filtering on ${parts.join(' · ')} (AND)`, 2200);
+    });
+  }
+
+  // Reset · clear all filter dropdowns + search box, restore default Scenario Type
+  const resetBtn = document.getElementById('filter-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      // Reset each filter dropdown: first option = default (All)
+      document.querySelectorAll('.filter-dd').forEach(filter => {
+        const opts = filter.querySelectorAll('.filter-dd-opt');
+        opts.forEach(o => o.classList.remove('on'));
+        if (opts[0]) {
+          opts[0].classList.add('on');
+          const b = filter.querySelector('span > b');
+          if (b) b.textContent = '· ' + opts[0].dataset.val;
+        }
+        filter.classList.remove('open');
+      });
+      // Clear inline search box
+      const searchSm = document.querySelector('.search-sm');
+      if (searchSm) searchSm.value = '';
+      if (window.applyListFilters) window.applyListFilters('all', 'All');
+      showLark('Filters Reset', 'All filters cleared · default view restored: Status All, Ownership All.', 2200);
+    });
+  }
+
+  // ============================================================
+  // F1 Status State Machine
+  // Draft → (Edit → E2 Publish 提审) → Pending Review → (Approve → Online | Reject → Draft)
+  // Online → Edit → Pending Review · Online → Archive → Archive · Archive → Delete
+  // ============================================================
+
+  const STATUS_LABEL = {
+    draft: 'Draft',
+    pending: 'Pending Review',
+    reviewed: 'Reviewed',
+    online: 'Active',
+    archive: 'Archive'
+  };
+  const STATUS_CLS = {
+    draft: 'draft',
+    pending: 'review',
+    reviewed: 'reviewed',
+    online: 'ok',
+    archive: 'archive'
+  };
+  const REVIEWER = '@reviewer-username';
+  const OWNER_FOR_ROW = {}; // populated below
+
+  // ============================================================
+  // Data Sources referenced by each Active list · shown in List Configuration modal
+  // Mirrors the Data Source enum in the F3 rule editor (feature-platform-word-list-prototype-v0.3-G1.html)
+  // Each entry: array of {label, n} where n = number of active rules pulling the list against that data source.
+  // Sum of n's == Active Refs (rules count).
+  // ============================================================
+  const DS_REFS_FOR_LIST = {
+    'list_live_nsa_lex':     [{label:'ASR', n:2}, {label:'OCR', n:1}],
+    'list_live_nsa_lex_v3':  [{label:'ASR', n:2}, {label:'OCR', n:1}],
+    'list_live_edu_white':   [{label:'OCR', n:2}, {label:'直播间标题', n:1}, {label:'About me', n:1}],
+    'list_live_pcf_gift':    [{label:'ASR', n:2}, {label:'Pin', n:1}, {label:'Sticker', n:1}],
+    'list_live_hshi_lex':    [{label:'OCR', n:2}, {label:'ASR', n:1}, {label:'Bio', n:1}]
+  };
+  const DS_FALLBACK_POOL = ['ASR','OCR','Bio','Pin','直播间标题','About me','LIVE goal','Sticker'];
+  function dsRefsForList(listId, refCount) {
+    if (DS_REFS_FOR_LIST[listId]) return DS_REFS_FOR_LIST[listId];
+    if (!refCount || refCount <= 0) return [];
+    // Deterministic fallback: pick first min(refCount, 3) labels from pool, distribute refs
+    const distinct = Math.min(refCount, 3);
+    const out = [];
+    let remaining = refCount;
+    // hash listId to a start offset so different lists get different pool slices
+    let h = 0; for (let i = 0; i < listId.length; i++) h = (h * 31 + listId.charCodeAt(i)) >>> 0;
+    for (let i = 0; i < distinct; i++) {
+      const take = (i === distinct - 1) ? remaining : Math.max(1, Math.ceil(remaining / (distinct - i)));
+      out.push({ label: DS_FALLBACK_POOL[(h + i) % DS_FALLBACK_POOL.length], n: take });
+      remaining -= take;
+    }
+    return out;
+  }
+  function renderDsRefs(refs) {
+    const wrap = document.getElementById('d-ds-refs');
+    if (!wrap) return;
+    if (!refs || refs.length === 0) {
+      wrap.innerHTML = '<span class="d-ds-empty">— no active refs</span>';
+      return;
+    }
+    const chips = refs.map(r =>
+      `<span class="d-ds-chip">${r.label}<span class="d-ds-n">${r.n}</span></span>`
+    ).join('');
+    wrap.innerHTML = chips + `<span class="d-ds-count">${refs.length} source${refs.length > 1 ? 's' : ''}</span>`;
+  }
+
+  // Capture row owner for Lark message
+  document.querySelectorAll('tr[data-row-id]').forEach(tr => {
+    const id = tr.dataset.rowId;
+    const tds = tr.querySelectorAll('td');
+    // Owner is typically the 7th column for online/draft etc. Find @ cell
+    tds.forEach(td => {
+      const txt = (td.textContent || '').trim();
+      if (txt.startsWith('@') && !OWNER_FOR_ROW[id]) OWNER_FOR_ROW[id] = txt.split(/\s+/)[0];
+    });
+  });
+
+  const NODE_INFO = {
+    draft:        { jiedian: 'Draft',         zhuangtai: 'Not Submitted' },
+    'draft-rej':  { jiedian: 'Draft',         zhuangtai: 'Rejected · Revise' },
+    pending:      { jiedian: 'Review',        zhuangtai: 'In Progress' },
+    reviewed:     { jiedian: 'Approved',      zhuangtai: 'Ready to Publish' },
+    online:       { jiedian: 'Published',     zhuangtai: 'Running' },
+    archive:      { jiedian: 'Archived',      zhuangtai: 'Inactive · Reusable' }
+  };
+
+  function renderStatusCell(state, isRejected) {
+    const key = (state === 'draft' && isRejected) ? 'draft-rej' : state;
+    const info = NODE_INFO[key] || NODE_INFO[state] || { jiedian: '—', zhuangtai: '—' };
+    return `<div class="status-cell s-${key}">`
+      + `<span class="status ${STATUS_CLS[state]}"><span class="ds"></span>${STATUS_LABEL[state]}</span>`
+      + `<div class="node-lines">`
+      + `<span class="nl"><span class="nl-k">Ticket Node</span><span class="nl-v">${info.jiedian}</span></span>`
+      + `<span class="nl"><span class="nl-k">Node Status</span><span class="nl-v">${info.zhuangtai}</span></span>`
+      + `</div></div>`;
+  }
+
+  function activeEditHref(rowEl) {
+    const name = rowEl?.querySelector('.libname')?.textContent.trim() || 'Active List';
+    return `feature-platform-word-list-prototype-v0.3-E2.html?mode=active-edit&list=${encodeURIComponent(name)}`;
+  }
+
+  function renderActionsCell(state, rowEl) {
+    if (state === 'draft') {
+      // Rejected Draft returns to E2, then proceeds to reviewer selection and resubmission.
+      return '<a class="btn btn-sm" href="feature-platform-word-list-prototype-v0.3-E2.html?mode=edit" title="Revise the rejected Draft, then continue to Select Reviewer and re-submit.">Edit</a>';
+    }
+    if (state === 'pending') {
+      return '<button class="btn btn-sm" onclick="window.handlePendingDetails(this)">Details</button><div class="mock-dd"><button class="mock-trigger" title="Demo · simulate reviewer decision">★</button><div class="mock-menu"><div class="mock-menu-h">DEMO: Simulate Reviewer</div><div class="mock-item approve" onclick="window.mockApprove(this)">✓ Mock Approve</div><div class="mock-item reject" onclick="window.mockReject(this)">✕ Mock Reject</div></div></div>';
+    }
+    if (state === 'reviewed') {
+      return '<button class="btn btn-p btn-sm" onclick="window.handleReviewedDetails(this)">Details</button>';
+    }
+    if (state === 'online') {
+      // Permission model (2026-06-17 update): anyone can Edit any Active list · changes always go through approval
+      // · the editor cannot self-review (handled at submit-modal level by filtering reviewer dropdown)
+      const editAction = `<button class="btn btn-sm active-edit-btn" onclick="window.openActiveEdit(this)" title="Edit this Active list inline. The current version stays live until the changes are approved.">Edit</button> `;
+      return '<button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button> '
+           + editAction
+           + '<button class="btn btn-sm btn-row-archive" onclick="window.handleOnlineArchive(this)" title="Archive enabled only when active refs = 0">Archive</button>';
+    }
+    if (state === 'archive') {
+      return '<button class="btn btn-sm" onclick="window.handleArchiveEdit(this)">Edit</button> <button class="btn btn-delete btn-sm" onclick="window.handleDelete(this)">Delete</button>';
+    }
+    return '';
+  }
+
+  // Existing Active rows are static markup; add the Active Edit entry on ALL of them
+  // (Permission update 2026-06-17 · anyone can Edit · self-review blocked at reviewer dropdown)
+  document.querySelectorAll('tr[data-row-state="online"]').forEach(rowEl => {
+    const actions = rowEl.querySelector('.row-actions');
+    if (!actions || actions.querySelector('.active-edit-btn')) return;
+    const archive = actions.querySelector('.btn-row-archive');
+    const edit = document.createElement('button');
+    edit.className = 'btn btn-sm active-edit-btn';
+    edit.type = 'button';
+    edit.setAttribute('onclick', 'window.openActiveEdit(this)');
+    edit.title = 'Edit this Active list inline. The current version stays live until the changes are approved.';
+    edit.textContent = 'Edit';
+    actions.insertBefore(edit, archive || null);
+  });
+
+  function transitionRow(rowEl, newState) {
+    rowEl.dataset.rowState = newState;
+    const isRejected = newState === 'draft' && !!rowEl.dataset.rejectedReason;
+    rowEl.querySelector('.row-status').innerHTML = renderStatusCell(newState, isRejected);
+    rowEl.querySelector('.row-actions').innerHTML = renderActionsCell(newState, rowEl);
+
+    if (newState === 'pending') {
+      rowEl.dataset.reviewState = 'awaiting';
+      delete rowEl.dataset.reviewer;
+      delete rowEl.dataset.reviewTime;
+      delete rowEl.dataset.reviewComment;
+      removeRejBadge(rowEl); // re-submission clears the prior rejection badge
+    } else if (newState === 'reviewed') {
+      // keep reviewer/time/comment for the Reviewed-details popup to show
+      delete rowEl.dataset.reviewState;
+    } else if (newState === 'online') {
+      delete rowEl.dataset.reviewState;
+      delete rowEl.dataset.reviewer;
+      delete rowEl.dataset.reviewTime;
+      delete rowEl.dataset.reviewComment;
+    } else if (newState === 'draft') {
+      delete rowEl.dataset.reviewState;
+      // rejected-reason badge (if any) is added by mockReject before calling transitionRow
+    }
+  }
+
+  function refreshStatusCell(rowEl) {
+    const state = rowEl.dataset.rowState;
+    if (!state) return;
+    const isRejected = state === 'draft' && !!rowEl.dataset.rejectedReason;
+    const cell = rowEl.querySelector('.row-status');
+    if (cell) cell.innerHTML = renderStatusCell(state, isRejected);
+  }
+
+  function addRejBadge(rowEl, reason, reviewer, ts) {
+    removeRejBadge(rowEl);
+    const libCell = rowEl.querySelector('.libname');
+    if (!libCell) return;
+    const safeReason = String(reason || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    libCell.insertAdjacentHTML('beforeend',
+      `<span class="rej-badge" tabindex="0">↩ Last review rejected`
+      + `<span class="rb-tooltip">`
+      + `<span class="rt-h">Rejection Reason</span>`
+      + `<span class="rt-body">"${safeReason}"</span>`
+      + `<span class="rt-meta">${reviewer || ''} · ${ts || ''}</span>`
+      + `</span></span>`);
+    rowEl.dataset.rejectedReason = reason;
+    rowEl.dataset.rejectedBy = reviewer || '';
+    rowEl.dataset.rejectedAt = ts || '';
+    refreshStatusCell(rowEl); // flip 节点状态 to 已退回·待修改
+  }
+
+  function removeRejBadge(rowEl) {
+    const b = rowEl.querySelector('.rej-badge');
+    if (b) b.remove();
+    delete rowEl.dataset.rejectedReason;
+    delete rowEl.dataset.rejectedBy;
+    delete rowEl.dataset.rejectedAt;
+    refreshStatusCell(rowEl); // flip back to 未提交 when badge cleared
+  }
+
+  function rowOf(triggerEl) {
+    return triggerEl.closest('tr[data-row-id]');
+  }
+
+  // ====== Confirm Modal ======
+  const cMask = document.getElementById('confirm-mask');
+  const cTitle = document.getElementById('confirm-title');
+  const cBody = document.getElementById('confirm-body');
+  const cIcon = document.getElementById('confirm-icon');
+  const cOk = document.getElementById('confirm-ok');
+  const cCancel = document.getElementById('confirm-cancel');
+
+  function showConfirm({title, body, icon='warn', okText='Confirm', okClass='btn-p', cancelText='Cancel', hideCancel=false, width='420px', onConfirm, onCancel}) {
+    cTitle.textContent = title;
+    cBody.innerHTML = body;
+    cMask.querySelector('.confirm-box').style.width = width;
+    cIcon.className = 'ci ' + icon;
+    cIcon.textContent = icon === 'danger' ? '!' : (icon === 'info' ? 'i' : '?');
+    cOk.textContent = okText;
+    cOk.className = 'btn btn-sm ' + okClass;
+    cCancel.textContent = cancelText;
+    cCancel.style.display = hideCancel ? 'none' : '';
+    cMask.classList.add('show');
+
+    const handleOk = () => {
+      cMask.classList.remove('show');
+      cOk.removeEventListener('click', handleOk);
+      cCancel.removeEventListener('click', handleCancel);
+      if (onConfirm) onConfirm();
+    };
+    const handleCancel = () => {
+      cMask.classList.remove('show');
+      cOk.removeEventListener('click', handleOk);
+      cCancel.removeEventListener('click', handleCancel);
+      if (onCancel) onCancel();
+    };
+    cOk.addEventListener('click', handleOk);
+    cCancel.addEventListener('click', handleCancel);
+  }
+  cMask.addEventListener('click', (e) => {
+    if (e.target === cMask) {
+      cMask.classList.remove('show');
+      // Reset any inline z-index bump (used when stacking above the Edit Active List modal)
+      cMask.style.zIndex = '';
+    }
+  });
+
+  // ====== Lark Toast ======
+  const larkEl = document.getElementById('lark-toast');
+  const larkH = document.getElementById('lark-h');
+  const larkMsg = document.getElementById('lark-msg');
+  let larkTimer;
+  function showLark(header, msg, durMs=3600) {
+    larkH.textContent = header;
+    larkMsg.innerHTML = msg;
+    larkEl.classList.add('show');
+    clearTimeout(larkTimer);
+    larkTimer = setTimeout(() => larkEl.classList.remove('show'), durMs);
+  }
+
+  const PENDING_REVISION_KEY = 'wordListPendingRevision';
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>'"]/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    })[char]);
+  }
+
+  function readPendingRevision() {
+    try {
+      const value = JSON.parse(localStorage.getItem(PENDING_REVISION_KEY) || 'null');
+      return value && value.status === 'pending' ? value : null;
+    } catch (error) {
+      localStorage.removeItem(PENDING_REVISION_KEY);
+      return null;
+    }
+  }
+
+  function pendingRevisionRow(request) {
+    return Array.from(document.querySelectorAll('tr[data-row-state="online"]')).find(rowEl =>
+      rowEl.querySelector('.libname')?.textContent.trim() === request.listName
+    );
+  }
+
+  function restoreActiveActions(rowEl) {
+    const actions = rowEl.querySelector('.row-actions');
+    if (actions) actions.innerHTML = renderActionsCell('online', rowEl);
+    rowEl.querySelector('.pending-change-tag')?.remove();
+    delete rowEl.dataset.pendingRevision;
+  }
+
+  function changeDiffHtml(request) {
+    const added = request.diff?.added || [];
+    const deleted = request.diff?.deleted || [];
+    const modified = request.diff?.modified || [];
+    const rows = (items, mark, color, mapper) => items.map(item =>
+      `<div style="display:grid;grid-template-columns:24px 1fr;gap:8px;padding:7px 9px;border-bottom:1px solid var(--border-soft);font-family:monospace;font-size:11px;color:${color}"><b>${mark}</b><span>${mapper(item)}</span></div>`
+    ).join('');
+    return `<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:4px;padding:9px 11px;margin-bottom:12px;color:#1D4ED8;font-size:11.5px"><b>Current production version remains Active.</b> This revision is waiting for approval.</div>`
+      + `<div style="display:grid;grid-template-columns:120px 1fr;gap:7px 12px;font-size:11.5px;margin-bottom:14px">`
+      + `<span style="color:var(--text-muted)">Reviewer</span><b>${escapeHtml(request.reviewer)}</b>`
+      + `<span style="color:var(--text-muted)">Submitted by</span><span>${escapeHtml(request.submittedBy)}</span>`
+      + `<span style="color:var(--text-muted)">Submitted at</span><span>${escapeHtml(request.submittedAt)}</span>`
+      + `<span style="color:var(--text-muted)">Comment</span><span>${escapeHtml(request.comment)}</span></div>`
+      + `<div style="font-size:12px;font-weight:700;margin-bottom:7px">Change summary · ${added.length} added · ${deleted.length} deleted · ${modified.length} modified</div>`
+      + `<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px">`
+      + `<div style="padding:6px 9px;background:#F0FDF4;color:#166534;font-size:10.5px;font-weight:700">Added terms</div>`
+      + rows(added, '+', '#166534', item => escapeHtml(item)) + `</div>`
+      + `<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px">`
+      + `<div style="padding:6px 9px;background:#FEF2F2;color:#991B1B;font-size:10.5px;font-weight:700">Deleted terms</div>`
+      + rows(deleted, '−', '#991B1B', item => escapeHtml(item)) + `</div>`
+      + `<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">`
+      + `<div style="padding:6px 9px;background:#FFFBEB;color:#713F12;font-size:10.5px;font-weight:700">Modified terms</div>`
+      + rows(modified, '~', '#713F12', item => `${escapeHtml(item.before)} <b style="padding:0 8px">→</b> ${escapeHtml(item.after)}`) + `</div>`;
+  }
+
+  window.openChangeReviewDetails = (button) => {
+    const request = readPendingRevision();
+    const rowEl = button.closest('tr[data-row-id]');
+    if (!request || !rowEl) return;
+    showConfirm({
+      title: 'Review Active List Changes',
+      body: changeDiffHtml(request),
+      icon: 'info',
+      width: '680px',
+      okText: 'Approve changes',
+      okClass: 'btn-p',
+      cancelText: 'Reject changes',
+      onConfirm: () => {
+        localStorage.removeItem(PENDING_REVISION_KEY);
+        restoreActiveActions(rowEl);
+        showLark('Changes Approved', `<b>${escapeHtml(request.listName)}</b> remains Active · approved changes now replace the previous version.`);
+        // Fan-out: notify rule owners that the list auto-activated
+        const ruleOwners = (request.rule_owners_affected || ['@policy-owner-nsa-r3','@policy-owner-asa-r2','@policy-owner-cgs-r1']).join(' · ');
+        const rulesN = request.rules_affected_count ?? 3;
+        setTimeout(() => {
+        showLark('Lark · List Auto-Activated',
+          `<b>${escapeHtml(request.listName)}</b> now uses new master list · IDSP hot-swapped the latest Active version by the same list_id · no rule republish required · <b>${rulesN}</b> rules continued running uninterrupted.<br/>`
+          + `<span style="color:#94A3B8">Fallback:</span> if loading fails, IDSP keeps the previous Active version and retries.<br/>`
+          + `<span style="color:#94A3B8">To rule owners:</span> ${escapeHtml(ruleOwners)}`, 4800);
+        }, 700);
+      },
+      onCancel: () => {
+        localStorage.removeItem(PENDING_REVISION_KEY);
+        restoreActiveActions(rowEl);
+        showLark('Changes Rejected', `<b>${escapeHtml(request.listName)}</b> remains Active · the production version was not changed.<br/>`
+          + `<span style="color:#A7C5FF">Edits were discarded. Owner can re-edit any time.</span>`, 4200);
+      }
+    });
+  };
+
+  function applyPendingRevisionState() {
+    const request = readPendingRevision();
+    if (!request) return;
+    const rowEl = pendingRevisionRow(request);
+    if (!rowEl) return;
+    rowEl.dataset.pendingRevision = 'true';
+    const statusCell = rowEl.querySelector('.status-cell');
+    if (statusCell && !statusCell.querySelector('.pending-change-tag')) {
+      statusCell.insertAdjacentHTML('beforeend', '<span class="pending-change-tag"><span class="pc-dot"></span>Changes pending review</span>');
+    }
+    const actions = rowEl.querySelector('.row-actions');
+    if (actions) {
+      actions.innerHTML = '<button class="btn btn-sm" onclick="window.handleDetails(this)">Details</button> '
+        + '<span class="btn btn-sm" aria-disabled="true" title="A change request is already under review.">Edit</span> '
+        + '<button class="btn btn-sm" onclick="window.openChangeReviewDetails(this)">Review status</button> '
+        + '<span class="btn btn-sm" aria-disabled="true" title="Resolve the pending change request before archiving.">Archive</span>';
+    }
+    if (new URLSearchParams(location.search).get('changeSubmitted') === '1') {
+      showLark('Changes Submitted for Review', `<b>${escapeHtml(request.listName)}</b> remains Active · assigned to ${escapeHtml(request.reviewer)}.`);
+    }
+  }
+
+  applyPendingRevisionState();
+
+  // ====== Post-decision return from reviewer page ======
+  // When the reviewer page submits an Approve / Reject decision, it stamps
+  // status='approved' or 'rejected' onto the same payload and redirects back
+  // here. We apply the matching UX: restore the row's Edit/Archive actions
+  // and fire the post-decision Lark toast — same end state as the legacy
+  // inline-modal approval path (`openChangeReviewDetails`).
+  function readDecidedRevision() {
+    try {
+      const value = JSON.parse(localStorage.getItem(PENDING_REVISION_KEY) || 'null');
+      if (!value) return null;
+      if (value.status === 'approved' || value.status === 'rejected') return value;
+      return null;
+    } catch (e) {
+      localStorage.removeItem(PENDING_REVISION_KEY);
+      return null;
+    }
+  }
+
+  function applyDecidedRevision() {
+    const decided = readDecidedRevision();
+    if (!decided) return;
+    const isCreate = decided.change_type === 'create';
+    const rowEl = Array.from(document.querySelectorAll('tr[data-row-state="online"]')).find(rowEl =>
+      rowEl.querySelector('.libname')?.textContent.trim() === (decided.list_name || decided.listName)
+    );
+    if (rowEl) restoreActiveActions(rowEl);
+    localStorage.removeItem(PENDING_REVISION_KEY);
+
+    const listName = decided.list_name || decided.listName || 'List';
+    const reviewer = decided.decided_by || decided.reviewer || 'reviewer';
+    const ruleOwners = (decided.rule_owners_affected || ['@policy-owner-nsa-r3','@policy-owner-asa-r2','@policy-owner-cgs-r1']).join(' · ');
+    const rulesN = decided.rules_affected_count ?? 3;
+
+    if (isCreate && decided.status === 'approved') {
+      showLark('New List Activated',
+        `<b>${escapeHtml(listName)}</b> approved by ${escapeHtml(reviewer)} · status is now Active · available to IDSP rule configuration.`);
+    } else if (isCreate) {
+      const reason = decided.decision_comment ? `<br/><span style="color:#A7C5FF">Reason:</span> ${escapeHtml(decided.decision_comment)}` : '';
+      showLark('Creation Rejected · Saved as Draft',
+        `<b>${escapeHtml(listName)}</b> rejected by ${escapeHtml(reviewer)} · this rejection is the only path that creates Draft.${reason}`,
+        4800);
+    } else if (decided.status === 'approved') {
+      showLark('Changes Approved',
+        `<b>${escapeHtml(listName)}</b> approved by ${escapeHtml(reviewer)} · remains Active · approved changes now replace the previous version.`);
+      setTimeout(() => {
+        showLark('Lark · List Auto-Activated',
+          `<b>${escapeHtml(listName)}</b> now uses new master list · IDSP hot-swapped the latest Active version by the same list_id · no rule republish required · <b>${rulesN}</b> rules continued running uninterrupted.<br/>`
+          + `<span style="color:#94A3B8">Fallback:</span> if loading fails, IDSP keeps the previous Active version and retries.<br/>`
+          + `<span style="color:#94A3B8">To rule owners:</span> ${escapeHtml(ruleOwners)}`, 4800);
+      }, 800);
+    } else {
+      const reason = decided.decision_comment ? `<br/><span style="color:#A7C5FF">Reason:</span> ${escapeHtml(decided.decision_comment)}` : '';
+      showLark('Changes Rejected',
+        `<b>${escapeHtml(listName)}</b> rejected by ${escapeHtml(reviewer)} · old Active version remains live · the production version was not changed.${reason}<br/>`
+        + `<span style="color:#A7C5FF">Edits were discarded. Owner can re-edit any time.</span>`, 4800);
+    }
+    // Clean URL so a manual refresh doesn't re-fire the toast
+    if (new URLSearchParams(location.search).get('reviewDecision')) {
+      history.replaceState(null, '', location.pathname);
+    }
+  }
+
+  applyDecidedRevision();
+
+  // ====== Mock dropdown toggle ======
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.mock-trigger')) {
+      e.stopPropagation();
+      const dd = e.target.closest('.mock-dd');
+      document.querySelectorAll('.mock-dd.open').forEach(d => { if (d !== dd) d.classList.remove('open'); });
+      dd.classList.toggle('open');
+    } else if (!e.target.closest('.mock-dd')) {
+      document.querySelectorAll('.mock-dd.open').forEach(d => d.classList.remove('open'));
+    }
+  });
+
+  // ====== Handlers (exposed on window for inline onclick) ======
+  // Online → Details (read-only view; auto-archive is system-driven, no Owner action)
+  const detailsMask = document.getElementById('details-mask');
+  const detailsCloseBtn = document.getElementById('details-close-btn');
+  const detailsCloseX = document.getElementById('details-close');
+  function closeDetails() { if (detailsMask) detailsMask.classList.remove('show'); }
+  if (detailsCloseBtn) detailsCloseBtn.addEventListener('click', closeDetails);
+  if (detailsCloseX) detailsCloseX.addEventListener('click', closeDetails);
+  if (detailsMask) detailsMask.addEventListener('click', (e) => { if (e.target === detailsMask) closeDetails(); });
+
+  let _detailsRow = null; // remember which row opened the modal
+
+  window.handleDetails = (btn) => {
+    const tr = rowOf(btn);
+    _detailsRow = tr;
+    const id = tr.dataset.rowId;
+    // Pull cell values from the row
+    const listId = tr.querySelector('.list-id')?.dataset.copy || '';
+    const libnameEl = tr.querySelector('.libname');
+    const name = libnameEl ? libnameEl.textContent.trim() : '';
+    // Match Mode — use class selectors instead of fragile positional indices
+    const matchMode = tr.querySelector('.col-mm')?.textContent.trim() || 'Fuzzy Match';
+    // Scenario: read fork button presence; simplify to a placeholder
+    const langCount = tr.querySelector('.lc-count')?.textContent.trim() || '—';
+    const owner = OWNER_FOR_ROW[id] || '@unknown';
+    const updated = tr.querySelector('.col-updated')?.textContent.trim() || '—';
+
+    document.getElementById('d-name').textContent = name;
+    document.getElementById('d-list-id-text').textContent = listId;
+    document.getElementById('d-list-id').dataset.copy = listId;
+    document.getElementById('d-list-id').classList.remove('copied');
+    document.getElementById('d-match').textContent = matchMode;
+    document.getElementById('d-lang').textContent = langCount + ' langs';
+    document.getElementById('d-owner').textContent = owner;
+    document.getElementById('d-updated').textContent = updated;
+    // Status — clone the row's full status cell (status pill + 工单节点/节点状态 + orphan tag if any)
+    const dStatus = document.getElementById('d-status');
+    if (dStatus) {
+      const sc = tr.querySelector('.row-status .status-cell');
+      dStatus.innerHTML = sc ? sc.outerHTML : '—';
+    }
+
+    // 引用规则数 — read from row dataset (orphan rows have data-ref-count="0")
+    const refCount = parseInt(tr.dataset.refCount ?? '3', 10);
+    const isOrphan = tr.dataset.orphan === 'true' || refCount === 0;
+    document.getElementById('d-refcount-val').textContent = refCount;
+    const tag = document.getElementById('d-refcount-tag');
+    if (isOrphan) {
+      tag.textContent = 'Orphan · Archivable';
+      tag.style.background = '#FEF3C7';
+      tag.style.color = '#92400E';
+    } else {
+      tag.textContent = 'In Use';
+      tag.style.background = '#D1FAE5';
+      tag.style.color = '#047857';
+    }
+    // Data Sources referenced by this list's active rules
+    renderDsRefs(isOrphan ? [] : dsRefsForList(listId, refCount));
+    // Toggle Archive button affordance based on ref count
+    const archBtn = document.getElementById('d-archive-btn');
+    if (isOrphan) {
+      archBtn.classList.add('btn-action-warn');
+      archBtn.style.color = '';
+      archBtn.style.background = '';
+      archBtn.style.border = '';
+      archBtn.title = 'Active refs = 0 · Archive allowed';
+    } else {
+      archBtn.classList.remove('btn-action-warn');
+      archBtn.style.background = '#F1F5F9';
+      archBtn.style.color = '#94A3B8';
+      archBtn.style.border = '1px dashed #CBD5E1';
+      archBtn.title = 'Currently referenced by ' + refCount + ' active rule(s) · Cannot archive (click to see reason)';
+    }
+    detailsMask.classList.add('show');
+  };
+
+  // List ID in Details — click to copy
+  const dListId = document.getElementById('d-list-id');
+  if (dListId) {
+    dListId.addEventListener('click', () => {
+      const v = dListId.dataset.copy || document.getElementById('d-list-id-text').textContent;
+      const done = () => {
+        dListId.classList.add('copied');
+        showLark('List ID Copied', `<code style="font-family:'JetBrains Mono',Menlo,monospace">${v}</code> copied to clipboard`, 1800);
+        setTimeout(() => dListId.classList.remove('copied'), 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(v).then(done).catch(done);
+      } else {
+        done();
+      }
+    });
+  }
+
+  // Active Refs in Details — click opens the Word List Rule Lineage drawer on top of Details.
+  // (does NOT close Details; drawer goes fixed + high z-index; backdrop dims the rest of the page)
+  const dRefsLink = document.getElementById('d-refs-link');
+  const drawerEl = document.getElementById('drawer');
+  const drawerBackdrop = document.getElementById('lineage-backdrop');
+
+  function closeDrawerFromDetails() {
+    if (drawerEl) {
+      drawerEl.classList.remove('open');
+      drawerEl.classList.remove('from-details');
+    }
+    if (drawerBackdrop) drawerBackdrop.classList.remove('show');
+    // Reset row selection state set by the original lineage-btn click handler
+    document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('selected'));
+    document.querySelectorAll('.lineage-btn').forEach(b => b.classList.remove('selected'));
+  }
+  if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawerFromDetails);
+  // Hook the existing drawer-close × so it also removes the from-details class
+  const drawerCloseBtn = document.getElementById('drawer-close');
+  if (drawerCloseBtn) {
+    drawerCloseBtn.addEventListener('click', () => {
+      if (drawerEl) drawerEl.classList.remove('from-details');
+      if (drawerBackdrop) drawerBackdrop.classList.remove('show');
+    });
+  }
+
+  if (dRefsLink) {
+    dRefsLink.addEventListener('click', () => {
+      if (!_detailsRow) return;
+      const lb = _detailsRow.querySelector('.lineage-btn:not(.inactive)');
+      if (!lb) { showLark('No Lineage', 'This row has no active lineage references.', 1800); return; }
+      // Promote drawer to fixed-overlay mode so it stacks above Details modal
+      if (drawerEl) drawerEl.classList.add('from-details');
+      if (drawerBackdrop) drawerBackdrop.classList.add('show');
+      // Trigger the existing lineage-btn click — that selects the row + opens drawer
+      lb.click();
+    });
+  }
+
+  // Archive button · works both inline on Online rows and from Online Details modal
+  // Enforces ref-count = 0 invariant
+  window.handleOnlineArchive = (arg) => {
+    // arg can be a button el (called from row action) or undefined (called from Details modal)
+    let tr;
+    if (arg && arg.closest) {
+      tr = rowOf(arg);
+    } else {
+      tr = _detailsRow;
+    }
+    if (!tr) return;
+    const refCount = parseInt(tr.dataset.refCount ?? '3', 10);
+    const name = tr.querySelector('.libname')?.textContent.trim() || 'List';
+    const isOrphan = tr.dataset.orphan === 'true' || refCount === 0;
+
+    // Close Details modal first so the confirm popup (z=300) is not behind Details (z=305)
+    detailsMask.classList.remove('show');
+
+    if (!isOrphan) {
+      // BLOCKED · ref count > 0
+      showConfirm({
+        title: 'Cannot Archive · Referenced by Active Rules',
+        body: `<div style="padding:10px 12px;background:var(--red-bg);border:1px solid #FCA5A5;border-radius:7px;margin-bottom:10px;font-size:12px;color:var(--red-text);line-height:1.6">`
+            + `List <b>${name}</b> is referenced by <b>${refCount}</b> active rule(s) and cannot be archived.`
+            + `</div>`
+            + `<div style="font-size:11.5px;color:var(--text-secondary);line-height:1.65">Before archiving:<br/>`
+            + `<span style="color:var(--text-primary)">1. Take offline / replace all rules referencing this list in Strategy Platform</span><br/>`
+            + `<span style="color:var(--text-primary)">2. Wait for ref count to reach zero (system will notify Owner via Lark)</span><br/>`
+            + `<span style="color:var(--text-primary)">3. Return here and click Archive</span><br/><br/>`
+            + `<span style="color:var(--text-muted)">Click <b>View Lineage</b> to see all rules referencing this list.</span>`
+            + `</div>`,
+        icon: 'danger', okText: 'Got it', okClass: 'btn-p', hideCancel: true,
+        onConfirm: () => {}
+      });
+      return;
+    }
+    // ALLOWED · ref count = 0 (orphan)
+    showConfirm({
+      title: 'Archive this list?',
+      body: `<b>${name}</b> currently has <b>0</b> active rule references · safe to archive.<br/><br/>`
+          + `<div style="font-size:11.5px;color:var(--text-secondary);line-height:1.65">After archiving:<br/>`
+          + `· List status becomes <b>Archive</b> · List ID <b>deactivated</b> · Strategy Platform can no longer reference it<br/>`
+          + `· List content preserved · can be reused later by clicking <b>Edit</b> on the Archive row (Loop C)<br/>`
+          + `· Lark notifies Owner once archive is confirmed</div>`,
+      icon: 'warn', okText: 'Archive', okClass: 'btn-action-warn',
+      onConfirm: () => {
+        transitionRow(tr, 'archive');
+        delete tr.dataset.orphan;
+        delete tr.dataset.refCount;
+        showLark('Lark · Archive Complete', `<b>${name}</b> archived · List ID deactivated · Owner archived after refs reached zero.<br/><span style="color:#A7C5FF">→ To reuse, click Edit on the Archive row to revert to Draft and re-submit for review.</span>`, 4200);
+      }
+    });
+  };
+
+  // Archive → Edit (revert to Draft for revision; then user goes through normal Submit flow)
+  window.handleArchiveEdit = (btn) => {
+    const tr = rowOf(btn);
+    showConfirm({
+      title: 'Revert to Draft for editing?',
+      body: `<b>${tr.querySelector('.libname').textContent.trim()}</b> will be reverted to <b>Draft</b> status so you can edit it. After editing, select a reviewer and submit a new approval request to bring it back to Active.`,
+      icon: 'info', okText: 'Revert to Draft', okClass: 'btn-p',
+      onConfirm: () => {
+        transitionRow(tr, 'draft');
+        showLark('Lark · Status Changed', `<b>${tr.querySelector('.libname').textContent.trim()}</b> is now Draft. Edit and re-submit for review when ready.`);
+      }
+    });
+  };
+
+  window.handleDelete = (btn) => {
+    const tr = rowOf(btn);
+    showConfirm({
+      title: 'Permanently delete this list?',
+      body: `<b>${tr.querySelector('.libname').textContent.trim()}</b> will be <b>permanently removed</b>. This action cannot be undone.`,
+      icon: 'danger', okText: 'Delete', okClass: 'btn-delete',
+      onConfirm: () => {
+        tr.style.transition = 'opacity .25s';
+        tr.style.opacity = '0';
+        setTimeout(() => tr.remove(), 280);
+      }
+    });
+  };
+
+  // ====== Reviewer-side simulation (Mock Approve / Reject) ======
+  // Sets review state on the row + fires Lark notification.
+  // Does NOT immediately transition the row — Owner must click Details to commit.
+
+  const NOW_STR = () => {
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const MOCK_REVIEWER = '@lzwang';
+
+  window.mockApprove = (item) => {
+    const tr = rowOf(item);
+    const id = tr.dataset.rowId;
+    const owner = OWNER_FOR_ROW[id] || '@owner';
+    const listname = tr.querySelector('.libname').textContent.trim();
+    const listId = tr.querySelector('.list-id')?.dataset.copy || '';
+    document.querySelectorAll('.mock-dd.open').forEach(d => d.classList.remove('open'));
+
+    showConfirm({
+      title: 'Mock Reviewer: Approve',
+      body: `Simulating <b>${MOCK_REVIEWER}</b> approving <b>${listname}</b>.<br/><br/>`
+          + `<label style="font-size:11.5px;color:var(--text-muted);font-weight:600">Optional comment · delivered to Owner via Lark:</label>`
+          + `<textarea id="mock-cmt" rows="3" style="width:100%;margin-top:6px;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;resize:vertical">Translations look good. Gift solicitation scenario is well-scoped.</textarea>`,
+      icon: 'info', okText: '✓ Approve (mock)', okClass: 'btn-p', cancelText: 'Cancel',
+      onConfirm: () => {
+        const cmt = (document.getElementById('mock-cmt')?.value || '').trim();
+        const ts = NOW_STR();
+        // Persist reviewer metadata before activation for audit display.
+        tr.dataset.reviewer = MOCK_REVIEWER;
+        tr.dataset.reviewTime = ts;
+        tr.dataset.reviewComment = cmt;
+        // Approval activates the submitted snapshot directly.
+        transitionRow(tr, 'online');
+        showLark('Lark · Review Result',
+          `To <b>${owner}</b>: <b style="color:#34D399">APPROVED</b><br/>`
+          + `<span style="color:#94A3B8">Scenario:</span> Eco-governance<br/>`
+          + `<span style="color:#94A3B8">List:</span> ${listname}<br/>`
+          + `<span style="color:#94A3B8">List ID (Active):</span> <code style="font-family:monospace;color:#A7C5FF">${listId}</code><br/>`
+          + `<span style="color:#94A3B8">Reviewer:</span> ${MOCK_REVIEWER} · ${ts}<br/>`
+          + (cmt ? `<span style="color:#94A3B8">Comment:</span> ${cmt}<br/>` : '')
+          + `<span style="color:#A7C5FF">→ List is now Active · approved snapshot synchronized to IDSP candidates</span>`, 4800);
+      }
+    });
+  };
+
+  window.mockReject = (item) => {
+    const tr = rowOf(item);
+    const id = tr.dataset.rowId;
+    const owner = OWNER_FOR_ROW[id] || '@owner';
+    const listname = tr.querySelector('.libname').textContent.trim();
+    const listId = tr.querySelector('.list-id')?.dataset.copy || '';
+    document.querySelectorAll('.mock-dd.open').forEach(d => d.classList.remove('open'));
+
+    showConfirm({
+      title: 'Mock Reviewer: Reject',
+      body: `Simulating <b>${MOCK_REVIEWER}</b> rejecting <b>${listname}</b>.<br/><br/>`
+          + `<label style="font-size:11.5px;color:var(--red-text);font-weight:700">Rejection Reason <span style="color:var(--red)">*</span> required, delivered to Owner via Lark + shown as a badge on the Draft row:</label>`
+          + `<textarea id="mock-cmt" rows="3" style="width:100%;margin-top:6px;padding:7px 9px;border:1px solid #FCA5A5;border-radius:6px;font-size:12px;font-family:inherit;resize:vertical;background:#FEF2F2">Translation confidence below threshold for Arabic entries. Please re-run with manual verification.</textarea>`,
+      icon: 'danger', okText: '✕ Reject (mock)', okClass: 'btn-delete', cancelText: 'Cancel',
+      onConfirm: () => {
+        const reason = (document.getElementById('mock-cmt')?.value || '').trim() || 'No reason provided.';
+        const ts = NOW_STR();
+        // Auto-transition: Pending Review → Draft (immediate, no Owner confirmation needed)
+        transitionRow(tr, 'draft');
+        // Attach rejection-reason badge to the libname cell (hover tooltip carries full reason)
+        addRejBadge(tr, reason, MOCK_REVIEWER, ts);
+        showLark('Lark · Review Result',
+          `To <b>${owner}</b>: <b style="color:#F87171">REJECTED</b><br/>`
+          + `<span style="color:#94A3B8">Scenario:</span> Eco-governance<br/>`
+          + `<span style="color:#94A3B8">List:</span> ${listname}<br/>`
+          + `<span style="color:#94A3B8">Reviewer:</span> ${MOCK_REVIEWER} · ${ts}<br/>`
+          + `<span style="color:#94A3B8">Rejection Reason:</span> ${reason}<br/>`
+          + `<span style="color:#A7C5FF">→ List auto-reverted to Draft · hover the badge to see the reason · click Edit, revise, select a reviewer and re-submit</span>`, 5200);
+      }
+    });
+  };
+
+  // ====== Owner-side · click Details on a Pending Review (awaiting) row ======
+  // Pending Review is awaiting a decision; approval activates and rejection creates Draft.
+  window.handlePendingDetails = (btn) => {
+    const tr = rowOf(btn);
+    const reviewer = tr.dataset.reviewer || MOCK_REVIEWER;
+    const submitted = tr.querySelector('.col-updated')?.textContent.trim() || '—';
+    showConfirm({
+      title: 'Review in Progress',
+      body: `<div style="background:var(--bg-softer);border:1px solid var(--border-soft);border-radius:7px;padding:11px 13px;margin-bottom:10px;font-size:11.5px;line-height:1.7">`
+          + `<div style="font-size:10.5px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px">Current Node</div>`
+          + `<div style="font-weight:700;color:var(--text-primary)">Reviewer Approval</div>`
+          + `<div style="margin-top:5px"><span style="color:var(--text-muted)">Assigned to:</span> <b>${reviewer}</b> · Team Lead · Eco-governance</div>`
+          + `<div><span style="color:var(--text-muted)">Submitted:</span> ${submitted} · <span style="color:var(--amber-text);font-weight:700">SLA 4h</span></div>`
+          + `</div>`
+          + `The reviewer hasn't completed the review yet. The list will <b>auto-transition</b> to Active if approved or Draft if rejected — no additional Publish step is required. You'll get a Lark notification either way.`,
+      icon: 'info', okText: 'Got it', okClass: 'btn-p', hideCancel: true
+    });
+  };
+
+  // Legacy Reviewed rows auto-activate when opened; retained only for old demo data compatibility.
+  window.handleReviewedDetails = (btn) => {
+    const tr = rowOf(btn);
+    const listname = tr.querySelector('.libname').textContent.trim();
+    transitionRow(tr, 'online');
+    showLark('Status · Active', `<b>${listname}</b> was approved and activated automatically · no additional Publish action is required.`, 3600);
+  };
+
+  // Active-only toggle (visual)
+  const toggle = document.getElementById('active-toggle');
+  const sw = document.getElementById('active-switch');
+  if (toggle && sw) {
+    toggle.addEventListener('click', () => sw.classList.toggle('off'));
+  }
+
+  // ============================================================
+  // v0.3.1 · Active Inline Edit Modal
+  // Owner clicks Edit on an Active row → inline modal with diff-highlighted term table.
+  // Save Draft is intentionally not supported in this iteration.
+  // ============================================================
+
+  const ACTOR = '@ymgao';
+  // REVIEWER_POOL = canonical list of people authorized to review Active list edits.
+  // Anyone in the pool can review · the editor (ACTOR) is in the pool too but is rendered
+  // as disabled in the submit modal so they cannot self-approve (SELF_APPROVAL_BLOCKED).
+  const REVIEWER_POOL = ['@reviewer-tianyu', '@reviewer-thomas', '@reviewer-lzwang', '@reviewer-rdyang', '@ymgao'];
+  const MOCK_RULE_OWNERS = ['@policy-owner-nsa-r3', '@policy-owner-asa-r2', '@policy-owner-cgs-r1'];
+
+  // Per-list mock seed for the terms (key = libname)
+  function seedTermsForList(listName) {
+    return [
+      { id: 't-001', source: '诈骗',     en: 'fraud',                scenario: 'Manipulation & Incentivisation' },
+      { id: 't-006', source: '虚假宣传', en: 'false advertising',    scenario: 'Manipulation & Incentivisation' },
+      { id: 't-008', source: '炒作',     en: 'speculation',          scenario: 'Manipulation & Incentivisation' },
+      { id: 't-002', source: '色情',     en: 'pornography',          scenario: 'Nudity & Sexual Activity' },
+      { id: 't-004', source: '极端',     en: 'extreme content',      scenario: 'Potentially Disturbing Content' },
+      { id: 't-005', source: '暴恐',     en: 'violent terror',       scenario: 'Potentially Disturbing Content' },
+      { id: 't-003', source: '赌博',     en: 'gambling',             scenario: 'Dangerous Activities and Challenges' }
+    ];
+  }
+
+  const aeMask = document.getElementById('active-edit-mask');
+  const aeTitleName = document.getElementById('ae-title-name');
+  const aeMetaListId = document.getElementById('ae-meta-list-id');
+  const aeMetaMatch = document.getElementById('ae-meta-match');
+  const aeMetaScenario = document.getElementById('ae-meta-scenario');
+  const aeMetaTrans = document.getElementById('ae-meta-translation');
+  const aeMetaLangs = document.getElementById('ae-meta-langs');
+  const aeMetaOwner = document.getElementById('ae-meta-owner');
+  const aeTbody = document.getElementById('ae-tbody');
+  const aeDirty = document.getElementById('ae-dirty-summary');
+  const aeCount = document.getElementById('ae-count');
+  const aeSearch = document.getElementById('ae-search');
+  const aeBtnAdd = document.getElementById('ae-btn-add');
+  const aeBtnImportCsv = document.getElementById('ae-btn-csv');
+  const aeBtnImportLark = document.getElementById('ae-btn-lark');
+  const aeBtnPaste = document.getElementById('ae-btn-paste');
+  const aeBtnSubmit = document.getElementById('ae-btn-submit');
+  const aeBtnDiscard = document.getElementById('ae-btn-discard');
+  const aeX = document.getElementById('ae-x');
+
+  // Per-open editor state
+  let aeRowEl = null;       // the Active row being edited
+  let aeListName = '';
+  let aeListId = '';
+  let aeMaster = [];        // original snapshot {id, source, en, es, pt}
+  let aeWorking = [];       // working copy {id, source, en, es, pt, _op: 'add'|'del'|'mod'|null, _orig?}
+
+  function aeChangeCounts() {
+    let add = 0, del = 0, mod = 0;
+    aeWorking.forEach(r => {
+      if (r._op === 'add') add++;
+      else if (r._op === 'del') del++;
+      else if (r._op === 'mod') mod++;
+    });
+    return { add, del, mod, total: add + del + mod };
+  }
+
+  function aeMarkModifiedIfNeeded(r) {
+    if (r._op === 'add' || r._op === 'del') return; // add stays add; del stays del
+    if (!r._orig) return;
+    const changed = r.source !== r._orig.source || r.en !== r._orig.en || r.es !== r._orig.es || r.pt !== r._orig.pt;
+    r._op = changed ? 'mod' : null;
+  }
+
+  function aeRenderDirty() {
+    const c = aeChangeCounts();
+    aeDirty.innerHTML = `<span class="ae-chip-add">+${c.add} added</span>`
+      + `<span class="ae-chip-del">−${c.del} removed</span>`
+      + `<span class="ae-chip-mod">~${c.mod} modified</span>`;
+    aeCount.textContent = aeWorking.filter(r => r._op !== 'add' && r._op !== 'del').length + aeWorking.filter(r => r._op === 'add').length;
+    // footer total = effective rows after applying changes (master − del + add)
+    const effective = aeMaster.length - c.del + c.add;
+    aeCount.textContent = `${effective} terms total · ${c.total} pending changes`;
+  }
+
+  function aeRenderTable() {
+    const q = (aeSearch.value || '').trim().toLowerCase();
+    // Filter with sequence-stable indexing
+    const filtered = aeWorking.map((r, idx) => ({ r, idx })).filter(({ r }) => {
+      if (!q) return true;
+      return (r.source || '').toLowerCase().includes(q)
+          || (r.en || '').toLowerCase().includes(q)
+          || (r.scenario || '').toLowerCase().includes(q);
+    });
+    // Group by scenario, preserving insertion order
+    const groups = new Map();
+    filtered.forEach(({ r, idx }) => {
+      const k = r.scenario || '— Unclassified —';
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push({ r, idx });
+    });
+    let html = '';
+    groups.forEach((items, scenario) => {
+      html += `<tr class="ae-group-header"><td colspan="4" style="background:var(--bg-softer);font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted);padding:9px 14px;border-bottom:1px solid var(--border-soft)"><span style="color:var(--text-secondary)">业务场景 · Scenario</span> &nbsp;·&nbsp; <span style="color:var(--text-primary);text-transform:none;letter-spacing:0;font-size:11.5px">${escapeHtml(scenario)}</span> &nbsp;·&nbsp; <span style="color:var(--text-muted)">${items.length} term${items.length > 1 ? 's' : ''}</span></td></tr>`;
+      items.forEach(({ r, idx }) => {
+        const cls = r._op === 'add' ? 'ae-row-add'
+          : r._op === 'del' ? 'ae-row-del'
+          : r._op === 'mod' ? 'ae-row-mod' : '';
+        const badge = r._op === 'add' ? '<span class="ae-badge ae-badge-new">NEW</span>'
+          : r._op === 'del' ? '<span class="ae-badge ae-badge-del">DELETE</span>'
+          : r._op === 'mod' ? '<span class="ae-badge ae-badge-mod">EDIT</span>'
+          : '<span style="color:var(--text-muted);font-size:10.5px">live</span>';
+        const xBtn = r._op === 'del' ? 'undo' : '×';
+        const cellEdited = (field) => (r._op === 'mod' && r._orig && r[field] !== r._orig[field]) ? ' ae-cell-edited' : '';
+        html += `<tr class="${cls}" data-term-id="${escapeHtml(r.id)}">
+          <td class="ae-cell-num">${idx + 1}</td>
+          <td class="${cellEdited('en')}"><span class="ae-loc" data-field="en" style="font-weight:600;color:var(--text-primary)">${escapeHtml(r.en)}</span></td>
+          <td class="ae-cell-status">${badge}</td>
+          <td class="ae-cell-x"><button class="ae-x-btn" data-act="toggle-del" title="${r._op === 'del' ? 'Restore' : 'Soft delete'}">${xBtn}</button></td>
+        </tr>`;
+      });
+    });
+    aeTbody.innerHTML = html || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);font-size:11.5px">No terms match "${escapeHtml(q)}"</td></tr>`;
+    aeRenderDirty();
+  }
+
+  window.openActiveEdit = function(triggerEl) {
+    const tr = triggerEl.closest('tr[data-row-id]');
+    if (!tr) return;
+    aeRowEl = tr;
+    aeListName = tr.querySelector('.libname')?.textContent.trim() || 'Active List';
+    aeListId = tr.querySelector('.list-id')?.dataset.copy || 'list_unknown';
+    const matchMode = tr.querySelector('.col-mm')?.textContent.trim() || 'Fuzzy Match';
+    const langCount = tr.querySelector('.lc-count')?.textContent.trim() || '3';
+    const id = tr.dataset.rowId;
+    const owner = OWNER_FOR_ROW[id] || ACTOR;
+
+    aeTitleName.textContent = aeListName;
+    aeMetaListId.innerHTML = `<code>${escapeHtml(aeListId)}</code>`;
+    aeMetaMatch.textContent = matchMode;
+    aeMetaScenario.innerHTML = '<span class="chip chip-blue">Eco-governance</span>';
+    aeMetaTrans.innerHTML = '<span class="ae-tg on">ON</span>';
+    aeMetaLangs.textContent = `en, es, pt (${langCount} langs)`;
+    aeMetaOwner.textContent = owner;
+
+    // Seed working copy (deep clone)
+    aeMaster = seedTermsForList(aeListName);
+    aeWorking = aeMaster.map(t => ({ ...t, _op: null, _orig: { ...t } }));
+    aeSearch.value = '';
+    aeRenderTable();
+    aeMask.classList.add('show');
+  };
+
+  function aeCloseModal() { aeMask.classList.remove('show'); }
+
+  if (aeX) aeX.addEventListener('click', () => {
+    const c = aeChangeCounts();
+    if (c.total === 0) { aeCloseModal(); return; }
+    showConfirm({
+      title: 'Discard all changes',
+      body: `You'll lose <b>${c.total} changes</b> made to <b>${escapeHtml(aeListName)}</b>. This cannot be undone.`,
+      icon: 'danger', okText: 'Discard', okClass: 'btn-delete', cancelText: 'Keep editing',
+      onConfirm: aeCloseModal
+    });
+  });
+  if (aeMask) aeMask.addEventListener('click', (e) => { if (e.target === aeMask) { /* click outside closes only if no changes */ const c = aeChangeCounts(); if (c.total === 0) aeCloseModal(); } });
+
+  // Search
+  if (aeSearch) aeSearch.addEventListener('input', aeRenderTable);
+
+  // Cell edit · double-click to enter contenteditable
+  if (aeTbody) {
+    aeTbody.addEventListener('dblclick', (e) => {
+      const el = e.target.closest('.ae-src, .ae-loc');
+      if (!el) return;
+      const row = el.closest('tr');
+      if (row && row.classList.contains('ae-row-del')) return; // can't edit deleted rows
+      el.setAttribute('contenteditable', 'true');
+      el.focus();
+      // place caret end
+      const range = document.createRange(); range.selectNodeContents(el); range.collapse(false);
+      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    });
+    aeTbody.addEventListener('blur', (e) => {
+      const el = e.target.closest && e.target.closest('.ae-src, .ae-loc');
+      if (!el || el.getAttribute('contenteditable') !== 'true') return;
+      el.removeAttribute('contenteditable');
+      const tr = el.closest('tr[data-term-id]');
+      if (!tr) return;
+      const termId = tr.dataset.termId;
+      const field = el.dataset.field;
+      const newVal = el.textContent.trim();
+      const r = aeWorking.find(x => x.id === termId);
+      if (!r) return;
+      r[field] = newVal;
+      aeMarkModifiedIfNeeded(r);
+      aeRenderTable();
+      // Inline duplicate check · fires only for newly-added rows editing the EN master
+      if (field === 'en' && r._op === 'add' && newVal) {
+        const { dupes } = aeDetectDuplicates([{ en: newVal, source: r.source, es: r.es, pt: r.pt }], r.id);
+        if (dupes.length) {
+          aeOpenDupeModal([{ en: newVal, source: r.source, es: r.es, pt: r.pt }], {
+            excludeId: r.id,
+            onSkip: () => { aeWorking = aeWorking.filter(x => x.id !== r.id); aeRenderTable(); }
+          });
+        }
+      }
+    }, true);
+    aeTbody.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const el = e.target.closest && e.target.closest('.ae-src, .ae-loc');
+        if (el && el.getAttribute('contenteditable') === 'true') {
+          e.preventDefault();
+          el.blur();
+        }
+      } else if (e.key === 'Escape') {
+        const el = e.target.closest && e.target.closest('.ae-src, .ae-loc');
+        if (el && el.getAttribute('contenteditable') === 'true') {
+          e.preventDefault();
+          // revert this cell
+          const tr = el.closest('tr[data-term-id]');
+          const r = aeWorking.find(x => x.id === tr?.dataset.termId);
+          if (r && r._orig) el.textContent = r._orig[el.dataset.field] || '';
+          el.removeAttribute('contenteditable');
+        }
+      }
+    });
+
+    // Soft delete / restore
+    aeTbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('.ae-x-btn');
+      if (!btn) return;
+      const tr = btn.closest('tr[data-term-id]');
+      const r = aeWorking.find(x => x.id === tr?.dataset.termId);
+      if (!r) return;
+      if (r._op === 'add') {
+        // hard remove an unsubmitted new row
+        aeWorking = aeWorking.filter(x => x.id !== r.id);
+      } else if (r._op === 'del') {
+        // restore: re-check against orig
+        r._op = null;
+        aeMarkModifiedIfNeeded(r);
+      } else {
+        r._op = 'del';
+      }
+      aeRenderTable();
+    });
+  }
+
+  // Add term (inline)
+  function aeAddTerm(seed) {
+    const id = 't-new-' + Math.random().toString(36).slice(2, 8);
+    const row = {
+      id,
+      source: seed?.source || '',
+      en: seed?.en || '',
+      es: seed?.es || '',
+      pt: seed?.pt || '',
+      _op: 'add'
+    };
+    aeWorking.unshift(row);
+    aeRenderTable();
+    // focus the source cell of the new row
+    requestAnimationFrame(() => {
+      const cell = aeTbody.querySelector(`tr[data-term-id="${id}"] .ae-src`);
+      if (cell) {
+        cell.setAttribute('contenteditable', 'true');
+        cell.focus();
+      }
+    });
+  }
+  if (aeBtnAdd) aeBtnAdd.addEventListener('click', () => aeAddTerm());
+
+  // ============================================================
+  // Duplicate detection · batch add flows (paste / CSV / Lark)
+  // ============================================================
+  // Normalize EN master value for comparison (case + whitespace)
+  function aeNormEn(v) { return String(v || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+
+  // Returns { dupes:[{item, existingRowNum, existingEn}], uniques:[item, ...] }
+  // Existing rows exclude those already marked for delete (_op='del') since deleted terms free up the slot.
+  function aeDetectDuplicates(newItems, excludeId) {
+    const existing = new Map();
+    aeWorking.forEach((r, i) => {
+      if (r._op === 'del') return;
+      if (excludeId && r.id === excludeId) return;
+      const key = aeNormEn(r.en);
+      if (key && !existing.has(key)) existing.set(key, { rowNum: i + 1, en: r.en });
+    });
+    const dupes = [], uniques = [], seenInBatch = new Set();
+    (newItems || []).forEach(item => {
+      const key = aeNormEn(item?.en);
+      if (!key) { uniques.push(item); return; }
+      // Also dedupe within the batch itself
+      if (seenInBatch.has(key)) {
+        dupes.push({ item, existingRowNum: 'batch dup', existingEn: item.en });
+        return;
+      }
+      seenInBatch.add(key);
+      if (existing.has(key)) {
+        const hit = existing.get(key);
+        dupes.push({ item, existingRowNum: hit.rowNum, existingEn: hit.en });
+      } else {
+        uniques.push(item);
+      }
+    });
+    return { dupes, uniques };
+  }
+
+  // Modal show/hide + wiring
+  const aeDupeMask = document.getElementById('ae-dupe-mask');
+  const aeDupeX = document.getElementById('ae-dupe-x');
+  const aeDupeCancel = document.getElementById('ae-dupe-cancel');
+  const aeDupeSkip = document.getElementById('ae-dupe-skip');
+  const aeDupeList = document.getElementById('ae-dupe-list');
+  const aeDupeSubtitle = document.getElementById('ae-dupe-subtitle');
+  const aeDupeUniqueCount = document.getElementById('ae-dupe-unique-count');
+  const aeDupeDupeCount = document.getElementById('ae-dupe-dupe-count');
+  let aeDupePending = null; // { dupes, uniques, allItems, onSkip, onAddAll }
+  function aeCloseDupe() {
+    if (aeDupeMask) {
+      aeDupeMask.classList.remove('show');
+      aeDupeMask.style.display = 'none'; // clear inline demo default so × / Cancel / Skip actually hide the modal
+    }
+    aeDupePending = null;
+  }
+  // Optional callbacks let callers override the default "add-via-aeAddTerm" behavior (used by inline manual-typing case)
+  function aeOpenDupeModal(newItems, opts) {
+    const { dupes, uniques } = aeDetectDuplicates(newItems, opts?.excludeId);
+    if (!dupes.length) {
+      if (opts?.onNoDupes) opts.onNoDupes();
+      else newItems.forEach(item => aeAddTerm(item));
+      return;
+    }
+    if (aeDupeMask) aeDupeMask.style.display = ''; // clear inline demo default so class-based show works
+    aeDupePending = {
+      dupes, uniques, allItems: newItems,
+      onSkip: opts?.onSkip || (() => uniques.forEach(item => aeAddTerm(item)))
+    };
+    const total = newItems.length;
+    aeDupeSubtitle.textContent = `${dupes.length} of ${total} new terms already exist in this list`;
+    aeDupeUniqueCount.textContent = String(uniques.length);
+    aeDupeDupeCount.textContent = String(dupes.length);
+    aeDupeList.innerHTML = dupes.map((d, i) => {
+      const rowRef = (typeof d.existingRowNum === 'number') ? `row #${d.existingRowNum}` : d.existingRowNum;
+      return `<div style="display:grid;grid-template-columns:48px 1fr 130px;padding:8px 12px;font-size:12px;border-bottom:1px solid var(--border-soft);align-items:center">
+        <div style="color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px">${i + 1}</div>
+        <div style="color:var(--text-primary);font-weight:600">${escapeHtml(d.item.en || '(blank en)')}<span style="color:var(--text-muted);font-weight:400;margin-left:8px;font-size:10.5px">source: ${escapeHtml(d.item.source || '—')}</span></div>
+        <div style="text-align:right;font-size:10.5px;color:#B45309;background:#FEF3C7;padding:2px 7px;border-radius:3px;font-weight:700;justify-self:end">${rowRef}</div>
+      </div>`;
+    }).join('');
+    aeDupeMask.classList.add('show');
+  }
+  if (aeDupeX)      aeDupeX.addEventListener('click', aeCloseDupe);
+  if (aeDupeCancel) aeDupeCancel.addEventListener('click', aeCloseDupe);
+  if (aeDupeMask)   aeDupeMask.addEventListener('click', (e) => { if (e.target === aeDupeMask) aeCloseDupe(); });
+  if (aeDupeSkip) aeDupeSkip.addEventListener('click', () => {
+    if (!aeDupePending) return aeCloseDupe();
+    const cb = aeDupePending.onSkip;
+    aeCloseDupe();
+    if (cb) cb();
+  });
+
+  // CSV / Lark / Manual paste modals
+  const aeImportMask = document.getElementById('ae-import-mask');
+  const aeImportBody = document.getElementById('ae-import-body');
+  const aeImportTitle = document.getElementById('ae-import-title');
+  const aeImportFooter = document.getElementById('ae-import-footer');
+  const aeImportX = document.getElementById('ae-import-x');
+  function aeOpenImport(title, bodyHtml, footerHtml) {
+    aeImportTitle.textContent = title;
+    aeImportBody.innerHTML = bodyHtml;
+    aeImportFooter.innerHTML = footerHtml;
+    aeImportMask.classList.add('show');
+  }
+  function aeCloseImport() { aeImportMask.classList.remove('show'); }
+  if (aeImportX) aeImportX.addEventListener('click', aeCloseImport);
+  if (aeImportMask) aeImportMask.addEventListener('click', (e) => { if (e.target === aeImportMask) aeCloseImport(); });
+
+  if (aeBtnPaste) aeBtnPaste.addEventListener('click', () => {
+    aeOpenImport('Manual paste',
+      `<div style="font-size:11.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:8px">One term per line · format: <code style="font-family:monospace;background:#F1F5F9;color:#1D4ED8;padding:1px 5px;border-radius:3px">source;en;es;pt</code> · ASCII <code style="font-family:monospace;background:#F1F5F9;padding:1px 5px;border-radius:3px">;</code> only.</div>`
+      + `<textarea class="ae-paste" id="ae-paste-area" placeholder="诈骗;fraud;fraude;fraude\n色情;pornography;pornografía;pornografia"></textarea>`
+      + `<div class="ae-paste-hint">Cap: 2,000 rows per paste.</div>`
+      + `<div class="ae-paste-err" id="ae-paste-err">Use ASCII <b>;</b> <b>,</b> <b>:</b> instead — incorrect punctuation detected.</div>`,
+      `<button class="btn btn-sm" onclick="document.getElementById('ae-import-mask').classList.remove('show')">Cancel</button>`
+      + `<button class="btn btn-p btn-sm" id="ae-paste-import">Import</button>`);
+    const txt = document.getElementById('ae-paste-area');
+    const err = document.getElementById('ae-paste-err');
+    txt.addEventListener('input', () => {
+      const v = txt.value;
+      const hasFW = /[；，：]/.test(v);
+      err.classList.toggle('show', hasFW);
+    });
+    document.getElementById('ae-paste-import').addEventListener('click', () => {
+      const lines = (txt.value || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+      if (!lines.length) { aeCloseImport(); return; }
+      const dash = aeMockImportDashboard(lines.length);
+      // mock seed: parse first up to 3 lines as adds, then route through duplicate check
+      const parsed = lines.slice(0, Math.min(3, lines.length)).map(line => {
+        const parts = line.split(/[;,]/).map(p => p.trim());
+        return { source: parts[0] || '', en: parts[1] || '', es: parts[2] || '', pt: parts[3] || '' };
+      });
+      aeCloseImport();
+      aeOpenDupeModal(parsed);
+      setTimeout(() => aeShowImportDashboard(dash), 120);
+    });
+  });
+  if (aeBtnImportCsv) aeBtnImportCsv.addEventListener('click', () => {
+    const dash = aeMockImportDashboard(21);
+    // mock seed: prepend 3 typical adds · CSV path does NOT trigger dupe modal (batch imports are backend-deduped)
+    aeAddTerm({ source: '虚假宣传 (CSV)', en: 'false advertising', es: 'publicidad falsa', pt: 'propaganda falsa' });
+    aeAddTerm({ source: '诱导消费 (CSV)', en: 'induced consumption', es: 'consumo inducido', pt: 'consumo induzido' });
+    aeShowImportDashboard(dash);
+  });
+  if (aeBtnImportLark) aeBtnImportLark.addEventListener('click', () => {
+    aeOpenImport('Use Lark sheet template',
+      `<div style="font-size:12px;color:var(--text-secondary);line-height:1.65">Template link: <code style="font-family:monospace;background:#F1F5F9;color:#1D4ED8;padding:1px 5px;border-radius:3px">[TBD with @${escapeHtml(aeMetaOwner.textContent || ACTOR)}]</code><br/>Cap: <b>2,000 rows</b> per sheet. Use the columns <code style="font-family:monospace;background:#F1F5F9;padding:1px 5px;border-radius:3px">source · en · es · pt</code>. Translations Off cells skipped.</div>`,
+      `<button class="btn btn-sm" onclick="document.getElementById('ae-import-mask').classList.remove('show')">Cancel</button>`
+      + `<button class="btn btn-p btn-sm" id="ae-lark-import">Pull from Lark sheet</button>`);
+    document.getElementById('ae-lark-import').addEventListener('click', () => {
+      const dash = aeMockImportDashboard(13);
+      // Lark path does NOT trigger dupe modal (batch imports are backend-deduped)
+      aeAddTerm({ source: '色情挑逗 (Lark)', en: 'erotic teasing', es: 'provocación erótica', pt: 'provocação erótica' });
+      aeCloseImport();
+      setTimeout(() => aeShowImportDashboard(dash), 120);
+    });
+  });
+
+  function aeMockImportDashboard(total) {
+    const skipped = Math.max(0, Math.round(total * 0.10));
+    const failed = total > 8 ? 1 : 0;
+    const imported = total - skipped - failed;
+    return { imported, skipped, failed };
+  }
+  function aeShowImportDashboard(d) {
+    aeOpenImport('Import complete',
+      `<div class="ae-im-dash">`
+      + `<div class="ae-im-stat ok"><div class="ae-im-k">Imported</div><div class="ae-im-v">${d.imported}</div></div>`
+      + `<div class="ae-im-stat skip"><div class="ae-im-k">Skipped</div><div class="ae-im-v">${d.skipped}</div></div>`
+      + `<div class="ae-im-stat fail"><div class="ae-im-k">Failed</div><div class="ae-im-v">${d.failed}</div></div>`
+      + `</div>`
+      + (d.skipped ? `<div style="font-size:11px;color:var(--text-muted);margin-bottom:5px"><b>${d.skipped}</b> duplicate(s) skipped — same source already exists in master list.</div>` : '')
+      + (d.failed ? `<div class="ae-im-fail-row" id="ae-fail-row">Failed: row 14 · "诈骗;;;" — <span style="text-decoration:underline">show reason ▾</span><div class="ae-im-fail-rsn">Empty translation columns when Translation Agent is ON. Either fill in translations or turn off Translation Agent before importing.</div></div>` : ''),
+      `<button class="btn btn-p btn-sm" onclick="document.getElementById('ae-import-mask').classList.remove('show')">Done</button>`);
+    const failRow = document.getElementById('ae-fail-row');
+    if (failRow) failRow.addEventListener('click', () => failRow.classList.toggle('open'));
+  }
+
+  // Discard button
+  if (aeBtnDiscard) aeBtnDiscard.addEventListener('click', () => {
+    const c = aeChangeCounts();
+    if (c.total === 0) { aeCloseModal(); return; }
+    showConfirm({
+      title: 'Discard all changes',
+      body: `You'll lose <b>${c.total} changes</b> made to <b>${escapeHtml(aeListName)}</b>. This cannot be undone.`,
+      icon: 'danger', okText: 'Discard', okClass: 'btn-delete', cancelText: 'Keep editing',
+      onConfirm: aeCloseModal
+    });
+  });
+
+  // Submit button
+  if (aeBtnSubmit) aeBtnSubmit.addEventListener('click', () => {
+    const c = aeChangeCounts();
+    if (c.total === 0) {
+      showLark('No Changes to Submit', 'Add, delete or modify at least one term before submitting a Pending Revision.', 3000);
+      return;
+    }
+    const changedRows = aeWorking.filter(r => r._op === 'add' || r._op === 'mod');
+    const invalidRows = changedRows.filter(r => !String(r.source || '').trim() || !String(r.en || '').trim() || String(r.source).length > 200 || String(r.en).length > 200);
+    const normalized = aeWorking.filter(r => r._op !== 'del').map(r => String(r.source || '').trim().toLowerCase()).filter(Boolean);
+    const duplicates = normalized.filter((v, i) => normalized.indexOf(v) !== i);
+    if (invalidRows.length || duplicates.length) {
+      showConfirm({
+        title: 'Validation Failed',
+        body: `<b>${invalidRows.length}</b> invalid changed row(s) · <b>${new Set(duplicates).size}</b> duplicate term(s).<br/><br/>Only added and modified terms are validated and translated. Fix empty values, duplicates or the 200-character limit, then retry.`,
+        icon: 'danger', okText: 'Return to Edit', okClass: 'btn-p', hideCancel: true
+      });
+      return;
+    }
+    // SELF_APPROVAL_BLOCKED · self stays visible in the dropdown but is disabled,
+    // making the rule explicit to the user instead of silently hiding it.
+    const firstReviewer = REVIEWER_POOL.find(r => r !== ACTOR);
+    const reviewerOptions = REVIEWER_POOL.map(r => {
+      const isSelf = r === ACTOR;
+      const label = isSelf ? `${r} — you (cannot self-review)` : r;
+      const sel = (r === firstReviewer) ? ' selected' : '';
+      const dis = isSelf ? ' disabled' : '';
+      return `<option value="${escapeHtml(r)}"${sel}${dis}>${escapeHtml(label)}</option>`;
+    }).join('');
+    const rulesAffected = (parseInt(aeRowEl?.dataset.activeRefs || '3', 10)) || 3;
+    // Edit Active List modal is z-index 320 · raise this confirm above it so
+    // the reviewer picker isn't trapped behind the edit modal.
+    const confirmMaskEl = document.getElementById('confirm-mask');
+    if (confirmMaskEl) confirmMaskEl.style.zIndex = '340';
+    const resetConfirmZ = () => { if (confirmMaskEl) confirmMaskEl.style.zIndex = ''; };
+    showConfirm({
+      title: 'Submit changes for review',
+      body: `You're about to submit <b>${c.total} changes</b> to <b>${escapeHtml(aeListName)}</b>.<br/>`
+        + `Once approved, <b>${rulesAffected} rules</b> currently using this list will see the new master list immediately. The old version stays live until approval.<br/><br/>`
+        + `<div style="padding:8px 10px;margin-bottom:10px;border:1px solid #86EFAC;border-radius:6px;background:#F0FDF4;color:#15803D;font-size:11.5px"><b>Validation &amp; Translation Passed</b> · ${c.add + c.mod} added / modified term(s) processed; deleted terms require no translation.</div>`
+        + `<div style="display:flex;gap:6px;align-items:center;margin-bottom:10px">`
+        + `<span class="ae-chip-add" style="background:var(--green-bg);color:var(--green-text);padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">+${c.add} added</span>`
+        + `<span class="ae-chip-del" style="background:var(--red-bg);color:var(--red-text);padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">−${c.del} removed</span>`
+        + `<span class="ae-chip-mod" style="background:var(--amber-bg);color:var(--amber-text);padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">~${c.mod} modified</span>`
+        + `</div>`
+        + `<label style="font-size:11.5px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:4px">Reviewer</label>`
+        + `<select id="ae-reviewer-pick" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;background:#fff">${reviewerOptions}</select>`,
+      icon: 'info', okText: 'Submit for Review', okClass: 'btn-p', cancelText: 'Cancel',
+      onConfirm: () => {
+        resetConfirmZ();
+        const reviewer = document.getElementById('ae-reviewer-pick')?.value || firstReviewer || REVIEWER_POOL[0];
+        // Guard: never let the actor be themselves the reviewer
+        if (reviewer === ACTOR) {
+          showLark('Self-approval blocked', 'You cannot review your own changes. Please pick another reviewer.', 3000);
+          return;
+        }
+        mockSubmitForReview(aeRowEl, reviewer);
+      },
+      onCancel: resetConfirmZ
+    });
+  });
+
+  function mockSubmitForReview(rowEl, reviewer) {
+    if (!rowEl) return;
+    const c = aeChangeCounts();
+    // Build canonical payload (data schema G)
+    const ts = (() => {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    })();
+    const changes = aeWorking.filter(r => r._op).map(r => {
+      if (r._op === 'add') return { op: 'add', id: r.id, source: r.source, master_en: r.en, actor: ACTOR, ts };
+      if (r._op === 'del') return { op: 'delete', id: r.id, source: r.source, master_en: r.en, actor: ACTOR, ts };
+      // modify · capture the first changed field for headline, but include all olds/news
+      const fields = ['source','en','es','pt'].filter(f => r._orig[f] !== r[f]);
+      const field = fields[0] || 'source';
+      return {
+        op: 'modify', id: r.id, field,
+        old: r._orig[field], new: r[field],
+        master_en_old: r._orig.en, master_en_new: r.en,
+        actor: ACTOR, ts
+      };
+    });
+    const payload = {
+      list_id: rowEl.dataset.rowId ? `wl-active-${rowEl.dataset.rowId}` : 'wl-active-unknown',
+      list_name: aeListName,
+      owner: ACTOR,
+      reviewer,
+      submitted_at: ts,
+      rule_owners_affected: MOCK_RULE_OWNERS,
+      rules_affected_count: (parseInt(rowEl.dataset.activeRefs || '3', 10)) || 3,
+      changes,
+      // Below fields are extras the existing applyPendingRevisionState reads
+      status: 'pending',
+      listName: aeListName,
+      submittedBy: ACTOR,
+      submittedAt: ts,
+      comment: `${c.add} added · ${c.del} deleted · ${c.mod} modified`,
+      diff: {
+        added: aeWorking.filter(r => r._op === 'add').map(r => `${r.source} · ${r.en}`),
+        deleted: aeWorking.filter(r => r._op === 'del').map(r => `${r.source} · ${r.en}`),
+        modified: aeWorking.filter(r => r._op === 'mod').map(r => ({
+          before: `${r._orig.source} · ${r._orig.en}`,
+          after: `${r.source} · ${r.en}`
+        }))
+      }
+    };
+    localStorage.setItem(PENDING_REVISION_KEY, JSON.stringify(payload));
+    aeCloseModal();
+    // Apply the pending state to the row (Edit grey · Archive grey · Changes pending review tag)
+    // Persists for when the user comes back from the reviewer page.
+    applyPendingRevisionState();
+    // Quick toast then navigate to reviewer mock so PM can demo the approver side end-to-end.
+    showLark('Lark · Changes Submitted',
+      `To <b>${escapeHtml(reviewer)}</b>: <b>${aeListName}</b> · ${c.total} changes (+${c.add} −${c.del} ~${c.mod})<br/>`
+      + `<span style="color:#A7C5FF">Lark fan-out → ${MOCK_RULE_OWNERS.length} rule owners notified · opening review page…</span>`, 2200);
+    setTimeout(() => {
+      window.location.href = 'feature-platform-word-list-approval-reviewer-v0.1.html';
+    }, 1100);
+  }
+
+  // ============================================================
+  // F1 v2 outline · adapter for Details/Edit buttons on sub-rows
+  // Bridges the new .f1-sub structure to the legacy handleDetails / openActiveEdit
+  // modal population code, which expected tr[data-row-id] with .list-id / .libname etc.
+  // ============================================================
+  function f1SubRowData(triggerEl) {
+    const sub = triggerEl.closest('tr.f1-sub');
+    if (!sub) return null;
+    const tbody = sub.closest('tbody.f1-family');
+    const familyName = tbody?.querySelector('.f1-main .f1-name')?.textContent.trim() || '';
+    const state = sub.dataset.state || 'unknown';
+    // Active sub-row has a copy chip; others have plain mono text in .f1-sub-code
+    const listId = sub.querySelector('.f1-code-chip[data-copy]')?.dataset.copy
+                || sub.querySelector('.f1-sub-code')?.textContent.trim()
+                || '';
+    const owner = sub.querySelector('.f1-owner')?.textContent.trim() || '@unknown';
+    return { sub, tbody, familyName, state, listId, owner };
+  }
+
+  const STATE_TO_STATUS_HTML = {
+    active:   '<div class="status-cell s-online"><span class="status ok"><span class="ds"></span>Active</span></div>',
+    pending:  '<div class="status-cell s-pending"><span class="status review"><span class="ds"></span>Pending Review</span></div>',
+    draft:    '<div class="status-cell s-draft"><span class="status draft"><span class="ds"></span>Draft</span></div>',
+    archived: '<div class="status-cell s-archive"><span class="status archive"><span class="ds"></span>Archived</span></div>'
+  };
+
+  // Override handleDetails for the new layout (falls back to legacy for pages still using old table)
+  const _legacyHandleDetails = window.handleDetails;
+  window.handleDetails = function(btn) {
+    const d = f1SubRowData(btn);
+    if (!d) { if (_legacyHandleDetails) _legacyHandleDetails(btn); return; }
+    document.getElementById('d-name').textContent = d.familyName;
+    document.getElementById('d-list-id-text').textContent = d.listId;
+    document.getElementById('d-list-id').dataset.copy = d.listId;
+    document.getElementById('d-list-id').classList.remove('copied');
+    document.getElementById('d-match').textContent = 'Fuzzy Match';
+    document.getElementById('d-lang').textContent = '3 langs';
+    document.getElementById('d-owner').textContent = d.owner;
+    document.getElementById('d-updated').textContent = '—';
+    const dStatus = document.getElementById('d-status');
+    if (dStatus) dStatus.innerHTML = STATE_TO_STATUS_HTML[d.state] || '—';
+    // Ref count · Active + Draft mirror the in-use view (Draft reuses Active layout per spec)
+    const showAsActive = (d.state === 'active' || d.state === 'draft');
+    const refCount = showAsActive ? 3 : 0;
+    document.getElementById('d-refcount-val').textContent = refCount;
+    const tag = document.getElementById('d-refcount-tag');
+    if (tag) {
+      if (refCount === 0) {
+        tag.textContent = 'No active refs';
+        tag.style.background = '#F1F5F9';
+        tag.style.color = '#64748B';
+      } else {
+        tag.textContent = 'In use';
+        tag.style.background = '#DCFCE7';
+        tag.style.color = '#166534';
+      }
+    }
+    // Data Sources referenced by this list's active rules
+    renderDsRefs(refCount > 0 ? dsRefsForList(d.listId, refCount) : []);
+
+    // Toggle bottom-right action: Draft → Withdraw · everything else → Archive
+    const archBtn = document.getElementById('d-archive-btn');
+    if (archBtn) {
+      if (d.state === 'draft') {
+        archBtn.textContent = 'Withdraw';
+        archBtn.title = 'Withdraw this draft';
+        archBtn.onclick = () => window.handleDraftWithdraw(d);
+        archBtn.classList.remove('btn-action-warn');
+        archBtn.style.background = '';
+        archBtn.style.color = '';
+        archBtn.style.border = '';
+      } else {
+        archBtn.textContent = 'Archive';
+        archBtn.title = 'Archive only when active refs = 0';
+        archBtn.onclick = () => window.handleOnlineArchive();
+      }
+    }
+
+    detailsMask.classList.add('show');
+  };
+
+  // Draft → Withdraw · confirms then removes the draft sub-row
+  window.handleDraftWithdraw = (d) => {
+    const name = d?.familyName || 'this draft';
+    const listId = d?.listId || '';
+    // Close Details first so the confirm popup layers cleanly
+    detailsMask.classList.remove('show');
+    showConfirm({
+      title: 'Withdraw this draft?',
+      body: `<b>${name}</b> draft will be withdrawn and removed from your list.<br/>`
+          + `<code style="font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--text-muted)">${listId}</code>`
+          + `<br/><br/><div style="font-size:11.5px;color:var(--text-secondary);line-height:1.65">After withdrawal:<br/>`
+          + `· All unsaved edits in this draft will be discarded<br/>`
+          + `· The Active version (if any) remains unchanged<br/>`
+          + `· You can start a new draft any time by clicking Edit on the Active row</div>`,
+      icon: 'warn', okText: 'Withdraw', okClass: 'btn-action-warn',
+      onConfirm: () => {
+        if (d?.sub) {
+          const tr = d.sub;
+          tr.style.transition = 'opacity .25s';
+          tr.style.opacity = '0';
+          setTimeout(() => tr.remove(), 280);
+        }
+        showLark('Draft Withdrawn', `<b>${name}</b> draft has been withdrawn · no changes were submitted for review.`, 3200);
+      }
+    });
+  };
+
+  // Same adapter for Pending Details (points to same modal for now)
+  window.handlePendingDetails = window.handleDetails;
+
+  // Override openActiveEdit — read family + Active list_id from new structure
+  const _legacyOpenActiveEdit = window.openActiveEdit;
+  window.openActiveEdit = function(triggerEl) {
+    const d = f1SubRowData(triggerEl);
+    if (!d) { if (_legacyOpenActiveEdit) _legacyOpenActiveEdit(triggerEl); return; }
+    aeListName = d.familyName;
+    aeListId   = d.listId;
+    aeTitleName.textContent = aeListName;
+    aeMetaListId.innerHTML = `<code>${escapeHtml(aeListId)}</code>`;
+    aeMetaMatch.textContent = 'Fuzzy Match';
+    aeMetaScenario.innerHTML = '<span class="chip chip-blue">Eco-governance</span>';
+    aeMetaTrans.innerHTML = '<span class="ae-tg on">ON</span>';
+    aeMetaLangs.textContent = 'en, es, pt (3 langs)';
+    aeMetaOwner.textContent = d.owner;
+    aeMaster  = seedTermsForList(aeListName);
+    aeWorking = aeMaster.map(t => ({ ...t, _op: null, _orig: { ...t } }));
+    aeSearch.value = '';
+    aeRenderTable();
+    aeMask.classList.add('show');
+  };
+});
+</script>
+
+<!-- ===== v0.4 改版 JS：View + Tab + Column visibility =====-->
+<script>
+(function(){
+  const tbody = document.querySelector('.card .table-wrap tbody');
+  if (!tbody) return;
+
+  // 视角切换 + Tab bar 已移除：Status / Ownership 都是 toolbar 下拉，点 Search 显式生效
+  let currentStatus = 'all';
+  let currentOwner  = 'All';
+
+  function rowOwner(tr){
+    return (tr.querySelector('.col-owner')?.textContent || '').trim();
+  }
+
+  function rowMatches(tr){
+    if (currentStatus !== 'all' && tr.getAttribute('data-row-state') !== currentStatus) return false;
+    if (currentOwner !== 'All' && rowOwner(tr) !== currentOwner) return false;
+    return true;
+  }
+
+  function applyRows(){
+    const rows = tbody.querySelectorAll('tr[data-row-id]');
+    let visibleN = 0;
+    rows.forEach(tr => {
+      const show = rowMatches(tr);
+      tr.classList.toggle('row-hidden', !show);
+      if (show) visibleN++;
+    });
+    // update pagination footer
+    const pag = document.querySelector('.card .table-wrap + div');
+    if (pag) {
+      const span = pag.querySelector('span:first-child');
+      if (span) span.innerHTML = 'Showing ' + visibleN + ' / ' + visibleN + ' · per page <span class="filter" style="padding:3px 8px;margin-left:2px;cursor:pointer">10 ▾</span>';
+    }
+  }
+
+  // Search / Reset 调用入口：应用 Status + Ownership 组合筛选（AND）
+  window.applyListFilters = function(statusKey, owner){
+    if (statusKey) currentStatus = statusKey;
+    if (owner) currentOwner = owner;
+    applyRows();
+  };
+
+  applyRows();
+
+  // === Archive 行为收紧：active-refs > 0 的行点击 Archive 弹 Lark toast 提示 ===
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-row-archive');
+    if (!btn) return;
+    const tr = btn.closest('tr');
+    if (!tr) return;
+    const refs = parseInt(tr.getAttribute('data-active-refs') || '0', 10);
+    if (refs > 0) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      if (typeof window.showLark === 'function') {
+        window.showLark('Archive Blocked', 'This list is currently referenced by <b>' + refs + ' active rule(s)</b> · please take the referencing rules offline first (Phase 2 will support one-click notify to all owners)');
+      } else {
+        alert('Archive blocked: this list is currently referenced by ' + refs + ' active rule(s).');
+      }
+    }
+  }, true); // capture phase to intercept before existing handler
+
+})();
+</script>
+
+<!-- Confirm Modal (generic) -->
+<div class="confirm-mask" id="confirm-mask">
+ <div class="confirm-box">
+  <div class="confirm-h">
+   <div class="ci" id="confirm-icon">!</div>
+   <h4 id="confirm-title">Confirm Action</h4>
+  </div>
+  <div class="confirm-b" id="confirm-body">Message here.</div>
+  <div class="confirm-f">
+   <button class="btn btn-sm" id="confirm-cancel">Cancel</button>
+   <button class="btn btn-p btn-sm" id="confirm-ok">Confirm</button>
+  </div>
+ </div>
+</div>
+
+<!-- Lark Notification Toast -->
+<div class="lark-toast" id="lark-toast">
+ <div class="lt-ico">L</div>
+ <div class="lt-c">
+  <div class="lt-h" id="lark-h">Lark Notification</div>
+  <div class="lt-msg" id="lark-msg">Message here.</div>
+ </div>
+</div>
+
+<!-- Details Modal (Online read-only view) -->
+<div class="confirm-mask" id="details-mask" style="z-index:305">
+ <div class="confirm-box" style="width:560px">
+  <div class="confirm-h" style="border-bottom:1px solid var(--border-soft);padding-bottom:14px">
+   <div class="ci info" id="details-icon">i</div>
+   <h4 id="details-title">List Configuration</h4>
+   <span style="margin-left:auto;color:var(--text-muted);font-size:18px;cursor:pointer" id="details-close">×</span>
+  </div>
+  <div class="confirm-b" style="padding:14px 22px 8px;font-size:12px">
+   <div id="details-body" style="display:grid;grid-template-columns:130px 1fr;gap:8px 16px;font-size:12px">
+    <span style="color:var(--text-muted);font-weight:600">List Name</span><span class="mono" style="font-family:'JetBrains Mono',Menlo,monospace;font-size:11px" id="d-name">LIVE_NSA_lexicon_v3</span>
+    <span style="color:var(--text-muted);font-weight:600">List ID</span><span class="d-list-id-copy" id="d-list-id" title="Click to copy List ID to clipboard"><span id="d-list-id-text">list_live_nsa_lex_v3</span><span class="copy-icon">⎘</span></span>
+    <span style="color:var(--text-muted);font-weight:600">Match Mode</span><span id="d-match">Fuzzy Match</span>
+    <span style="color:var(--text-muted);font-weight:600">Scenario Type</span><span id="d-scn">Eco-governance, Just for Recall</span>
+    <span style="color:var(--text-muted);font-weight:600">Languages</span><span id="d-lang">3 langs (en, id, vi)</span>
+    <span style="color:var(--text-muted);font-weight:600">Owner</span><span id="d-owner">@ymgao</span>
+    <span style="color:var(--text-muted);font-weight:600">Last Updated</span><span id="d-updated">2026-06-02</span>
+    <span style="color:var(--text-muted);font-weight:600">Status</span><span id="d-status"><div class="status-cell s-online"><span class="status ok"><span class="ds"></span>Active</span><div class="node-lines"><span class="nl"><span class="nl-k">Ticket Node</span><span class="nl-v">Published</span></span><span class="nl"><span class="nl-k">Node Status</span><span class="nl-v">Running</span></span></div></div></span>
+    <span style="color:var(--text-muted);font-weight:600">Active Refs</span><span id="d-refcount" style="font-weight:700"><span class="d-refs-link" id="d-refs-link" title="Click to view Word List Rule Lineage"><span id="d-refcount-val">3</span> rules</span> <span id="d-refcount-tag" style="display:inline-block;margin-left:6px;padding:1px 7px;background:#D1FAE5;color:#047857;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.2px;vertical-align:1px">In Use</span></span>
+    <span style="color:var(--text-muted);font-weight:600" title="Data sources of the rules that currently reference this list">Data Sources</span><span id="d-ds-refs" class="d-ds-wrap"><span class="d-ds-empty">—</span></span>
+   </div>
+  </div>
+  <div class="confirm-f">
+   <button class="btn btn-sm" id="details-close-btn">Close</button>
+   <button class="btn btn-sm" id="d-archive-btn" onclick="window.handleOnlineArchive()" title="Archive only when active refs = 0">Archive</button>
+   <a class="btn btn-p btn-sm" id="d-view-config" href="feature-platform-word-list-prototype-v0.3-F3.html?list=list_live_edu_white" style="text-decoration:none">View Configuration →</a>
+  </div>
+ </div>
+</div>
+
+<!-- Lineage drawer backdrop · 只在 from-details 模式下显示，点击关抽屉 -->
+<div id="lineage-backdrop"></div>
+
+<!-- ===== v0.3.1 · Active Inline Edit Modal ===== -->
+<div class="ae-mask" id="active-edit-mask">
+ <div class="ae-modal" role="dialog" aria-modal="true" aria-labelledby="ae-title-name">
+  <div class="ae-head">
+   <div class="ae-title">
+    <span>Edit Active List · <b id="ae-title-name">List Name</b></span>
+    <span class="ae-title-tag">Inline Edit</span>
+   </div>
+   <div class="ae-actions">
+    <button class="btn btn-sm" id="ae-btn-discard">Discard</button>
+    <button class="btn btn-p btn-sm" id="ae-btn-submit">Submit for Review</button>
+   </div>
+   <span class="ae-x" id="ae-x" title="Close">×</span>
+  </div>
+  <div class="ae-meta-strip">
+   <div class="ae-meta-item"><div class="ae-meta-k">List ID</div><div class="ae-meta-v" id="ae-meta-list-id">—</div></div>
+   <div class="ae-meta-item"><div class="ae-meta-k">Match Mode</div><div class="ae-meta-v" id="ae-meta-match">—</div></div>
+   <div class="ae-meta-item"><div class="ae-meta-k">Scenario</div><div class="ae-meta-v" id="ae-meta-scenario">—</div></div>
+   <div class="ae-meta-item"><div class="ae-meta-k">Translation Agent</div><div class="ae-meta-v" id="ae-meta-translation">—</div></div>
+   <div class="ae-meta-item"><div class="ae-meta-k">Source Languages</div><div class="ae-meta-v" id="ae-meta-langs">—</div></div>
+   <div class="ae-meta-item"><div class="ae-meta-k">Owner</div><div class="ae-meta-v" id="ae-meta-owner">—</div></div>
+  </div>
+  <div class="ae-toolbar">
+   <div class="ae-tb-l">
+    <span style="font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--text-muted);margin-right:6px">Manual</span>
+    <button class="btn btn-sm" id="ae-btn-add">＋ Add term</button>
+    <button class="btn btn-sm" id="ae-btn-paste">Manual paste</button>
+    <span style="width:1px;height:18px;background:var(--border);margin:0 6px"></span>
+    <span style="font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--text-muted);margin-right:6px">Batch</span>
+    <button class="btn btn-sm" id="ae-btn-lark">↻ Re-import Lark sheet</button>
+   </div>
+   <div class="ae-tb-r">
+    <a href="#" id="ae-view-table" style="font-size:11.5px;font-weight:600;color:var(--link);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;margin-right:14px;white-space:nowrap" title="Open full mapping table (all 16 languages)">↗ View full translation table</a>
+    <input type="text" class="ae-search" id="ae-search" placeholder="Search source / scenario..." />
+    <div class="ae-dirty-summary" id="ae-dirty-summary">
+     <span class="ae-chip-add">+0 added</span>
+     <span class="ae-chip-del">−0 removed</span>
+     <span class="ae-chip-mod">~0 modified</span>
+    </div>
+   </div>
+  </div>
+  <div class="ae-body">
+   <div class="ae-table-wrap">
+    <table class="ae-table">
+     <thead>
+      <tr>
+       <th class="ae-th-num">#</th>
+       <th>Master EN</th>
+       <th class="ae-th-status">Status</th>
+       <th class="ae-th-x"></th>
+      </tr>
+     </thead>
+     <tbody id="ae-tbody"></tbody>
+    </table>
+   </div>
+  </div>
+  <div class="ae-footer">
+   <span class="ae-count" id="ae-count">0 terms total · 0 pending changes</span>
+  </div>
+ </div>
+</div>
+
+<!-- Active-Edit Import/Paste secondary modal -->
+<div class="ae-mask" id="ae-import-mask" style="z-index:325">
+ <div class="ae-import-modal">
+  <div class="ae-im-h">
+   <h4 id="ae-import-title">Import</h4>
+   <span class="x" id="ae-import-x">×</span>
+  </div>
+  <div class="ae-im-b" id="ae-import-body"></div>
+  <div class="ae-im-f" id="ae-import-footer"></div>
+ </div>
+</div>
+
+<!-- Active-Edit · Duplicate warning modal (fires when a manual add or manual paste contains terms already in the list) -->
+<!-- Demo: default-open with 2 mock dupe rows so screenshots / walk-throughs see the modal without needing to reproduce trigger state -->
+<div class="ae-mask show" id="ae-dupe-mask" style="z-index:340;background:rgba(15,23,42,.55);display:flex">
+ <div style="background:#fff;width:100%;max-width:640px;border-radius:12px;box-shadow:0 24px 64px rgba(15,23,42,.28);overflow:hidden;display:flex;flex-direction:column;max-height:80vh;animation:popIn .22s ease-out">
+  <!-- header · warning tone -->
+  <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 20px;background:#FFFBEB;border-bottom:1px solid #FDE68A">
+   <span style="font-size:22px;line-height:1;flex:none;margin-top:1px">⚠</span>
+   <div style="flex:1">
+    <div style="font-size:14.5px;font-weight:700;color:#92400E">检测到重复词 / Duplicate terms detected</div>
+    <div style="font-size:11.5px;color:#78350F;margin-top:3px" id="ae-dupe-subtitle">2 of 2 new terms already exist in this list</div>
+   </div>
+   <button id="ae-dupe-x" style="width:26px;height:26px;background:none;border:none;color:#92400E;font-size:18px;cursor:pointer;line-height:1;border-radius:4px">×</button>
+  </div>
+  <!-- body · duplicate list -->
+  <div style="padding:14px 20px;overflow:auto;flex:1">
+   <div style="font-size:12.5px;color:var(--text-primary);line-height:1.65;margin-bottom:10px">
+    以下 EN master 词在当前 Active list 已经存在。你可以 <b>Skip duplicates</b>（只添加去重后的新词，推荐）或 <b>Add all anyway</b>（保留重复，需在下一步 review 里手动 merge）。<br/>
+    <span style="font-size:11px;color:var(--text-muted);font-style:italic">The following EN master terms are already in this Active list. Skip = only add unique new terms (recommended). Add all = keep duplicates; reviewer must merge in next step.</span>
+   </div>
+   <div style="border:1px solid var(--border-soft);border-radius:8px;overflow:hidden">
+    <div style="display:grid;grid-template-columns:48px 1fr 130px;background:var(--bg-softer);padding:8px 12px;font-size:10.5px;font-weight:700;color:var(--text-muted);letter-spacing:.35px;text-transform:uppercase;border-bottom:1px solid var(--border-soft)">
+     <div>#</div>
+     <div>New term (about to add)</div>
+     <div style="text-align:right">Already at</div>
+    </div>
+    <div id="ae-dupe-list" style="max-height:280px;overflow:auto">
+     <!-- Demo rows · overwritten by JS when a real dupe trigger fires -->
+     <div style="display:grid;grid-template-columns:48px 1fr 130px;padding:8px 12px;font-size:12px;border-bottom:1px solid var(--border-soft);align-items:center">
+      <div style="color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px">1</div>
+      <div style="color:var(--text-primary);font-weight:600">fraud<span style="color:var(--text-muted);font-weight:400;margin-left:8px;font-size:10.5px">source: 诈骗</span></div>
+      <div style="text-align:right;font-size:10.5px;color:#B45309;background:#FEF3C7;padding:2px 7px;border-radius:3px;font-weight:700;justify-self:end">row #1</div>
+     </div>
+     <div style="display:grid;grid-template-columns:48px 1fr 130px;padding:8px 12px;font-size:12px;align-items:center">
+      <div style="color:var(--text-muted);font-family:'JetBrains Mono',Menlo,monospace;font-size:10.5px">2</div>
+      <div style="color:var(--text-primary);font-weight:600">speculation<span style="color:var(--text-muted);font-weight:400;margin-left:8px;font-size:10.5px">source: 炒作</span></div>
+      <div style="text-align:right;font-size:10.5px;color:#B45309;background:#FEF3C7;padding:2px 7px;border-radius:3px;font-weight:700;justify-self:end">row #3</div>
+     </div>
+    </div>
+   </div>
+   <div style="margin-top:12px;padding:9px 12px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:11.5px;color:#1E40AF;line-height:1.55">
+    <b>Unique terms to be added: <span id="ae-dupe-unique-count">0</span></b> ·
+    <span id="ae-dupe-dupe-count">2</span> duplicates
+   </div>
+  </div>
+  <!-- footer -->
+  <div style="padding:12px 20px;background:var(--bg-softer);border-top:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;gap:8px">
+   <button class="btn btn-sm" id="ae-dupe-cancel">Cancel · Review my input</button>
+   <button class="btn btn-p btn-sm" id="ae-dupe-skip" title="Adds only unique new terms · duplicates are dropped">Skip duplicates · Add unique</button>
+  </div>
+ </div>
+</div>
+
+</body>
+</html>

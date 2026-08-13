@@ -1,0 +1,540 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>Feature Platform + IDSP · Word List Lifecycle PRD</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:#1f2937;font:14px/1.6 Inter,"PingFang SC","Helvetica Neue",Arial,sans-serif}.wrap{max-width:1360px;margin:auto;padding:36px}.hero,.section,.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px}.hero{padding:30px;margin-bottom:18px}.eyebrow{font-size:12px;font-weight:800;color:#2563eb;letter-spacing:.6px}.hero h1{margin:8px 0;font-size:32px}.muted{color:#64748b}.nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.nav a{padding:5px 10px;border:1px solid #bfdbfe;border-radius:999px;background:#eff6ff;color:#1d4ed8;text-decoration:none;font-size:12px;font-weight:700}.section{padding:24px;margin:18px 0}.section-kicker{color:#2563eb;font-size:11px;font-weight:800;text-transform:uppercase}.section h2{margin:4px 0 12px;font-size:23px}.route{padding:12px 14px;border-left:4px solid #2563eb;background:#eff6ff;border-radius:8px;margin-bottom:16px;color:#334155}.overview{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.box{border:1px solid #e2e8f0;background:#f8fafc;border-radius:10px;padding:14px}.box b{color:#0f172a}.gallery{display:grid;grid-template-columns:1fr;gap:18px}.card{overflow:hidden}.card-head{display:flex;gap:8px;align-items:center;padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-weight:800}.card-head b{color:#2563eb}.shot{padding:14px;background:#eef2f7}.shot img{display:block;width:100%;height:auto;border:1px solid #cbd5e1;border-radius:8px;background:#fff}.copy-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #e2e8f0}.copy-grid section{padding:14px}.copy-grid section+section{border-left:1px solid #e2e8f0}.copy-grid h4{display:flex;justify-content:space-between;align-items:center;margin:0 0 8px;color:#334155}.copy-grid button{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:6px;padding:3px 8px;font-weight:800;cursor:pointer}textarea{width:100%;min-height:112px;resize:vertical;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font:13px/1.55 Inter,"PingFang SC",Arial,sans-serif;color:#334155;background:#fff}.summary-table{width:100%;border-collapse:collapse;margin-top:10px}.summary-table th,.summary-table td{border:1px solid #cbd5e1;padding:9px;text-align:left}.summary-table th{background:#f1f5f9}@media(max-width:900px){.wrap{padding:16px}.overview,.copy-grid{grid-template-columns:1fr}.copy-grid section+section{border-left:0;border-top:1px solid #e2e8f0}}
+</style></head><body><div class="wrap">
+<header class="hero"><div class="eyebrow">FEATURE PLATFORM + IDSP · BILINGUAL SCREENSHOT PRD · UPDATED 07/21/2026</div><h1>Word List Lifecycle Management / 词表全生命周期管理</h1><p>本版按最新原型更新五条 Journey：Create、Edit Active、Query / Lineage、IDSP Picker、Trace Hit Explainability。07/21 重点补充 Trace 中的 Feature Original Value、多命中词表 Tab、多语言命中面板与英文 hover；Journey 4 的单 Condition 单词表配置口径保持不变。</p><p class="muted">This version covers five journeys: Create, Edit Active, Query / Lineage, IDSP Picker, and Trace Hit Explainability. The 07/21 renewal adds Feature Original Value, multiple hit-list tabs, multilingual hit panels, and English-gloss hover. Journey 4 keeps the one-condition-one-list configuration rule.</p><nav class="nav"><a href="#j1">User Journey 1 · Create Word List</a><a href="#j2">User Journey 2 · Edit Active Word List</a><a href="#j3">User Journey 3 · Query, Details &amp; Lineage</a><a href="#j4">User Journey 4 · IDSP Word List Picker</a><a href="#j5">User Journey 5 · Trace Word List Hit</a></nav></header>
+<section class="section"><div class="section-kicker">Requirement Overview</div><h2>核心口径 / Key Decisions</h2><div class="overview">
+<div class="box"><b>1. Language mode</b><p>创建时按 Single language / Multiple languages 配置；不再按单市场 / 多市场作为主要 UI 分类。</p><p>Creation uses Single language / Multiple languages as the main UI mode, instead of Single-market / Multi-market.</p></div>
+<div class="box"><b>2. List Attribute replaces list-kind</b><p>Allow list / Block list 与抽象 list-kind feature 均已删除；IDSP 通过 is_hit_list / is_not_hit_list + Data Source + in / not in + Active Word List Picker 配置。</p><p>Allow / Block categories and the generic list-kind feature are removed. IDSP uses is_hit_list / is_not_hit_list + Data Source + in / not in + Active Word List Picker.</p></div>
+<div class="box"><b>3. List ID replaces API Key</b><p>对外引用与复制字段统一为 List ID；List ID 是跨版本稳定引用。</p><p>List ID is the unified external reference and copy field; it remains stable across versions.</p></div>
+<div class="box"><b>4. Approval safety</b><p>未审批内容不进入 IDSP；Active 编辑期间旧版本持续服务；审批通过后 IDSP 自动读取最新 Active。</p><p>Unapproved content never enters IDSP; the old Active version keeps serving during edits; after approval, IDSP reads the latest Active automatically.</p></div>
+<div class="box"><b>5. List Family → Versions</b><p>主列表按 List Name 聚合为词表族；点击 ▸ 展开该词表的 Active、Pending Review、Draft、Archive 历史版本。主行用于资产级浏览，子行用于版本级操作。</p><p>The catalog groups records by List Name as a list family. Click ▸ to expand Active, Pending Review, Draft, and Archive versions. The main row is asset-level; sub-rows are version-level.</p></div>
+<div class="box"><b>6. Version-level List ID</b><p>主行展示当前 Active 版本的 List ID；只有 Active 版本可复制。非 Active 版本的 ID 仅用于审计，不可被 IDSP 新增引用。</p><p>The family row shows the current Active version's List ID. Only Active IDs are copyable; non-Active IDs are audit-only and cannot be newly referenced by IDSP.</p></div>
+</div>
+<table class="summary-table"><tr><th>Platform</th><th>Scope</th><th>Priority</th></tr><tr><td>Feature Platform</td><td>Family-grouped List Management, version expansion, Language filter, Create Wizard, Details, Active Inline Edit, Lineage, orphan-aware Archive blocker</td><td>P0</td></tr><tr><td>Review Process</td><td>Owner submit, reviewer diff, approve / reject, rejection-only Draft, version-level audit trail</td><td>P0</td></tr><tr><td>IDSP</td><td>List Attribute (is_hit_list / is_not_hit_list), per-condition Data Source, in / not in, flat Active-only Word List Picker, stable list_id schema, atomic Active pointer switch</td><td>P0</td></tr><tr><td>IDSP Trace</td><td>Configured vs. Actual Hit, Feature Original Value, multiple hit-list tabs, hit-language panels, English-gloss hover, condition hit flow</td><td>P0</td></tr></table></section>
+<section class="section"><div class="section-kicker">Match Mode</div><h2>词表匹配逻辑 / Word List Matching Logic</h2><table class="summary-table"><tr><th>Mode</th><th>定义 / Definition</th><th>适用场景 / Scenario</th></tr><tr><td>Exact Match</td><td>待检测文本中必须出现与词表条目逐字符完全一致的连续子串，才判定命中。工程上可用 Aho-Corasick 自动机或哈希表 + 滑动窗口实现，核心是 O(n) 与零容错。<br>Hit only when the checked text contains a continuous substring exactly identical to a word-list term. It can be implemented with Aho-Corasick or hash table + sliding window, with O(n) complexity and zero tolerance.</td><td>高确定性关键词、低误伤场景、需要稳定解释的规则条件。<br>High-confidence keywords, low false-positive tolerance, and rule conditions requiring stable interpretation.</td></tr><tr><td>Fuzzy Match</td><td>待检测文本与词条之间的编辑距离不超过阈值时判定命中。工程上可基于 Trie + 编辑距离剪枝或 BK-tree 实现。<br>Hit when edit distance between checked text and a term is within a threshold. It can be implemented through Trie + edit-distance pruning or BK-tree.</td><td>对抗故意拼错、字符重复、OCR 识别错误等场景。<br>Used for intentional misspellings, repeated characters, OCR errors, and similar adversarial variations.</td></tr></table></section>
+<section class="section"><div class="section-kicker">Node Status</div><h2>各节点状态 / Node Status</h2><table class="summary-table"><tr><th>Status</th><th>含义 / Meaning</th><th>Action</th><th>Next Step</th></tr><tr><td>draft</td><td>审批驳回后自动保存的草稿态，对外不可被 IDSP 引用。<br>Draft after rejection; cannot be referenced by IDSP.</td><td>继续编辑词条、补充说明或修复错误。<br>Continue editing terms or fixing issues.</td><td>确认后重新 Submit Review。<br>Resubmit for review after fixes.</td></tr><tr><td>Pending Review</td><td>已提交给 Reviewer，等待审批结论。<br>Submitted to reviewer and waiting for decision.</td><td>不可编辑，避免审批中内容被再次改动。<br>Not editable to avoid changing content under review.</td><td>等待 Approve / Reject。<br>Wait for approve / reject.</td></tr><tr><td>Active</td><td>审批通过并上线；List ID 可被 IDSP 引用。<br>Approved and online; List ID can be referenced by IDSP.</td><td>可查看 Details / Lineage，可通过 Pending Revision 编辑。<br>Can view Details / Lineage and edit through Pending Revision.</td><td>若 Active Refs = 0，可 Archive；否则需先解除引用。<br>Archive only when Active Refs = 0.</td></tr><tr><td>Archive</td><td>已归档；不再进入 IDSP picker。<br>Archived and excluded from IDSP picker.</td><td>Owner 可恢复为 draft 或删除。<br>Owner can restore to draft or delete.</td><td>恢复后重新走提交审批。<br>After restore, submit for review again.</td></tr></table></section>
+<section class="section"><div class="section-kicker">07/16 Update · Catalog Data Model</div><h2>词表族与版本目录 / List Family &amp; Version Catalog</h2><table class="summary-table"><tr><th>Level</th><th>Display / 展示</th><th>Rules / 规则</th></tr><tr><td>List Family 主行</td><td>List Name、当前 Active List ID、版本数、Owner、Terms、Language。<br>List Name, current Active List ID, version count, Owner, Terms, and Language.</td><td>代表一个可持续演进的词表资产；状态点只表达是否存在 Active 版本。主行不承载审批或删除。<br>Represents one evolving list asset. Its status dot only indicates whether an Active version exists; approval and deletion are not family-level actions.</td></tr><tr><td>Version 子行</td><td>展开后显示版本状态、List ID、Owner、Terms、Language 和 Actions。<br>Expanded rows show version status, List ID, Owner, Terms, Language, and Actions.</td><td>Details / Edit / Review / Archive / Delete 都作用于具体版本。只有 Active 版本 ID 可复制。<br>Details, Edit, Review, Archive, and Delete act on a specific version. Only the Active version ID is copyable.</td></tr><tr><td>No Active family</td><td>主行灰色状态点，不展示可复制 Active List ID。<br>Gray status dot with no copyable Active List ID.</td><td>可以包含 Pending Review、Draft 或 Archive 版本；在有版本审批通过前不进入 IDSP Picker。<br>May contain Pending Review, Draft, or Archive versions and stays out of the IDSP Picker until a version is approved.</td></tr><tr><td>Language filter</td><td>支持 All 及 en / es / id / ar / vi / th / ms / tr / fil / ja / fr / de / ro / it / pt / ko。<br>Supports All and the 16 language codes listed in the prototype.</td><td>与 Status、Ownership、Keyword 一起在点击 Search 后按 AND 生效；Reset 恢复默认条件。<br>Combines with Status, Ownership, and Keyword using AND logic after Search; Reset restores defaults.</td></tr></table></section>
+<section class="section" id="j1">
+    <div class="section-kicker">Screenshot PRD · Copyable</div>
+    <h2>User Journey 1 · Create Word List / 创建词表</h2>
+    <div class="route">List Management → Create List → Basics → Single/Multiple language → Import &amp; Translate → Confirm → Select Reviewer → Review → Active</div>
+    <div class="gallery"><article class="card">
+    <div class="card-head"><b>01</b><span>List Management Entry / 主表入口</span></div>
+    <div class="shot"><img src="word-list-prd-assets/36-f1-version-family-catalog.png" alt="List Family and Version Catalog / 词表族与版本目录"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 用户从 Feature Platform 进入 List Management；页面汇总所有词表及当前生命周期状态。
+2. 工具栏支持 Status、Ownership、关键词、Match Mode 等组合筛选；所有条件先选择，再点击 Search 显式生效，多个条件之间为 AND 关系。
+3. Reset 一键清空条件，回到默认视图；点击 Create List 进入创建向导。
+4. 主表按 List Name 聚合为 List Family；主行显示当前 Active List ID、版本数、Owner、Terms 和 Language，点击 ▸ 展开各历史版本。
+5. 版本子行展示 Active / Pending Review / Draft / Archive 状态及版本级 Actions；只有 Active 版本的 List ID 可复制。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Enter List Management from Feature Platform to view all word-list assets and lifecycle states.
+2. The toolbar supports combined filters such as Status, Ownership, keyword, and Match Mode; filters take effect only after clicking Search, and multiple filters use AND logic.
+3. Reset clears all filters and returns to the default view; click Create List to start creation.
+4. The table groups records by List Name as a List Family. The main row shows current Active List ID, version count, Owner, Terms, and Language; click ▸ to expand historical versions.
+5. Version sub-rows show Active / Pending Review / Draft / Archive states and version-level actions. Only the Active version's List ID is copyable.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>02</b><span>Step 1 · Basics / 基础配置</span></div>
+    <div class="shot"><img src="word-list-prd-assets/12-e2-step1-basics.png" alt="Step 1 · Basics / 基础配置"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Step 1 用于配置词表基础信息：List Name、Policy Title / Business Scenario、Match Mode、Primary Key、Secondary Key。
+2. 语言配置改为 Single language / Multiple languages：Single language 可直接按单语词表进入导入确认；Multiple languages 需要走 Translate Agent。
+3. 不再让用户选择 Allow list / Block list 分类；词表是否用于放行或拦截由 IDSP 规则语义决定。
+4. List ID 由系统生成，是后续详情页、审批页、IDSP schema 的稳定引用字段。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Step 1 configures core list metadata: List Name, Policy Title / Business Scenario, Match Mode, Primary Key, and Secondary Key.
+2. Language configuration is Single language / Multiple languages: Single language can move directly to import confirmation, while Multiple languages goes through Translate Agent.
+3. Users no longer choose Allow list / Block list category; allow/block semantics are determined by IDSP rule usage.
+4. List ID is system-generated and becomes the stable reference across Details, Review, and IDSP schema.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>03</b><span>Step 2 · Import &amp; Translate / 导入与翻译</span></div>
+    <div class="shot"><img src="word-list-prd-assets/13-e2-step2-import-translate.png" alt="Step 2 · Import &amp; Translate / 导入与翻译"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 用户下载 Lark Table 模板，按模板填写后上传；单次最多 2,000 行。
+2. 系统先做词表格式校验：列数、必填字段、字符、重复项、长度和 accepted languages；校验失败时展示错误行。
+3. 平台不接受 partial import：所有行必须 validate 通过才能进入下一步；超过 2,000 行 cap 时拒绝上传，并引导用户重新上传。
+4. Single language 模式下，校验通过后用户点击 Next 直接进入 Step 3；Multiple languages 模式下，格式通过后锁定源词条并进入 Translate Agent。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Users download the Lark Table template, fill it in, and upload it; each upload supports up to 2,000 rows.
+2. The system first validates columns, required fields, characters, duplicates, length, and accepted languages; failed rows are shown inline.
+3. Partial import is not accepted: all rows must pass validation before continuing; uploads above the 2,000-row cap are rejected with re-upload guidance.
+4. In Single language mode, clicking Next after validation moves directly to Step 3; in Multiple languages mode, valid source terms are locked and sent to Translate Agent.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>04</b><span>Translate Agent States / 翻译状态</span></div>
+    <div class="shot"><img src="word-list-prd-assets/14-e2-translation-agent-states.png" alt="Translate Agent States / 翻译状态"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Translate Agent 只保留一个主入口：用户确认源词条后主动点击 Translate Now。
+2. Running 状态中系统识别源语言、翻译成 English，并计算完成度；UI 可简化为进度提示，不需要展示复杂过程。
+3. Complete / Issues 状态展示成功、失败和不可用数量，不展示逐词翻译。
+4. 错误 case：Missing value（翻译结果为空）→ 行级提示，可手动补或 Skip；Untranslatable（语言不在 accepted inputs，如 zh-TW）→ 提示 Skip 或回 Step 1 增加语言。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Translate Agent keeps one primary entry: users explicitly click Translate Now after confirming source terms.
+2. During Running, the system detects source language, translates to English, and calculates completion; the UI can be simplified as a progress indicator.
+3. Complete / Issues shows successful, failed, and unusable counts without word-by-word translation.
+4. Error cases: Missing value (empty translation) → row-level prompt with manual fill or Skip; Untranslatable (language not in accepted inputs, e.g. zh-TW) → prompt to Skip or return to Step 1 to add the language.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>05</b><span>Step 3 · Confirm Result / 确认结果</span></div>
+    <div class="shot"><img src="word-list-prd-assets/15-e2-step3-result.png" alt="Step 3 · Confirm Result / 确认结果"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 展示最终导入词条、去重结果、语言分布、翻译 breakdown 和 final configuration。
+2. 用户检查失败原因、修复结果和最终词条内容，确认无误后点击 Confirm。
+3. Confirm 后进入上传完成态；此时内容尚未生效，必须进入 Select Reviewer 和审批流程。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Show final imported terms, deduped result, language distribution, translation breakdown, and final configuration.
+2. Users review failure reasons, fixes, and final terms, then click Confirm.
+3. After confirmation, the upload is complete but not Active; Select Reviewer and approval are still required.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>06</b><span>Upload Complete / 上传完成</span></div>
+    <div class="shot"><img src="word-list-prd-assets/16-e2-upload-complete.png" alt="Upload Complete / 上传完成"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 系统生成 List ID 并锁定本次配置、词条和上传摘要。
+2. 点击 Select Reviewer 进入 Owner 提交页。
+3. 正常创建链路不生成 draft；只有审批驳回后自动保存为 draft。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. The system generates List ID and locks the configuration, terms, and upload summary.
+2. Click Select Reviewer to enter Owner submission.
+3. Normal creation does not create draft; draft is created only after rejection.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>07</b><span>Owner Submit / Owner 提交审批</span></div>
+    <div class="shot"><img src="word-list-prd-assets/20-owner-submit-page.png" alt="Owner Submit / Owner 提交审批"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Owner 检查 List ID、Match Mode、词条数量、Translation Agent 结果和权限信息。
+2. 选择 Reviewer 并填写提交背景；Reviewer 逻辑与 IDSP 现有审批保持一致。
+3. 提交人不能选择自己作为 Reviewer。
+4. 提交后状态进入 Pending Review，并向 Reviewer 发送 Lark 通知。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Owner reviews List ID, Match Mode, term count, Translation Agent result, and permission info.
+2. Select a reviewer and add submission context; reviewer logic follows the existing IDSP review pattern.
+3. The submitter cannot select themselves as reviewer.
+4. After submission, status becomes Pending Review and a Lark notification is sent.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>08</b><span>Reviewer Review / Reviewer 审批</span></div>
+    <div class="shot"><img src="word-list-prd-assets/23-reviewer-review-page.png" alt="Reviewer Review / Reviewer 审批"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Reviewer 查看提交人、配置快照、Owner comment 和完整词条内容。
+2. Reviewer 可对比内容质量、语言覆盖和变更摘要。
+3. 底部完成 Approve 或 Reject 决策。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Reviewer checks submitter, configuration snapshot, Owner comment, and full terms.
+2. Reviewer assesses content quality, language coverage, and change summary.
+3. Approve or Reject from the decision area.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>09</b><span>Reject → draft / 驳回保存 draft</span></div>
+    <div class="shot"><img src="word-list-prd-assets/25-reviewer-reject-state.png" alt="Reject → draft / 驳回保存 draft"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Reject 时必须填写原因。
+2. 首次创建被驳回后，词表自动保存为 draft。
+3. Owner 后续从 draft 继续编辑并重新提交审批。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Rejection requires a reason.
+2. Rejected initial creation is automatically saved as draft.
+3. Owner can continue editing from draft and resubmit.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>10</b><span>Approve → Active / 通过后生效</span></div>
+    <div class="shot"><img src="word-list-prd-assets/26-reviewer-approve-state.png" alt="Approve → Active / 通过后生效"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 审批通过后词表直接变为 Active。
+2. 无需 Owner 额外点击 Publish。
+3. Active 词表进入 Feature Platform 和 IDSP 的可引用集合。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. After approval, the word list becomes Active directly.
+2. No extra Owner Publish action is required.
+3. The Active list becomes available for Feature Platform and IDSP references.</textarea></section>
+    </div>
+  </article></div>
+  </section><section class="section" id="j2">
+    <div class="section-kicker">Screenshot PRD · Copyable</div>
+    <h2>User Journey 2 · Edit Active Word List / 编辑 Active 词表</h2>
+    <div class="route">Active List → Edit → Add / Delete / Modify → Validate changed terms → Select Reviewer → Review → New Active or keep current Active</div>
+    <div class="gallery"><article class="card">
+    <div class="card-head"><b>01</b><span>Main Table States / 主表状态</span></div>
+    <div class="shot"><img src="word-list-prd-assets/02-f1-main-table.png" alt="Main Table States / 主表状态"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 主表展示 Pending Review、Active、draft、Archive 等状态。
+2. 首次提交审核等待时，状态为 Pending Review，List ID 尚未进入 IDSP 可引用集合。
+3. Active 词表可随时 Edit；存在 Pending Revision 时，主表仍保留 Active 状态，但增加 Changes Pending Review 标识。
+4. Pending Revision 期间 Edit 和 Archive 暂时不可用，避免并发修改。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. The table shows Pending Review, Active, draft, Archive, and other states.
+2. For initial submission under review, the status is Pending Review and the List ID is not yet available to IDSP.
+3. Active lists can be edited; when a Pending Revision exists, the row remains Active but shows a Changes Pending Review indicator.
+4. During Pending Revision, Edit and Archive are temporarily disabled to prevent concurrent changes.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>02</b><span>Active Inline Edit / Active 在线编辑</span></div>
+    <div class="shot"><img src="word-list-prd-assets/07-f1-active-edit-modal.png" alt="Active Inline Edit / Active 在线编辑"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 点击任意 Active 词表的 Edit，进入 Active Inline Edit modal。
+2. 当前 Active 内容作为 baseline 展示，元数据只读，List ID 不可变。
+3. 用户可新增、双击修改或删除词条；少量修改可直接双击 cell 或 + Add term，批量修改可使用 Manual Paste 或 Re-import Lark sheet。
+4. 整个编辑和审批期间，旧 Active 版本持续服务 IDSP，新内容只存在于 Pending Revision。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Click Edit on any Active word list to open the Active Inline Edit modal.
+2. Current Active content is displayed as the baseline; metadata is read-only and List ID is immutable.
+3. Users can add, double-click to modify, or delete terms; small edits use cell editing or + Add term, while bulk edits use Manual Paste or Re-import Lark sheet.
+4. During editing and review, the old Active version continues serving IDSP and the new content only exists in Pending Revision.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>03</b><span>Lark Import in Revision / Revision 导入</span></div>
+    <div class="shot"><img src="word-list-prd-assets/08-f1-lark-import-modal.png" alt="Lark Import in Revision / Revision 导入"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 平台支持通过 Lark Table / CSV 重新录入词表，也支持 Manual Paste。
+2. 整表重做时使用 Re-import Lark sheet；10–100 条批量新增建议使用 Manual Paste。
+3. 导入结果只写入 Pending Revision，不直接修改线上 Active。
+4. 解析完成后返回 Imported、Skipped、Failed 数量，失败行需要用户修复后重新提交。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. The platform supports re-importing through Lark Table / CSV and also supports Manual Paste.
+2. Use Re-import Lark sheet for whole-list redo; use Manual Paste for 10–100 bulk additions.
+3. Imported results only update Pending Revision and do not change the online Active version directly.
+4. After parsing, return Imported, Skipped, and Failed counts; failed rows must be fixed before resubmission.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>04</b><span>Change Indicators / 变更标识</span></div>
+    <div class="shot"><img src="word-list-prd-assets/09-f1-active-edit-diff.png" alt="Change Indicators / 变更标识"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 新增、删除和修改使用不同颜色与 + / − / ~ 计数，帮助用户在提交前理解变更范围。
+2. 软删除可恢复；修改行需要展示旧值与新值。
+3. 点击输入后回车确认，变更实时进入 pending diff。
+4. 这些变更会形成 Reviewer 审批页里的 Before / New Diff。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Added, removed, and modified terms use different colors and + / − / ~ counts so users understand the change scope before submission.
+2. Soft deletion can be restored; modified rows show old and new values.
+3. After editing a cell, pressing Enter confirms the change and updates the pending diff.
+4. These changes form the Before / New Diff on the reviewer page.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>05</b><span>Submit Revision / 提交 Revision</span></div>
+    <div class="shot"><img src="word-list-prd-assets/10-f1-submit-revision-modal.png" alt="Submit Revision / 提交 Revision"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 点击 Submit for Review 后弹窗展示 Added、Removed、Modified 数量和 Rules Affected。
+2. 系统只校验新增和修改的词条；删除项不重新翻译。
+3. 用户需要选择非本人的 Reviewer。
+4. 提交后旧版本保持 Active，新内容仅作为 Pending Revision 等待审批。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. After clicking Submit for Review, the modal shows Added, Removed, Modified counts and Rules Affected.
+2. The system validates only added and modified terms; deleted terms are not re-translated.
+3. Users must select a reviewer other than themselves.
+4. After submission, the old version remains Active and the new content waits for approval as Pending Revision.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>06</b><span>Owner Confirm / Owner 二次确认</span></div>
+    <div class="shot"><img src="word-list-prd-assets/22-owner-active-revision-confirm.png" alt="Owner Confirm / Owner 二次确认"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Owner 确认 Added / Removed / Modified 数量和 Rules Affected。
+2. 提交后旧版本保持 Active，新内容仅在 Pending Revision 中。
+3. Lark 通知 Reviewer 和相关规则 Owner。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Owner confirms Added / Removed / Modified counts and Rules Affected.
+2. After submission, old version remains Active while new content stays in Pending Revision.
+3. Notify Reviewer and referencing rule owners through Lark.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>07</b><span>Reviewer Diff / 审批对比</span></div>
+    <div class="shot"><img src="word-list-prd-assets/24-reviewer-before-after-diff.png" alt="Reviewer Diff / 审批对比"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Reviewer 左侧查看当前 Active，右侧查看拟生效内容。
+2. Add 只在右侧出现；Delete 在右侧显示删除线；Modify 展示修改前后值。
+3. 审批通过后系统原子替换 Active 版本。
+4. 审批驳回后丢弃 Pending Revision，当前 Active 不变。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Reviewer sees current Active on the left and the proposed version on the right.
+2. Add appears only on the right; Delete uses strikethrough on the right; Modify shows before and after values.
+3. Approval atomically replaces the Active version.
+4. Rejection discards the Pending Revision and keeps the current Active version unchanged.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>08</b><span>Pending Revision Row / 审批中状态</span></div>
+    <div class="shot"><img src="word-list-prd-assets/03-f1-pending-review-row.png" alt="Pending Revision Row / 审批中状态"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 主表仍显示 Active，同时增加 Changes Pending Review 标识。
+2. Edit / Archive 暂不可用。
+3. 用户可查看审批人、提交时间和 Review Status。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. The row remains Active and shows Changes Pending Review.
+2. Edit / Archive are temporarily disabled.
+3. Users can view reviewer, submit time, and Review Status.</textarea></section>
+    </div>
+  </article></div>
+  </section><section class="section" id="j3">
+    <div class="section-kicker">Screenshot PRD · Copyable</div>
+    <h2>User Journey 3 · Query, Details &amp; Lineage / 查询、详情与血缘</h2>
+    <div class="route">List Management → Search / Filter → Details → View Word List Rule Lineage → Confirm impact → Edit or Archive</div>
+    <div class="gallery"><article class="card">
+    <div class="card-head"><b>01</b><span>Details Modal / 详情弹窗</span></div>
+    <div class="shot"><img src="word-list-prd-assets/05-f1-list-details-modal.png" alt="Details Modal / 详情弹窗"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 点击 Details 查看词表属性：List ID、Match Mode、Owner、更新时间、状态和 Active Refs。
+2. List ID 支持点击复制，替代旧 API Key 口径；List ID 跨版本保持稳定。
+3. Active Refs 显示当前有多少条规则引用该词表，并作为进入词表规则血缘的入口。
+4. Active 词表通过 Pending Revision 修改；List ID 不可变。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Click Details to view list attributes: List ID, Match Mode, Owner, update time, status, and Active Refs.
+2. List ID supports click-to-copy and replaces the old API Key wording; List ID stays stable across versions.
+3. Active Refs shows how many rules currently reference the list and opens Word List Rule Lineage.
+4. Active lists are edited through Pending Revision; List ID is immutable.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>02</b><span>Full Details Page / 完整详情页</span></div>
+    <div class="shot"><img src="word-list-prd-assets/17-f3-list-details.png" alt="Full Details Page / 完整详情页"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 点击 View Configuration 进入完整详情页。
+2. 详情页展示配置、最终词条、源语言、语言覆盖和版本信息。
+3. 所有用户可查看；有权限的用户可发起 Revision。
+4. Archive 在词表存在 Active Refs 时不可用，避免误下线仍被规则使用的词表。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Click View Configuration to open the full details page.
+2. The page shows configuration, final terms, source language, language coverage, and version information.
+3. All users can view; authorized users can initiate a Revision.
+4. Archive is unavailable while Active Refs exist to prevent taking down a list still used by rules.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>03</b><span>Language Coverage / 语言覆盖</span></div>
+    <div class="shot"><img src="word-list-prd-assets/18-f3-language-coverage.png" alt="Language Coverage / 语言覆盖"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 按业务提供的语言优先顺序展示语言、词条数、翻译率和平均翻译完成度。
+2. Translation Rate = 成功翻译词条数 ÷ 该语言总词条数。
+3. Reviewer 可用该模块判断多语言词表质量是否足够进入审批通过。
+4. 本版 PRD 不展开最新语言双阶段 Journey，仅保留 Language Coverage 作为详情页质量信息。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Show language, term count, translation rate, and average translation completion in business priority order.
+2. Translation Rate equals successfully translated terms divided by total terms for that language.
+3. Reviewer can use this module to judge whether the multilingual list quality is sufficient for approval.
+4. This PRD does not expand the latest language two-stage journey; Language Coverage remains as details-page quality information.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>04</b><span>Lineage Drawer / 血缘抽屉</span></div>
+    <div class="shot"><img src="word-list-prd-assets/06-f1-lineage-drawer.png" alt="Lineage Drawer / 血缘抽屉"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 从 Details 的 Active Refs 打开 Word List Rule Lineage。
+2. 血缘抽屉展示“哪个业务场景 → 哪条策略 → 哪个规则组 → 哪条规则”正在使用该词表。
+3. 默认 Active only，避免 Draft / 非生效规则污染线上影响判断。
+4. 价值：用户在修改或下线词表前，先看清影响面。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Open Word List Rule Lineage from Active Refs in Details.
+2. The lineage drawer shows which business scenario → policy → rule group → rule is using the list.
+3. Active only is on by default to avoid Draft / non-active rule noise.
+4. Value: users can understand impact before editing or taking a list offline.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>05</b><span>Lineage Full View / 血缘完整视图</span></div>
+    <div class="shot"><img src="word-list-prd-assets/19-f3-lineage-drawer.png" alt="Lineage Full View / 血缘完整视图"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 汇总 Rule Group References、Active Nodes 和 Active Canvases。
+2. 用户在修改或 Archive 前确认影响范围。
+3. 审批通过后更新版本、同步状态和审计记录。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Summarize Rule Group References, Active Nodes, and Active Canvases.
+2. Users confirm impact before editing or archiving.
+3. After approval, update version, sync status, and audit log.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>06</b><span>Archive Blocked / Archive 拦截</span></div>
+    <div class="shot"><img src="word-list-prd-assets/11-f1-archive-blocked-toast.png" alt="Archive Blocked / Archive 拦截"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 当 Active Refs &gt; 0，也就是仍被 IDSP 线上规则引用时，系统阻止 Archive。
+2. Toast 明确展示正在引用该词表的 Active Rule 数量。
+3. 用户需要先下线或解除引用规则，再重新 Archive。
+4. 当引用数 = 0 时，Archive 按钮才允许生效。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. When Active Refs &gt; 0, meaning the list is still referenced by online IDSP rules, Archive is blocked.
+2. The toast clearly states how many Active Rules still reference the list.
+3. Users must offline or remove the referencing rules before retrying Archive.
+4. Archive becomes available only when the reference count reaches 0.</textarea></section>
+    </div>
+  </article></div>
+  </section><section class="section" id="j4">
+    <div class="section-kicker">Screenshot PRD · Renewed from G1 · 07/17/2026</div>
+    <h2>User Journey 4 · IDSP Word List Picker / IDSP 词表引用配置</h2>
+    <div class="route">IDSP Edit Rule → Conditions → Select is_hit_list / is_not_hit_list → Select Data Source → Select in / not in → Value opens Active Word List Picker → Select one list → Done</div>
+    <div class="gallery"><article class="card">
+      <div class="card-head"><b>01</b><span>Rule Context &amp; Condition Entry / 规则上下文与入口</span></div>
+      <div class="shot"><img src="word-list-prd-assets/39-g1-rule-entry-new.png" alt="Renewed G1 rule condition entry"></div>
+      <div class="copy-grid">
+        <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 用户进入 IDSP Edit Rule → Conditions；页面顶部保留 Business Scenario、Policy、Canvas、Rule Group 上下文，帮助确认规则归属，但这些字段不再作为 Picker 内的分类层级。
+2. Condition row 保持 Feature / Operator / Value 三段式结构；未配置时分别展示 Please select / Please input。
+3. 普通 Feature 继续使用原有值类型；只有 List Attribute 类型会进入 Data Source + Word List Picker 链路。
+4. 新增多个词表条件时，使用多个 condition row，并通过 Logical Expression 组合。</textarea></section>
+        <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Enter IDSP Edit Rule → Conditions. Business Scenario, Policy, Canvas, and Rule Group remain visible as rule context, but they are no longer category levels inside the Picker.
+2. Each condition keeps the Feature / Operator / Value structure; unconfigured fields show Please select / Please input.
+3. Regular features keep their existing value types. Only List Attribute features enter the Data Source + Word List Picker flow.
+4. Model multiple word-list checks as separate condition rows and combine them with Logical Expression.</textarea></section>
+      </div>
+    </article><article class="card">
+      <div class="card-head"><b>02</b><span>Select List Attribute / 选择 List Attribute</span></div>
+      <div class="shot"><img src="word-list-prd-assets/40-g1-list-attribute-feature.png" alt="Select is_hit_list or is_not_hit_list"></div>
+      <div class="copy-grid">
+        <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Feature 下拉按 List Attribute、Room Attributes、Model Predictions、Policy / Punish Signals、User Behavior 分组。
+2. 词表能力统一收敛到两个 List Attribute：is_hit_list 和 is_not_hit_list；不再使用抽象的 list-kind feature，也不再配置 Allow / Block category。
+3. is_hit_list 表示所选 Data Source 命中指定 Active 词表；is_not_hit_list 表示未命中。Operator 再通过 in / not in 表达集合关系。
+4. 点击 List Attribute 后必须先选择 Data Source，完成后才写回 Feature cell。</textarea></section>
+        <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. The Feature dropdown is grouped into List Attribute, Room Attributes, Model Predictions, Policy / Punish Signals, and User Behavior.
+2. Word-list capability is represented by two List Attributes: is_hit_list and is_not_hit_list. The generic list-kind feature wording and Allow / Block category are removed.
+3. is_hit_list means the selected Data Source hits the chosen Active list; is_not_hit_list means it does not. The in / not in operator expresses the set relationship.
+4. A Data Source must be selected before the List Attribute is committed to the Feature cell.</textarea></section>
+      </div>
+    </article><article class="card">
+      <div class="card-head"><b>03</b><span>Select Data Source / 选择检测数据源</span></div>
+      <div class="shot"><img src="word-list-prd-assets/41-g1-data-source-picker.png" alt="G1 Data Source picker"></div>
+      <div class="copy-grid">
+        <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Data Source 为单选，决定本条 condition 用哪段文本撞词表。
+2. 本期候选包括 OCR、ASR、直播间标题、Bio、用户名称、LIVE goal、About me、Pin、Sticker、LIVE board、Poll。
+3. 选择后 Feature cell 同时展示 List Attribute 和 Data Source chip，例如 is_hit_list + ASR。
+4. Data Source 是 condition 级配置；不同数据源需要拆成不同 condition row，便于 Trace 精确解释每一次命中。</textarea></section>
+        <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Data Source is single-select and determines which text field this condition checks against the list.
+2. Current options include OCR, ASR, room title, Bio, user name, LIVE goal, About me, Pin, Sticker, LIVE board, and Poll.
+3. After selection, the Feature cell shows both the List Attribute and a Data Source chip, for example is_hit_list + ASR.
+4. Data Source is condition-scoped. Different sources use separate condition rows so Trace can explain each hit precisely.</textarea></section>
+      </div>
+    </article><article class="card">
+      <div class="card-head"><b>04</b><span>Active Word List Picker / Active 词表选择器</span></div>
+      <div class="shot"><img src="word-list-prd-assets/42-g1-active-list-picker-new.png" alt="Renewed flat Active Word List Picker"></div>
+      <div class="copy-grid">
+        <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 当 Operator 为 in / not in 时，点击 Value 打开统一 Word List Picker；其他 Operator 保持普通输入方式。
+2. 候选数据源在后端即限定为 Active，Draft / Pending Review / Archive 不进入 Picker。
+3. 新版取消 Scenario / Policy category accordion；候选以扁平词表行展示，Current Policy 相关词表优先，其他 Policy 后置。
+4. 搜索覆盖 List Name、Policy Title、Primary Key；每行直接展示 Active、Scenario、Policy、Primary Key、Secondary Key、Match Mode、Owner。
+5. Active 词表如存在 Pending Revision，仅显示 Changes pending review；当前规则仍使用旧 Active 版本。每个 condition 只能选择一个词表。</textarea></section>
+        <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. When Operator is in / not in, clicking Value opens the unified Word List Picker. Other operators keep their normal value input.
+2. The backend candidate source is Active-only; Draft, Pending Review, and Archive never enter the Picker.
+3. The renewed design removes the Scenario / Policy category accordion. Lists are rendered as flat rows, with Current Policy matches prioritized and other policies following.
+4. Search covers List Name, Policy Title, and Primary Key. Each row shows Active, Scenario, Policy, Primary Key, Secondary Key, Match Mode, and Owner.
+5. Changes pending review is informational only; the rule continues using the current Active version. Each condition selects exactly one list.</textarea></section>
+      </div>
+    </article><article class="card">
+      <div class="card-head"><b>05</b><span>Selection &amp; Schema / 选择结果与 Schema</span></div>
+      <div class="shot"><img src="word-list-prd-assets/43-g1-selected-schema-new.png" alt="Selected word list and schema preview"></div>
+      <div class="copy-grid">
+        <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 选中一条词表后点击 Done，Value cell 写回单个可删除 pill；再次打开 Picker 时保留当前选择。
+2. Rule Schema 的 Value 只保存 list_id 和 list_name_snapshot；snapshot 仅用于页面展示和 Diff 可读性。
+3. 完整 condition 还需要保存 Feature = is_hit_list / is_not_hit_list、Data Source ID 和 Operator = in / not in。
+4. runtime 通过 list_id 查询 word_list_active_pointer；规则不持久化 version_id。Active 审批切换后无需重新发布规则。</textarea></section>
+        <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. After selecting one list and clicking Done, Value renders one removable pill. Reopening the Picker preserves the selection.
+2. Rule Schema Value stores only list_id and list_name_snapshot; the snapshot is for display and readable diffs only.
+3. The complete condition also stores Feature = is_hit_list / is_not_hit_list, Data Source ID, and Operator = in / not in.
+4. Runtime resolves word_list_active_pointer by list_id; rules do not persist version_id. An approved Active switch requires no rule republish.</textarea></section>
+      </div>
+    </article></div>
+  </section><section class="section" id="j4-legacy" style="display:none" aria-hidden="true">
+    <div class="section-kicker">Screenshot PRD · Copyable</div>
+    <h2>User Journey 4 · IDSP Word List Picker / IDSP 词表引用配置</h2>
+    <div class="route">IDSP Rule Conditions → Select list-kind feature → Value opens Word List Picker → Policy Title filter → Active List → Done → schema stores List ID</div>
+    <div class="gallery"><article class="card">
+    <div class="card-head"><b>01</b><span>Rule Conditions Entry / 规则配置入口</span></div>
+    <div class="shot"><img src="word-list-prd-assets/27-g1-rule-conditions.png" alt="Rule Conditions Entry / 规则配置入口"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 策略 RD 打开 IDSP Edit Rule → Conditions，并新增一个 Condition。
+2. 在 Feature 字段选择 list-kind feature；Operator 使用 in / not in。
+3. Value 字段不是普通手输值，而是打开统一 Word List Picker。
+4. 只有 Active 词表进入候选集合。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. RD opens IDSP Edit Rule → Conditions and adds a condition.
+2. Select a list-kind feature in the Feature field; use in / not in as the operator.
+3. The Value field is not a plain text input; it opens the unified Word List Picker.
+4. Only Active word lists enter the candidate set.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>02</b><span>Select List-kind Feature / 选择 list-kind feature</span></div>
+    <div class="shot"><img src="word-list-prd-assets/28-g1-hit-word-list-feature.png" alt="Select List-kind Feature / 选择 list-kind feature"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 选择 list-kind feature 后，当前 condition row 的 Value 自动进入词表引用配置。
+2. 该 Value 不是 True / False，也不是手动输入字符串，而是一个 Active 词表引用。
+3. 不再出现 Allow list / Block list 类型选择；一个 condition row 只绑定一个具体词表。
+4. 多个词表需要通过多个 condition row + Logical Expression 组合。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. After selecting a list-kind feature, the Value of the current condition row becomes a word-list reference.
+2. The Value is not True / False or a manually typed string; it is an Active word-list reference.
+3. Allow list / Block list type selection is removed; one condition row binds one specific list.
+4. Multiple lists should be modeled through multiple condition rows plus Logical Expression.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>03</b><span>Unified Active Picker / 统一 Active 词表选择器</span></div>
+    <div class="shot"><img src="word-list-prd-assets/29-g1-level1-list-type.png" alt="Unified Active Picker / 统一 Active 词表选择器"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Picker 数据源只包含 Active 词表。
+2. Draft / Pending Review / Archive 不进入 picker，避免未生效内容被规则引用。
+3. 如果某个 Active 词表有 Pending Revision，仅展示提示；规则继续使用当前 Active 版本。
+4. 审批通过后，IDSP runtime 自动 pick up 新 Active 版本，用户无需在规则侧操作。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. The picker data source contains only Active word lists.
+2. Draft / Pending Review / Archive are excluded so rules cannot reference unapproved content.
+3. If an Active list has a Pending Revision, the picker only shows an informational tag; the rule keeps using the current Active version.
+4. After approval, IDSP runtime automatically picks up the new Active version with no rule-side action required.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>04</b><span>Policy Title Filter / Policy Title 筛选</span></div>
+    <div class="shot"><img src="word-list-prd-assets/31-g1-policy-title-filter.png" alt="Policy Title Filter / Policy Title 筛选"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 先选择 Policy Title 缩小候选范围，Policy Title 文案需要与业务/策略 taxonomy 对齐。
+2. All Policy Titles 清除该筛选；Active only 始终生效。
+3. 支持按名称、Policy Title、Primary Key、Owner 查询。
+4. 筛选结果为空时提供 Clear Filters 和 Open List Management。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Select Policy Title first to narrow the candidate scope; Policy Title copy must align with the business / policy taxonomy.
+2. All Policy Titles clears this filter, while Active only always remains enforced.
+3. Support search by name, Policy Title, Primary Key, and Owner.
+4. When no result exists, offer Clear Filters and Open List Management.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>05</b><span>Hover Summary / 悬浮信息</span></div>
+    <div class="shot"><img src="word-list-prd-assets/32-g1-list-hover-summary.png" alt="Hover Summary / 悬浮信息"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Hover 具体词表查看 Primary Key、Secondary Key、Match Mode。
+2. 用户不离开规则页面即可确认撞库字段和匹配逻辑。
+3. 每个条件只绑定一个具体 Active 词表。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. Hover a list to inspect Primary Key, Secondary Key, and Match Mode.
+2. Users confirm lookup fields and matching behavior without leaving the rule page.
+3. Each condition binds exactly one Active word list.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>06</b><span>Schema Preview / Schema 预览</span></div>
+    <div class="shot"><img src="word-list-prd-assets/33-g1-schema-preview.png" alt="Schema Preview / Schema 预览"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 选择完成后，结果写入 condition.value。
+2. Schema 只保存 list_id 和 list_name_snapshot；list_name_snapshot 仅用于页面展示和 Diff 可读性。
+3. IDSP runtime 从规则配置中读取 list_id，再查询 word_list_active_pointer 得到 active_version_id。
+4. 规则不持久化 version_id，因此 Active 切换对规则无感，词表更新不要求规则重新发布。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. After selection, the result is written into condition.value.
+2. Schema stores only list_id and list_name_snapshot; list_name_snapshot is used only for display and Diff readability.
+3. IDSP runtime reads list_id from rule configuration, then queries word_list_active_pointer to obtain active_version_id.
+4. Rules do not persist version_id, so Active version switches are transparent and word-list updates do not require rule republishing.</textarea></section>
+    </div>
+  </article></div>
+  </section>
+<section class="section" id="j5">
+  <div class="section-kicker">Screenshot PRD · Renewed from Trace v0.1 · 07/21/2026</div>
+  <h2>User Journey 5 · Trace Word List Hit / 词表命中追溯</h2>
+  <div class="route">IDSP Data Report → Select Hit + Effective Rule → Inspect Word-list Condition → Compare Configured vs. Actual Hit → Open Actual Hit → Review Original Value → Switch Hit-list Tab → Inspect Hit Language &amp; English Gloss</div>
+  <div class="gallery"><article class="card">
+    <div class="card-head"><b>01</b><span>Configured vs. Actual Hit / 配置词表与实际命中</span></div>
+    <div class="shot"><img src="word-list-prd-assets/44-trace-hit-report-updated.png" alt="Updated Trace Word List Hit Report / 最新词表命中追溯"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 用户从 IDSP Data Report 进入某条 Hit + Effective 规则，查看规则的 Conditions、Logical Expression 和最终 Action。
+2. 对于 operator = hit any of 的词表条件，Configured 展示该条件配置的全部词表；未命中的词表降低视觉权重。
+3. Actual Hit 只展示本次 Trace 真正命中的 Active List ID；未命中的词表不进入详情抽屉。
+4. 不同 Data Source 使用独立 Condition，例如 ASR 对应 slice_info_host_asr_text，OCR 对应 ocr_text_default_lower；抽屉按当前 Condition 展示，不提供 Data Source Tab。
+5. 点击任一 Actual Hit chip 打开该 Condition 的完整命中抽屉；点击 Logical Expression 旁的眼睛按钮查看 Condition Hit Flow，橙色表示命中，蓝框表示当前选中条件。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. From IDSP Data Report, open a Hit + Effective rule to inspect Conditions, Logical Expression, and the final Action.
+2. For a word-list condition using hit any of, Configured shows every list configured on that condition; non-hit lists have lower visual emphasis.
+3. Actual Hit shows only the Active List IDs that truly matched this Trace; non-hit lists do not enter the detail drawer.
+4. Each Data Source uses a separate condition—for example, ASR uses slice_info_host_asr_text and OCR uses ocr_text_default_lower. The drawer is scoped to the current condition and has no Data Source tabs.
+5. Click any Actual Hit chip to open the condition-level hit drawer. Click the eye beside Logical Expression to view Condition Hit Flow; orange means hit and a blue outline marks the selected condition.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>02</b><span>Feature Original Value &amp; Hit-list Tabs / 原始值与多词表切换</span></div>
+    <div class="shot"><img src="word-list-prd-assets/45-trace-original-value-multi-list.png" alt="Feature Original Value and multiple hit-list tabs"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 抽屉顶部优先展示 Feature · Data Source 和 Original Value；Original Value 是该 Trace 执行时 Feature 实际读取到的原始数据，不是 Input Language 或 Source Language。
+2. Original Value 可包含多段 ASR/OCR chunk、多个语言、emoji 和混合文本；按原始顺序编号展示，超过固定高度后在模块内部滚动。
+3. Owner、Status、Trace hit at 下沉为次级 Meta，不抢占原始数据与命中结果的视觉层级。
+4. 同一 Condition 可能产生多个实际命中词表；抽屉只为 Actual Hit 列表生成横向 Tab。点击 Tab 切换词表，当前 Tab 使用橙色高亮。
+5. 此处只描述 Trace 结果展示，不修改 Journey 4 的配置规则：规则侧仍为一条 Condition 绑定一个词表；多个命中词表可以来自该规则内多个词表 Condition 的聚合结果。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. The drawer prioritizes Feature · Data Source and Original Value. Original Value is the raw value read by the feature at Trace execution time—not Input Language or Source Language.
+2. Original Value may contain multiple ASR/OCR chunks, mixed languages, emoji, and combined text. Preserve source order with row numbers and use internal scrolling beyond the fixed height.
+3. Owner, Status, and Trace hit at are secondary metadata so they do not compete with raw input and hit results.
+4. A condition-level Trace result may aggregate multiple actual hit lists. Generate horizontal tabs only for Actual Hit lists; the selected tab uses orange emphasis.
+5. This section only specifies Trace presentation and does not change Journey 4: rule configuration still binds one list per condition; multiple hit-list tabs may aggregate results from multiple list conditions in the same rule.</textarea></section>
+    </div>
+  </article><article class="card">
+    <div class="card-head"><b>03</b><span>Hit Languages, Terms &amp; English Gloss / 命中语言、词条与英文释义</span></div>
+    <div class="shot"><img src="word-list-prd-assets/46-trace-language-en-hover.png" alt="Hit-language panels and English gloss hover"></div>
+    <div class="copy-grid">
+      <section><h4>中文说明 <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. 选中某个 List Tab 后，只生成该词表实际命中的语言面板；未命中的语言不展示。
+2. 单语言命中时面板占满可用宽度；2–4 种命中语言并排展示。每个面板显示 Language Name、Language Code、Hit Count 和 Total Count。
+3. 面板内保留该命中语言下的词条上下文，将真实命中词条置顶并用橙色 HIT 高亮；其他词条保持中性，方便用户核对潜在漏命中。
+4. 非英语词条通过 hover for EN 查看英文释义；英文释义只用于帮助跨区域 PM 理解，不作为额外命中记录，也不单独生成 English 面板。
+5. 历史 Trace 必须读取执行时使用的 Active snapshot。当前 Active 后续更新不能改变历史 Trace 的 Original Value、命中词表、语言与词条解释。</textarea></section>
+      <section><h4>English Description <button onclick="copyText(this)">Copy</button></h4><textarea readonly>1. After selecting a List tab, render panels only for languages that actually hit in that list; non-hit languages are omitted.
+2. A single hit language uses the full width; two to four hit languages appear side by side. Each panel shows Language Name, Language Code, Hit Count, and Total Count.
+3. Keep the term context for each hit language, sort actual hits to the top, and mark them with orange HIT badges. Neutral rows remain visible so users can inspect potential misses.
+4. Non-English terms expose an English gloss through hover for EN. The gloss helps cross-region PMs understand the term; it is not another hit and does not create a separate English panel.
+5. Historical Trace must resolve the Active snapshot used at execution time. Later Active updates must not change the historical Original Value, hit lists, languages, or term explanation.</textarea></section>
+    </div>
+  </article></div>
+</section>
+<section class="section"><div class="section-kicker">Backend Contract</div><h2>后端契约 / No-page Requirements</h2><table class="summary-table"><tr><th>Area</th><th>Requirement</th></tr><tr><td>Lifecycle</td><td>Pending Review → Approve = Active; Pending Review → Reject = draft. Active edit creates isolated Pending Revision; rejected revision keeps current Active unchanged.</td></tr><tr><td>Catalog</td><td>List Family is the stable asset-level grouping. Every version keeps its own status and audit record. The family row resolves the current Active version; a family without Active must not expose a copyable ID or enter IDSP candidates.</td></tr><tr><td>IDSP Sync</td><td>IDSP only consumes Active lists. Rules store stable List ID and read the latest Active version automatically; no rule republish is required after word-list updates.</td></tr><tr><td>IDSP condition</td><td>A word-list condition must persist the List Attribute (<code>is_hit_list</code> / <code>is_not_hit_list</code>), one Data Source ID, operator (<code>in</code> / <code>not in</code>), and one selected Active list. Multiple lists are modeled as multiple conditions plus Logical Expression.</td></tr><tr><td>Schema</td><td><code>condition.value = { list_id, list_name_snapshot }</code>. No <code>type</code> field for Allow / Block category. The backend validates that the submitted list is Active and that the Data Source is supported by the selected List Attribute.</td></tr><tr><td>Picker empty state</td><td>When no Active candidate matches, show No matching Active lists in scope with Clear filters and Open List Management. Never fall back to Draft / Pending Review / Archive results.</td></tr><tr><td>Trace contract</td><td>Return one condition-scoped object with <code>feature</code>, <code>ds_code</code>, ordered <code>original_value[]</code>, and <code>hit_lists[]</code>. Each hit-list object contains <code>list_id</code>, <code>list_name</code>, <code>active_version_id_at_execution</code>, and hit-language groups. Each language group contains <code>lang</code>, <code>code</code>, and term rows with <code>term</code>, optional English gloss <code>en</code>, and boolean <code>hit</code>. Only actually-hit lists and languages enter the response; term context within a hit language may include non-hit rows for inspection.</td></tr><tr><td>Trace version resolution</td><td>Historical Trace must resolve <code>active_version_id_at_execution</code>, never the current Active pointer. The original value, hit lists, language groups, matched terms, and English glosses must remain reproducible after later list updates.</td></tr><tr><td>Trace empty/error states</td><td>If the configured list does not hit, return an empty <code>hit_lists</code> array while keeping Configured visible in Data Report. If Original Value is empty, show an inline No source value captured state. If the recorded version is unavailable, show Explanation unavailable with Trace ID, Data Source, and List ID; never silently fall back to current Active content.</td></tr><tr><td>Validation</td><td>Validate required columns, format, duplicates, length, accepted languages, self-review blocker, required Data Source, supported operator, and Active-list status. Return row-level errors for upload failures.</td></tr></table></section>
+</div><script>
+async function copyText(btn){const t=btn.closest('section').querySelector('textarea');t.select();try{await navigator.clipboard.writeText(t.value);btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1200)}catch(e){document.execCommand('copy');btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1200)}}
+</script></body></html>
