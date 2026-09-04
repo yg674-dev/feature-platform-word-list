@@ -86,6 +86,9 @@ These are the six calls that shape everything else — most of them are **deleti
 
 ## 6. Catalog data model
 
+![List Management filters — Status, Ownership, keyword, Language](docs/screens/f1-filters.png)
+
+
 | Level | Displays | Rules |
 | --- | --- | --- |
 | **List Family** *(main row)* | List Name, current Active List ID, version count, Owner, Terms, Language | One evolving asset. Its status dot only indicates **whether an Active version exists**. Approval and deletion are never family-level |
@@ -94,6 +97,21 @@ These are the six calls that shape everything else — most of them are **deleti
 | **Language filter** | All, plus `en · es · id · ar · vi · th · ms · tr · fil · ja · fr · de · ro · it · pt · ko` | Combines with Status, Ownership, and Keyword using **AND**, applied on Search. Reset restores defaults |
 
 ## 7. Journey 1 · Create a word list
+
+![Journey 1 — create and publish a word list](docs/journey/journey-1-create-and-publish.png)
+
+![F1 main table — four lifecycle states](docs/screens/f1-main-table.png)
+
+![Create wizard, Step 1 — list basics](docs/screens/create-step1-basics.png)
+
+![Step 2 — Lark Table import and validation](docs/screens/create-step2-import.png)
+
+![Translate Agent — running, complete, and issue states](docs/screens/translate-agent.png)
+
+![Step 3 — confirm the final result](docs/screens/create-step3-confirm.png)
+
+![Owner submit — pick a reviewer, self-review blocked](docs/screens/owner-submit.png)
+
 
 `List Management → Create List → Basics → Single/Multiple language → Import & Translate → Confirm → Select Reviewer → Review → Active`
 
@@ -129,6 +147,15 @@ These are the six calls that shape everything else — most of them are **deleti
 
 ## 8. Journey 2 · Edit an Active word list
 
+![Journey 2 — edit an Active word list without taking it offline](docs/journey/journey-2-edit-active.png)
+
+![Active inline edit](docs/screens/active-inline-edit.png)
+
+![Change indicators — added, removed, and modified with + / − / ~ counts](docs/screens/change-indicators.png)
+
+![The row stays Active and shows Changes Pending Review](docs/screens/pending-revision-row.png)
+
+
 `Active → Edit → Add / Delete / Modify → Validate changed terms → Select Reviewer → Review → new Active, or the current Active stands`
 
 - **The Active version never stops serving.** Editing an Active list creates an **isolated Pending
@@ -144,6 +171,15 @@ These are the six calls that shape everything else — most of them are **deleti
 
 ## 9. Journey 3 · Query, details, and lineage
 
+![Journey 3 — lineage and syncing the updated version to IDSP](docs/journey/journey-3-sync-to-idsp.png)
+
+![Details modal — Active Refs opens the lineage drawer](docs/screens/details-and-active-refs.png)
+
+![Full details page](docs/screens/view-configuration.png)
+
+![Archive blocked while Active Refs > 0](docs/screens/archive-blocked.png)
+
+
 - **Details modal** — List ID, Match Mode, Owner, update time, status, and **Active Refs**.
 - **Full details page** via *View Configuration*.
 - **Language coverage** — language, term count, translation rate, and average translation
@@ -154,6 +190,20 @@ These are the six calls that shape everything else — most of them are **deleti
   archived; references must be released first. This is the orphan-aware blocker.
 
 ## 10. Journey 4 · IDSP word list picker
+
+![Journey 4 — configuring a hit-word-list rule condition and resolving it at runtime](docs/journey/journey-4-configure-hit-word-list.png)
+
+> **Note on this diagram.** It predates the 07/21 revision and still shows the **two-level picker**
+> (Level 1 Allow List / Block List → Level 2 Policy Title) and an API Key. Both were removed: the
+> picker is now flat and Active-only, and the rule expresses allow/block through
+> `is_hit_list` / `is_not_hit_list` + Data Source + `in` / `not in`. The runtime half of the diagram —
+> stable `list_id`, latest-Active resolution, no rule republish, fall back to the last successfully
+> loaded version — is current and is the contract described below.
+
+![IDSP picker](docs/screens/idsp-picker.png)
+
+![Picker filters and hover summary](docs/screens/idsp-picker-filters.png)
+
 
 **Rule context stays visible, but stops being a navigation hierarchy.** Business Scenario, Policy,
 Canvas, and Rule Group are shown as context — they are no longer category levels inside the Picker.
@@ -204,6 +254,11 @@ against which raw value?*
 | **Validation** | Required columns, format, duplicates, length, accepted languages, self-review blocker, required Data Source, supported operator, Active-list status. Upload failures return row-level errors |
 
 ## 13. What's in this repo
+
+| Source | What it is |
+| --- | --- |
+| [`docs/List-Management-PRD.pdf`](docs/List-Management-PRD.pdf) | The List Management PRD deck — journey diagrams and UI screens. Predates the 07/21 revision on the picker and API Key; see the note in Journey 4 |
+| [`Word List Lifecycle PRD.html`](https://htmlpreview.github.io/?https://github.com/yg674-dev/feature-platform-word-list/blob/main/Word%20List%20Lifecycle%20PRD.html) | The current bilingual PRD, updated 07/21/2026 |
 
 ### Main flow
 
