@@ -12,19 +12,26 @@ This README is the PRD in full, in English.
 
 ---
 
-## 1. TL;DR
+## 1. Business goal
 
-A word list is the set of terms a moderation rule matches against, which means editing one
-silently changes what production blocks — across every rule that references it, in every market,
-with no deploy. The risk is not that the terms are wrong; it is that nobody can see the blast
-radius before the change lands, or reconstruct afterwards why a specific piece of content was
+Moderation policy moves at the speed of its word lists. The business needs those lists to change
+quickly across 16 languages and many markets — without a deploy, without taking the current policy
+offline, and without losing the ability to explain afterwards why a specific piece of content was
 caught.
 
-This is the full lifecycle built around two guarantees: **unapproved content never reaches
-production**, and **the current Active version keeps serving while a new one is under review**.
-Everything else follows from those — version-level IDs, an Archive blocked while references are
-live, a reviewer diff showing Rules Affected, and a Trace that resolves the version that ran at
-execution time rather than whatever is Active today.
+The goal is to make word lists **safe to change fast**. Three guarantees carry that, and every
+design decision below follows from them:
+
+- **Unapproved content never reaches production.**
+- **The current Active version keeps serving while a new one is under review.**
+- **Every enforcement decision stays reconstructible** against the exact version that ran, not
+  whatever is Active today.
+
+Why this is risky without them: a word list is the set of terms a moderation rule matches against,
+so editing one silently changes what production blocks — across every rule that references it, in
+every market, with no deploy. The danger is not that the terms are wrong; it is that nobody can see
+the blast radius before the change lands, or reconstruct afterwards what caught a given piece of
+content.
 
 Five user journeys: **Create** · **Edit Active** · **Query / Lineage** · **IDSP Picker** ·
 **Trace Hit Explainability**.
