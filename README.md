@@ -5,8 +5,9 @@ creation, translation, approval, versioning, reference from strategy rules, and 
 designed so **unapproved content can never reach production** and **an old version keeps serving
 while a new one is under review**.
 
-**PRD source:** [`Word List Lifecycle PRD.html`](https://htmlpreview.github.io/?https://github.com/yg674-dev/feature-platform-word-list/blob/main/Word%20List%20Lifecycle%20PRD.html)
-(bilingual screenshot PRD, updated 07/21/2026) · **Prototypes:** see [What's in this repo](#12-whats-in-this-repo)
+**PRDs** — [Word List Lifecycle](https://htmlpreview.github.io/?https://github.com/yg674-dev/feature-platform-word-list/blob/main/Word%20List%20Lifecycle%20PRD.html) (current, bilingual, 07/21/2026)
+· [List Management](docs/List-Management-PRD.pdf) (PDF, journey diagrams and UI screens)
+· **Prototypes** — see [What's in this repo](#14-whats-in-this-repo)
 
 This README is the PRD in full, in English.
 
