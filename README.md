@@ -12,7 +12,19 @@ This README is the PRD in full, in English.
 
 ---
 
-## 1. Summary
+## 1. TL;DR
+
+A word list is the set of terms a moderation rule matches against, which means editing one
+silently changes what production blocks — across every rule that references it, in every market,
+with no deploy. The risk is not that the terms are wrong; it is that nobody can see the blast
+radius before the change lands, or reconstruct afterwards why a specific piece of content was
+caught.
+
+This is the full lifecycle built around two guarantees: **unapproved content never reaches
+production**, and **the current Active version keeps serving while a new one is under review**.
+Everything else follows from those — version-level IDs, an Archive blocked while references are
+live, a reviewer diff showing Rules Affected, and a Trace that resolves the version that ran at
+execution time rather than whatever is Active today.
 
 Five user journeys: **Create** · **Edit Active** · **Query / Lineage** · **IDSP Picker** ·
 **Trace Hit Explainability**.
